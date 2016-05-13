@@ -9,11 +9,12 @@ class atom_cls
 {
 	private:	
 		double RealDistance(coordinate);//the real distance to a coord
-		const simulation &parent;		//gives atom access to parent class (for lattice)
+		// const simulation &parent;		//gives atom access to parent class (for lattice)
+
 	public:
 		//constructors-------------------
-		// atom_cls();
-		atom_cls(const simulation& p);	//must be constructed with reference
+		atom_cls();
+		// atom_cls(const simulation& p);	//must be constructed with reference
 		//atom_cls(string,coordinate,atom_cls*[]);
 		//prototypes----------------------
 		double ModDistance(atom_cls*);	//shortest distance to another atom
@@ -25,6 +26,7 @@ class atom_cls
 		bool exists;					//if the atom should be concidered
 		bool freedom[3];				//if free to move along axis
 		unsigned int element;			//index of atoms element in the array... later use 
+		static double lattice[3];				//shared lattice for all atoms
 
 };
 

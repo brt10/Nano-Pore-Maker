@@ -20,7 +20,10 @@ bool simulation::ReadData(string filename)
 	//read from file...
 	infile >> multiplier;
 	for(int a=0; a<3; a++)
+	{
 		infile >> lattice[a];
+		atom[0][0].lattice[a] = lattice[a];	//set static 
+	}
 	//read element names
 	getline(infile,line);	
 	ss<<line;
@@ -42,6 +45,8 @@ bool simulation::ReadData(string filename)
 			}
 		}
 	infile.close();
+
+	//send lattice data
 	return 1;
 }
 int simulation::Associate(void)

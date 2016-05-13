@@ -1,15 +1,15 @@
 #include "atom.h"
-// atom_cls::atom_cls()
-// {
-// 	bonds = 0;
-// 	exists = 1;
-// }
-atom_cls::atom_cls(const simulation& p) : parent(p)
+atom_cls::atom_cls()
 {
-	// parent = p;
 	bonds = 0;
 	exists = 1;
 }
+// atom_cls::atom_cls(const simulation& p) : parent(p)
+// {
+// 	// parent = p;
+// 	bonds = 0;
+// 	exists = 1;
+// }
 double atom_cls::ModDistance(atom_cls *atom)
 {
 	// double minDistance
@@ -31,8 +31,8 @@ double atom_cls::RealDistance(coordinate a)
 	coordinate b = this->co;
 	for(int i=0; i<3; i++)
 	{
-		a.ord[i]*=this->parent.lattice[i];
-		b.ord[i]*=this->parent.lattice[i];
+		a.ord[i]*=this->lattice[i];
+		b.ord[i]*=this->lattice[i];
 	}
 	return Distance(a,b);	//defined with coordinates
 }
