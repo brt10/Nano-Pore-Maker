@@ -1,9 +1,19 @@
 #include "atom.h"
+
+double atom_cls::lattice[3];
+
 atom_cls::atom_cls()
 {
+	for(int a=0; a<3; a++)
+		lattice[a] = 1;
 	bonds = 0;
 	exists = 1;
 }
+// atom_cls::atom_cls(double l[3])
+// {
+// 	for(int a=0; a<3; a++)
+// 		lattice[a] = l[a];
+// }
 // atom_cls::atom_cls(const simulation& p) : parent(p)
 // {
 // 	// parent = p;
@@ -31,8 +41,8 @@ double atom_cls::RealDistance(coordinate a)
 	coordinate b = this->co;
 	for(int i=0; i<3; i++)
 	{
-		a.ord[i]*=this->lattice[i];
-		b.ord[i]*=this->lattice[i];
+		a.ord[i]*=/*atom_cls::*/lattice[i];
+		b.ord[i]*=/*atom_cls::*/lattice[i];
 	}
 	return Distance(a,b);	//defined with coordinates
 }

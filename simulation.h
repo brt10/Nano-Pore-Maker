@@ -17,7 +17,6 @@ class simulation
 {
 	private:
 		double multiplier;							//multiplier for system... unused so far...
-		
 		string element[K::MAX_ELEMENTS];			//element name
 		unsigned int elementNum;					//number of elements
 		unsigned int elementCount[K::MAX_ELEMENTS];	//count of atoms for each element
