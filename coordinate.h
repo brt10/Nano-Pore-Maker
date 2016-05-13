@@ -9,11 +9,5 @@ struct coordinate
 	double y=0;
 	double z=0;*/
 };
-double Distance(coordinate a, coordinate b)
-{
-	double sum = 0;
-	for(int i=0; i<3; i++)
-		sum += pow(a.ord[i]-b.ord[i], 2);
-	return sqrt(sum);
-}
+double Distance(coordinate, coordinate);
 #endif

@@ -3,8 +3,8 @@ name = nate
 
 all: $(name)
 
-$(name): main.o coordinate.o simulation.o atom.o 
-	g++ main.o coordinate.o simulation.o atom.o -o $(name)
+$(name): main.o coordinate.o atom.o simulation.o
+	g++ main.o coordinate.o atom.o simulation.o -o $(name)
 main.o: main.cpp
 	g++ -c main.cpp
 coordinate.o: coordinate.cpp

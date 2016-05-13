@@ -34,37 +34,3 @@ int main()
 	sim.WriteData( filename[1] );
 	return 0;
 }
-
-	// //prototypes
-	// double ModDist(double[3], double[3]);	//returns the shortest distance between atoms (as a copied unit cell)
-	// //constants
-	// unsigned int MAX_ELEMENTS = 10;
-	// unsigned int MAX_ATOMS = 1000;
-
-	// //variables
-	// ifstream infile;
-	// ofstream outfile;
-	// string filename[2];
-
-	// double multiplier;
-	// double lattice[3];
-	// string element[MAX_ELEMENTS];		//names of elements
-	// unsigned int amount[MAX_ELEMENTS];	//number of atoms per element
-	
-
-
-	//---------------------------
-	//read in data from file
-	//---------------------------
-	//prompt for filenames
-	/*do{
-		cout << "Enter the filename to cut a hole in: "
-		cin >> filename[0]
-	}
-	while(infile.fail());
-	*/
-	//for testing use:
-	//filename[0] = "IN.txt";
-	//read header
-
-	//---------------------------

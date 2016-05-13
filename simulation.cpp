@@ -22,7 +22,7 @@ bool simulation::ReadData(string filename)
 	for(int a=0; a<3; a++)
 	{
 		infile >> lattice[a];
-		atom[0][0].lattice[a] = lattice[a];	//set static 
+		this->atom[0][0].lattice[a] = lattice[a];	//set static 
 	}
 	//read element names
 	getline(infile,line);	
@@ -30,14 +30,14 @@ bool simulation::ReadData(string filename)
 	while(ss >> element[elementNum])
 		elementNum++;
 	for(int a=0; a<elementNum; a++)
-		infile >> elementCount[a]
+		infile >> elementCount[a];
 	//read atom data
 	for(int e=0; e<elementNum; e++)			//element
-		for(int i=0; i<elementCount; i++)	//index
+		for(int i=0; i<elementCount[e]; i++)	//index
 		{
 			atom[e][i].element = e;
 			for(int c=0; c<3; c++)			//read coord
-				infile >> atom[e][i].co.ord[c]
+				infile >> atom[e][i].co.ord[c];
 			for(int c=0; c<3; c++)			//read freedom
 			{
 				infile >> freedomChar;
@@ -62,7 +62,7 @@ bool simulation::WriteData(string filename)
 	ofstream outfile;
 	outfile.open(filename.c_str());
 
-	if(infile.fail()){
+	if(outfile.fail()){
 		cerr << "Failed to open: \"" << filename << "\"\n";
 		return 0;
 	}

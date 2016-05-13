@@ -1,7 +1,7 @@
 #ifndef ATOM_H
 #define ATOM_H
 
-#include <string>		//for strings
+// #include <string>		//for strings
 #include "coordinate.h"	//for coordinates
 #include "K.h"			//for constants
 //#include "simulation.h"
@@ -26,7 +26,7 @@ class atom_cls
 		bool exists;					//if the atom should be concidered
 		bool freedom[3];				//if free to move along axis
 		unsigned int element;			//index of atoms element in the array... later use 
-		static double lattice[3];				//shared lattice for all atoms
+		static double lattice[3];		//shared lattice for all atoms
 
 };
 

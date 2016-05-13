@@ -1,6 +1,8 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+using namespace std;	//for now
+
 #include <string>	//strings
 #include <fstream>	//file io
 #include <iostream>	//for cerr
