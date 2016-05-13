@@ -15,20 +15,26 @@ int main()
 	double holeRadius;
 
 	//temporary for testing
-		holeRadius = .25;
+		holeRadius = .5;	//in angstroms
 		for(int a=0; a<3; a++)
 			hole.ord[a] = .5;
-		filename[0] = "IN.txt";	//for now dont prompt
+		filename[0] = "IN.txt";
 		filename[1] = "OUT.txt";
 	
 	//read data from file
 	sim.ReadData( filename[0] );
-	
 	//find neighbors
-	sim.Associate();
-	
+	cout << sim.Associate();
+	cout << " Atoms bonded\n";
 	//Create Hole
-	sim.Hole(hole);
+	cout << sim.Hole(hole, holeRadius);
+	cout << " Atoms removed when making hole\n";
+
+	cout << atom_cls::lattice[2] << endl;
+	cout << sim.element[0] << endl;
+
+	for(int e=0; e< sim.elementNum; e++)
+		cout << e << " : " << sim.element[e] << endl;
 
 	//output file
 	sim.WriteData( filename[1] );

@@ -16,11 +16,12 @@ class atom_cls
 		atom_cls(double[3]);
 		// atom_cls(const simulation& p);	//must be constructed with reference
 		//prototypes----------------------
+		void BreakBond(atom_cls*);		//may add error catching to this later...
 		double ModDistance(atom_cls*);	//shortest distance to another atom
 		//variables---------------------
 		coordinate co;					//coordinate
 		atom_cls *bond[K::MAX_BONDS];		//pointer array of atoms bound to 
-		unsigned int bonds;				//number of bonds
+		unsigned int bondNum;			//number of bonds
 		bool exists;					//if the atom should be concidered
 		bool freedom[3];				//if free to move along axis
 		unsigned int element;			//index of atoms element in the array... later use for bond lengths

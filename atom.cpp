@@ -1,12 +1,14 @@
 #include "atom.h"
 
-double atom_cls::lattice[3];
+double atom_cls::lattice[3] = {0};
 
 atom_cls::atom_cls()
 {
 	for(int a=0; a<3; a++)
 		lattice[a] = 1;
-	bonds = 0;
+	for(int a=0; a<K::MAX_BONDS; a++)
+		bond[a] = 0;
+	bondNum = 0;
 	exists = 1;
 }
 // atom_cls::atom_cls(double l[3])
@@ -35,6 +37,18 @@ double atom_cls::ModDistance(atom_cls *atom)
 			mod.ord[a]--;
 	}
 	return this->RealDistance(mod);	//function of atom_cls
+}
+void atom_cls::BreakBond(atom_cls* atom)
+{
+	unsigned int index=0;
+	//find the bond to remove
+	while(bond[index]!=atom && index <bondNum)
+		index++;
+	//move the other pointers down
+	for(int a=index; a <bondNum-1; a++)
+		bond[a] = bond[a+1];
+	bondNum--;	//decrease the number of bonds
+	return;
 }
 double atom_cls::RealDistance(coordinate a)
 {

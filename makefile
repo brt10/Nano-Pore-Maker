@@ -4,7 +4,7 @@ name = nate
 all: $(name)
 
 $(name): main.o coordinate.o atom.o simulation.o
-	g++ main.o coordinate.o atom.o simulation.o -o $(name)
+	g++ main.o coordinate.o atom.o simulation.o -o $(out)
 main.o: main.cpp
 	g++ -c main.cpp
 coordinate.o: coordinate.cpp
