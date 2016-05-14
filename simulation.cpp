@@ -30,14 +30,38 @@ bool simulation::ReadData(string filename)
 		infile >> atom_cls::lattice[a];
 		//std::cout << atom_cls::lattice[a];
 	}
-	//read element names
-	getline(infile,line);	
+	//read element names------------
+	// do{
+	// 	infile >> elementChar;
+
+	// 	if(elementChar>=A && elementChar<=Z && elementChar>=a && elementChar<=z)
+	// 	{
+	// 		elementNum
+	// 	}
+	// 	while(elementChar!=)
+	// 	{
+	// 		element[elementNum]+=elementChar;
+	// 		infile >> elementChar;
+	// 	}
+	// } while((int)elementChar != 13)
+	do{
+		getline(infile,line);
+	}while(line.length()==1 && (int)line[0] <65);	//damn this is ugly
+	// // getline(infile,line);
+	// // getline(infile,line);
 	ss<<line;
-	std::cout << line<< endl;
+	// std::cout << "line length: "<< line.length() << "\n";
+	// for(int a=0; a<line.length(); a++)
+	// {
+	// 	cout << "char " << a << " : \"" << (int)line[a] << "\"\n";
+	// }
+	// std::cout << "line contents: \""<< line << "\"\n";
 	while(ss >> element[elementNum])
 		elementNum++;
+	// cout << "ELEMENT NUM: " << elementNum << endl;
 	for(int a=0; a<elementNum; a++)
 		infile >> elementCount[a];
+
 	//read atom data
 	for(int e=0; e<elementNum; e++)			//element
 		for(int i=0; i<elementCount[e]; i++)	//index
@@ -77,12 +101,23 @@ int simulation::Associate(void)
 					// 	continue;
 					// for(int a=0; a<2; a++)	//create temporary variables (otherwise the names are super long.)
 					// 	atomP[a] = &atom[e[a]][i[a]];
+					//for(int a=0; a<2; a++)		//inefficient error catching. :/
+						
 					if( atomP[0]->ModDistance(atomP[1]) <= K::BOND_LENGTH )	//if close enough
 					{
 						for(int a=0; a<2; a++)	//bond elements together
 						{
-							atomP[a]->bond[atomP[a]->bondNum] = atomP[(a+1)%2];
-							atomP[a]->bondNum++;
+							if(atomP[a]->bondNum < K::MAX_BONDS)
+							{
+								cout << a << " : " << atomP[a]->bondNum << "\n";
+								atomP[a]->bond[atomP[a]->bondNum] = atomP[(a+1)%2];
+								atomP[a]->bondNum++;
+							} else {
+								cerr << "The bonds on atom (" << e[a] << "," << i[a];
+								cerr << ") have exceeded the limit of: ";
+								cerr << K::MAX_BONDS << "\n";
+								cerr << "THIS IS LIKELY A CRITICAL ERROR!\n";
+							}
 						}
 						bondCount++;
 					}

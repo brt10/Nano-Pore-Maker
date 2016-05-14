@@ -30,8 +30,8 @@ int main()
 	cout << sim.Hole(hole, holeRadius);
 	cout << " Atoms removed when making hole\n";
 
-	cout << atom_cls::lattice[2] << endl;
-	cout << sim.element[0] << endl;
+	// cout << atom_cls::lattice[2] << endl;
+	// cout << sim.element[0] << endl;
 
 	for(int e=0; e< sim.elementNum; e++)
 		cout << e << " : " << sim.element[e] << endl;
