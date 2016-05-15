@@ -42,10 +42,11 @@ void atom_cls::BreakBond(atom_cls* atom)
 {
 	unsigned int index=0;
 	//find the bond to remove
-	while(bond[index]!=atom && index <bondNum)
+	while(bond[index]!=atom && index <bondNum)	//find atom
 		index++;
+	if(bond[index]!=atom) return;	// if the atom was not found.
 	//move the other pointers down
-	for(int a=index; a <bondNum-1; a++)
+	for(int a=index; a <bondNum-1; a++)	//move all refs
 		bond[a] = bond[a+1];
 	bondNum--;	//decrease the number of bonds
 	return;

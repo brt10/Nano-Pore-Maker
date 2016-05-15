@@ -7,6 +7,7 @@ using namespace std;	//for now
 #include <fstream>	//file io
 #include <iostream>	//for cerr
 #include <sstream>	//for stringstream
+#include <iomanip>	//for formatting output
 #include "K.h"		//namespace for constants
 #include "coordinate.h"	//for coordinates
 #include "atom.h"	//for atom class
@@ -28,6 +29,7 @@ class simulation
 		// int Passivate();				//passivates hole
 		bool WriteData(string);			//outputs current state to datafile
 		//variables-----------------
+		// static double lattice[3];
 		double multiplier;							//multiplier for system... unused so far...
 		unsigned int elementCount[K::MAX_ELEMENTS];	//count of atoms for each element
 		string element[K::MAX_ELEMENTS];			//element name

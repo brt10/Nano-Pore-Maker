@@ -1,4 +1,5 @@
 #include "simulation.h"
+// double simulation::latice[3] = {0};
 simulation::simulation()
 {
 	elementNum=0;
@@ -128,7 +129,7 @@ int simulation::Associate(void)
 	return bondCount;
 }
 //I decided to work backwards for this one... 
-//find how close elements are to the hole from teh element's perspective instead of hole's
+//find how close elements are to the hole from the element's perspective instead of hole's
 //returns the number of atoms removed
 int simulation::Hole(coordinate h, double r)
 {
@@ -160,15 +161,47 @@ int simulation::Hole(coordinate h, double r)
 }
 bool simulation::WriteData(string filename)
 {
+	//variables
 	ofstream outfile;
 	outfile.open(filename.c_str());
+
+	//set precision
+	outfile << fixed;
+	outfile << setprecision(K::PRECISION);
 
 	if(outfile.fail()){
 		cerr << "Failed to open: \"" << filename << "\"\n";
 		return 0;
 	}
 	//write out to file...
+	outfile << multiplier;
+	outfile << "\n";	//write a newline (do not use endl (forces flush))
+	for(int a=0; a<3; a++)
+		outfile << atom_cls::lattice[a] << "\t";
+	outfile << "\n";	//write a newline (do not use endl (forces flush))
+	for(int e=0; e<elementNum; e++)	//element names
+		outfile << element[e] << "\t";
+	outfile << "\n";	//write a newline (do not use endl (forces flush))
+	for(int e=0; e<elementNum; e++)	//# extant atoms
+	{
+		int count=0;
+		for(int i=0; i<elementCount[e]; i++)
+			count += atom[e][i].exists;
+		outfile << count << "\t";
+	}
+	outfile << "\n";	//write a newline (do not use endl (forces flush))
+
 	//only write out atoms if they exist ;)
+	for(int e=0; e<elementNum; e++)
+		for(int i=0; i<elementCount[e]; i++)
+			if(atom[e][i].exists)
+			{
+				for(int a=0; a<3; a++)
+					outfile << atom[e][i].co.ord[a] << "\t";
+				for(int a=0; a<3; a++)
+					outfile << (atom[e][i].freedom[a] ? "T " : "F ");
+				outfile << "\n";	//write a newline (do not use endl (forces flush))
+			}
 
 	outfile.close();
 	return 1;

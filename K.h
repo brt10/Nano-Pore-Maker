@@ -8,6 +8,7 @@ namespace K
 	//in future, use array of bond lengths... limiting factor is reading these in from a file... [shrug] easy nuff.
 	//const double BOND_LENGTH[ ((MAX_ELEMENTS+1) * MAX_ELEMENTS)/2 ];
 	const double BOND_LENGTH = 2.4;		//in Angstroms... 
+	const unsigned int PRECISION = 4;
 	//C-C	1.20	1.54
 	//C-Si	1.86
 	//C-H	1.06	1.12

@@ -9,6 +9,7 @@ class atom_cls
 {
 	private:	
 		double RealDistance(coordinate);	//the real distance to a coord
+		// int IsBound(atom_cls*);		//may be useful to write (impliment in breakbond)
 		// const simulation &parent;		//gives atom access to parent class (for lattice)
 	public:
 		//constructors-------------------
