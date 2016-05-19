@@ -1,63 +1,46 @@
 #include "atom.h"
 
-double atom_cls::lattice[3] = {0};
-
 atom_cls::atom_cls()
 {
-	for(int a=0; a<3; a++)
-		lattice[a] = 1;
 	for(int a=0; a<K::MAX_BONDS; a++)
-		bond[a] = 0;
+		bond[a] = 0;	//nulify all pointers
 	bondNum = 0;
 	exists = 1;
 }
-// atom_cls::atom_cls(double l[3])
-// {
-// 	for(int a=0; a<3; a++)
-// 		lattice[a] = l[a];
-// }
-// atom_cls::atom_cls(const simulation& p) : parent(p)
-// {
-// 	// parent = p;
-// 	bonds = 0;
-// 	exists = 1;
-// }
-double atom_cls::ModDistance(atom_cls *atom)
+atom_cls::atom_cls(const atom_cls& atom)
 {
-	// double minDistance
-	coordinate mod = atom->co;	//this will be shifted later...
-	for(int a=0; a<3; a++)		//for each axis
-	{
-		//shift the coords... so the atom of interest is in the center.
-		mod.ord[a]-=(this->co.ord[a]+.5);
-		//shift within bounds
-		while(mod.ord[a]<0)
-			mod.ord[a]++;
-		while(mod.ord[a]>=1)
-			mod.ord[a]--;
-	}
-	return this->RealDistance(mod);	//function of atom_cls
+	for(int a=0; a<K::MAX_BONDS; a++)
+		bond[a] = atom.bond[a];
+	co = atom.co;
+	bondNum = atom.bondNum;
+	exists = atom.exists;
+	element = atom.element;
+	for(int a=0; a<3; a++)
+		freedom[a] = atom.freedom[a];
 }
-void atom_cls::BreakBond(atom_cls* atom)
+// atom_cls atom_cls::operator=(const atom_cls& atom)
+// {
+// 	this->(atom);
+// 	return (*this)
+// }
+
+void atom_cls::BreakBond(atom_cls* atomP)
 {
-	unsigned int index=0;
-	//find the bond to remove
-	while(bond[index]!=atom && index <bondNum)	//find atom
-		index++;
-	if(bond[index]!=atom) return;	// if the atom was not found.
+	int index = IsBound(atomP);
+	if(index == -1)
+		return;
 	//move the other pointers down
 	for(int a=index; a <bondNum-1; a++)	//move all refs
 		bond[a] = bond[a+1];
 	bondNum--;	//decrease the number of bonds
 	return;
 }
-double atom_cls::RealDistance(coordinate a)
+int atom_cls::IsBound(const atom_cls* atomP)
 {
-	coordinate b = this->co;
-	for(int i=0; i<3; i++)
-	{
-		a.ord[i]*=/*atom_cls::*/lattice[i];
-		b.ord[i]*=/*atom_cls::*/lattice[i];
-	}
-	return Distance(a,b);	//defined with coordinates
+	int index;
+	for(index=0; index<bondNum; index++)
+		if(bond[index] == atomP)
+			return index;
+	return -1;	//bond not found
 }
+

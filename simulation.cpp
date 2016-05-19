@@ -23,14 +23,15 @@ bool simulation::ReadData(string filename)
 		return 0;
 	}
 	//read from file...
+	//infile >> title;
+	getline(infile, title);
 	infile >> multiplier;
 	for(int a=0; a<3; a++)
-	{
-		// infile >> this->lattice[a];
-		// this->atom[0][0].lattice[a] = this->lattice[a];	//set static 
-		infile >> atom_cls::lattice[a];
-		//std::cout << atom_cls::lattice[a];
-	}
+		for(int b=0; b<3; b++)
+		{
+			if(a==b) infile >> atom_cls::lattice[a];
+			else infile >> atom_cls::lattice[2];	//essentially junk... works, just ugly. :P
+		}
 	//read element names------------
 	// do{
 	// 	infile >> elementChar;
@@ -62,6 +63,7 @@ bool simulation::ReadData(string filename)
 	// cout << "ELEMENT NUM: " << elementNum << endl;
 	for(int a=0; a<elementNum; a++)
 		infile >> elementCount[a];
+	infile >> tag;
 
 	//read atom data
 	for(int e=0; e<elementNum; e++)			//element
@@ -82,7 +84,7 @@ bool simulation::ReadData(string filename)
 	return 1;
 }
 //returns how many bonds were made
-int simulation::Associate(void)
+int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 {
 	unsigned int e[2];
 	unsigned int i[2];
@@ -174,11 +176,16 @@ bool simulation::WriteData(string filename)
 		return 0;
 	}
 	//write out to file...
-	outfile << multiplier;
-	outfile << "\n";	//write a newline (do not use endl (forces flush))
+	outfile << title << "\n";
+	outfile << multiplier << "\n";
+	//outfile << "\n";	//write a newline (do not use endl (forces flush))
 	for(int a=0; a<3; a++)
-		outfile << atom_cls::lattice[a] << "\t";
-	outfile << "\n";	//write a newline (do not use endl (forces flush))
+	{
+		for(int b=0; b<3; b++)
+			outfile << ((a==b) ? atom_cls::lattice[a] : 0) << "\t";
+		outfile << "\n";
+	}
+	//outfile << "\n";	//write a newline (do not use endl (forces flush))
 	for(int e=0; e<elementNum; e++)	//element names
 		outfile << element[e] << "\t";
 	outfile << "\n";	//write a newline (do not use endl (forces flush))
@@ -189,7 +196,8 @@ bool simulation::WriteData(string filename)
 			count += atom[e][i].exists;
 		outfile << count << "\t";
 	}
-	outfile << "\n";	//write a newline (do not use endl (forces flush))
+	//outfile << "\n";	//write a newline (do not use endl (forces flush))
+	outfile << "\n" << tag << "\n";
 
 	//only write out atoms if they exist ;)
 	for(int e=0; e<elementNum; e++)
@@ -205,4 +213,100 @@ bool simulation::WriteData(string filename)
 
 	outfile.close();
 	return 1;
+}
+int simulation::UnitCell(double scale[3])		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
+{
+	unsigned int count = 0; //# atoms in cell
+	//bool inside=1; 	//if atom is inside.
+
+	for(int e=0; e < elementNum; e++)			//for every atom
+		for(int i=0; i < elementCount[e]; i++)	//
+			if(atom[e][i].exists)
+			{
+				//inside = 1;
+				for(int a=0; a<3; a++)
+					if(atom[e][i].co.ord[a] > scale[a])
+					{
+						atom[e][i].exists = 0;
+						break;
+					}
+				//atom[e][i].exists = inside;
+				count += atom[e][i].exists;
+				elementCount[e] -= atom[e][i].exists;
+
+					// if(atom[e][i].co.ord[a] <= scale[a]) {
+					// 	count++;	//do not set exists to true here... I bet bad things would happen... ;)
+					// } else {
+					// 	atom[e][i].exists = 0;
+					// 	elementCount[e]--;
+					// }
+			}
+	return count;	//lil lazy to impliment count just yet...
+}
+void simulation::CopyCell(double scale[3])		//makes a mosaic of the current cell to the given scale. (may overload as int... not too important)
+{
+	
+}
+void simulation::Scale(double scale[3])	//will not take care of bonding info.
+{
+	int block[3];
+
+	//copy to fit ceil(scale[3])-------------
+	for(int a=0; a<3; a++)	//initialize the block var. 
+		block[a] = (int)scale[a]+1;
+
+	for(int a=0; a<3; a++)	//for each axis
+		for(int e=0; e<elementNum; e++)//for each element,
+		{
+			for(int i=0; i<elementCount[e]; i++)	//for each atom
+				for(int b=1; b<block[a]; b++)		//for each block (except first (already have it. :P))
+				{
+					atom[e][i+b*i] = atom[e][i];	//copy the atom into the block
+					for(int c=0; c<3; c++)			//for each coordinate.
+						atom[e][i+b*i].co.ord[c] += b;	//shift coordinates...
+														//XXX should really be using a class init here.
+				}
+					//
+			elementCount[e]*=block[a];				//set the # of elements
+		}
+
+	//scale lattice-----------
+	for(int a=0; a<3; a++)
+		atom_cls::lattice[a] *= scale[a];
+
+
+	//trim outliers---------------
+	for(int e=0; e < elementNum; e++)			//for every atom
+		for(int i=0; i < elementCount[e]; i++)	//
+			if(atom[e][i].exists)
+			{
+				//inside = 1;
+				for(int a=0; a<3; a++)
+					if(atom[e][i].co.ord[a] < 0 || atom[e][i].co.ord[a] >= 1)
+					{
+						atom[e][i].exists = 0;
+						break;
+					}
+				//count += atom[e][i].exists;
+				elementCount[e] -= atom[e][i].exists;
+			}
+}
+double simulation::RealDistance(coordinate a, coordinate b)
+{
+	return Distance(a*lattice,b*lattice);
+}
+double atom_cls::ModDistance(atom_cls *atomP1, atom_cls *atomP2)
+{
+	coordinate mod = atom->co;	//this will be shifted later...
+	for(int a=0; a<3; a++)		//for each axis
+	{
+		//shift the coords... so the atom of interest is in the center.
+		mod.ord[a]-=(this->co.ord[a]+.5);
+		//shift within bounds
+		while(mod.ord[a]<0)
+			mod.ord[a]++;
+		while(mod.ord[a]>=1)
+			mod.ord[a]--;
+	}
+	return this->RealDistance(mod);	//function of atom_cls
 }
