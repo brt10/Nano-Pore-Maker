@@ -1,0 +1,5 @@
+write:
+	sim::passivate
+	sim::Mass() - a rather poor start so far
+dynamic allocation
+test limits of memory on lion xf

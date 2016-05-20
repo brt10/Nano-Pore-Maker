@@ -7,7 +7,7 @@ simulation::simulation()
 		elementCount[a] = 0;
 	multiplier=1;
 }
-bool simulation::ReadData(string filename)
+bool simulation::ReadData(const string filename)
 {
 	//variables
 	stringstream ss;
@@ -29,8 +29,8 @@ bool simulation::ReadData(string filename)
 	for(int a=0; a<3; a++)
 		for(int b=0; b<3; b++)
 		{
-			if(a==b) infile >> atom_cls::lattice[a];
-			else infile >> atom_cls::lattice[2];	//essentially junk... works, just ugly. :P
+			if(a==b) infile >> lattice[a];
+			else infile >> lattice[2];	//essentially junk... works, just ugly. :P
 		}
 	//read element names------------
 	// do{
@@ -83,6 +83,17 @@ bool simulation::ReadData(string filename)
 	//send lattice data
 	return 1;
 }
+bool simulation::operator<<(const string filename)
+{
+	return ReadData(filename);
+}
+void simulation::Standardize(void)
+{
+	for(int e=0; e<elementNum; e++)
+		for(int i=0; i<elementCount[e]; i++)
+			atom[e][i].co.Mod(1);	//XXX should probaly check for overlap with others...
+	return;
+}
 //returns how many bonds were made
 int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 {
@@ -106,20 +117,23 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 					// 	atomP[a] = &atom[e[a]][i[a]];
 					//for(int a=0; a<2; a++)		//inefficient error catching. :/
 						
-					if( atomP[0]->ModDistance(atomP[1]) <= K::BOND_LENGTH )	//if close enough
+					if( ModDistance(atomP[0], atomP[1]) <= K::BOND_LENGTH )	//if close enough
 					{
-						for(int a=0; a<2; a++)	//bond elements together
+						for(int a=0; a<2; a++)	//bond elements together	//XXX shoudl check if already bound
 						{
+							int b=(a+1)%2;	//other atom
+							if(atomP[a]->IsBound(atomP[b]) != -1) continue;	//if already bound
 							if(atomP[a]->bondNum < K::MAX_BONDS)
 							{
-								cout << a << " : " << atomP[a]->bondNum << "\n";
-								atomP[a]->bond[atomP[a]->bondNum] = atomP[(a+1)%2];
+								//cout << a << " : " << atomP[a]->bondNum << "\n";
+								atomP[a]->bond[atomP[a]->bondNum] = atomP[b];
 								atomP[a]->bondNum++;
 							} else {
 								cerr << "The bonds on atom (" << e[a] << "," << i[a];
 								cerr << ") have exceeded the limit of: ";
 								cerr << K::MAX_BONDS << "\n";
 								cerr << "THIS IS LIKELY A CRITICAL ERROR!\n";
+								cerr << "Most likely the lattice is too small, or uses different units than the bond lengths\n";
 							}
 						}
 						bondCount++;
@@ -130,38 +144,29 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 
 	return bondCount;
 }
-//I decided to work backwards for this one... 
-//find how close elements are to the hole from the element's perspective instead of hole's
 //returns the number of atoms removed
 int simulation::Hole(coordinate h, double r)
 {
-	atom_cls hole;
-	hole.co = h;
 	unsigned int atomCount =0;
-	for(int e=0; e < elementNum; e++)
-		for(int i=0; i < elementCount[e]; i++)
-			if( atom[e][i].ModDistance(&hole) < r && atom[e][i].exists)	//if in the hole and extant
+	for(int e=0; e < elementNum; e++)			//for each atom
+		for(int i=0; i < elementCount[e]; i++)	//
+			if( ModDistance(h, atom[e][i].co) < r && atom[e][i].exists)	//if in the hole and extant
 			{
-				atom[e][i].exists =  0;		//remove from existance... that was easy
-				atomCount++;
+				atom[e][i].exists = 0;		//remove from existance... that was easy
+				atomCount++;				//count this removal
 				//make bonded atoms forget it.
 				//alternatively, we could rely on the associate function... it ignores non-extant atoms
 				//...but this is more efficient... slightly.
 				for(int a=0; a<atom[e][i].bondNum; a++)
 				{
 					atom[e][i].bond[a]->BreakBond(&atom[e][i]);	//break the bond from the other side.
-					atom[e][i].bond[a] = 0;	//nulify pointer
+					atom[e][i].bond[a] = 0;						//nulify pointer
 				}
 				atom[e][i].bondNum = 0;	//reset bond number
-				// while(atom[e][i].bondNum>0)
-				// {
-				// 	atom[e][i].bond = 0;	//nullify pointer
-				// 	atom[e][i].bondNum--;	//decrease counter
-				// }
 			}
 	return atomCount;
 }
-bool simulation::WriteData(string filename)
+bool simulation::WriteData(const string filename)
 {
 	//variables
 	ofstream outfile;
@@ -182,7 +187,7 @@ bool simulation::WriteData(string filename)
 	for(int a=0; a<3; a++)
 	{
 		for(int b=0; b<3; b++)
-			outfile << ((a==b) ? atom_cls::lattice[a] : 0) << "\t";
+			outfile << ((a==b) ? lattice[a] : 0) << "\t";
 		outfile << "\n";
 	}
 	//outfile << "\n";	//write a newline (do not use endl (forces flush))
@@ -214,99 +219,167 @@ bool simulation::WriteData(string filename)
 	outfile.close();
 	return 1;
 }
-int simulation::UnitCell(double scale[3])		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
+bool simulation::operator>>(const string filename)
 {
-	unsigned int count = 0; //# atoms in cell
-	//bool inside=1; 	//if atom is inside.
-
-	for(int e=0; e < elementNum; e++)			//for every atom
-		for(int i=0; i < elementCount[e]; i++)	//
-			if(atom[e][i].exists)
-			{
-				//inside = 1;
-				for(int a=0; a<3; a++)
-					if(atom[e][i].co.ord[a] > scale[a])
-					{
-						atom[e][i].exists = 0;
-						break;
-					}
-				//atom[e][i].exists = inside;
-				count += atom[e][i].exists;
-				elementCount[e] -= atom[e][i].exists;
-
-					// if(atom[e][i].co.ord[a] <= scale[a]) {
-					// 	count++;	//do not set exists to true here... I bet bad things would happen... ;)
-					// } else {
-					// 	atom[e][i].exists = 0;
-					// 	elementCount[e]--;
-					// }
-			}
-	return count;	//lil lazy to impliment count just yet...
+	return WriteData(filename);
 }
-void simulation::CopyCell(double scale[3])		//makes a mosaic of the current cell to the given scale. (may overload as int... not too important)
-{
-	
-}
-void simulation::Scale(double scale[3])	//will not take care of bonding info.
-{
-	int block[3];
+// int simulation::UnitCell(double scale[3])		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
+	// {
+	// 	unsigned int count = 0; //# atoms in cell
+	// 	//bool inside=1; 	//if atom is inside.
 
-	//copy to fit ceil(scale[3])-------------
-	for(int a=0; a<3; a++)	//initialize the block var. 
-		block[a] = (int)scale[a]+1;
+	// 	for(int e=0; e < elementNum; e++)			//for every atom
+	// 		for(int i=0; i < elementCount[e]; i++)	//
+	// 			if(atom[e][i].exists)
+	// 			{
+	// 				//inside = 1;
+	// 				for(int a=0; a<3; a++)
+	// 					if(atom[e][i].co.ord[a] > scale[a])
+	// 					{
+	// 						atom[e][i].exists = 0;
+	// 						break;
+	// 					}
+	// 				//atom[e][i].exists = inside;
+	// 				count += atom[e][i].exists;
+	// 				elementCount[e] -= atom[e][i].exists;
 
-	for(int a=0; a<3; a++)	//for each axis
-		for(int e=0; e<elementNum; e++)//for each element,
+	// 					// if(atom[e][i].co.ord[a] <= scale[a]) {
+	// 					// 	count++;	//do not set exists to true here... I bet bad things would happen... ;)
+	// 					// } else {
+	// 					// 	atom[e][i].exists = 0;
+	// 					// 	elementCount[e]--;
+	// 					// }
+	// 			}
+	// 	return count;	//lil lazy to impliment count just yet...
+	// }
+bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mosaic of the current cell of given length and axis
+{
+	unsigned int index;	//for index of new atom
+	//errorcatching
+	for(int e=0; e<elementNum; e++)
+		if(elementCount[e]*length > K::MAX_ATOMS)
 		{
-			for(int i=0; i<elementCount[e]; i++)	//for each atom
-				for(int b=1; b<block[a]; b++)		//for each block (except first (already have it. :P))
-				{
-					atom[e][i+b*i] = atom[e][i];	//copy the atom into the block
-					for(int c=0; c<3; c++)			//for each coordinate.
-						atom[e][i+b*i].co.ord[c] += b;	//shift coordinates...
-														//XXX should really be using a class init here.
-				}
-					//
-			elementCount[e]*=block[a];				//set the # of elements
+			cerr << "cannot copy, the scale is too big!";
+			cerr << "This operation would need " << elementCount[e]*length;
+			cerr << " " << element[e] << " atoms.\n";
+			cerr << "The Maximum of any element is: " << K::MAX_ATOMS << "\n";
+			cerr << "This is regulated by K.h" << endl;
+			return 0;
 		}
+	//copy cell
+	for(int e=0; e<elementNum; e++)				//for each element,
+	{
+		for(int i=0; i<elementCount[e]; i++)	//for each atom
+			for(int b=1; b<length; b++)			//for each block (except first -already have it. :P)
+			{
+				index = i+b*elementCount[e];		//index of new atom
+				atom[e][index] = atom[e][i];		//copy the atom into the block
+				atom[e][index].co.ord[axis] += b;	//shift coordinates along axis
+			}
+		elementCount[e]*=length;				//set the # of elements
+	}
+
+	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
+	for(int e=0; e<elementNum; e++)
+		for(int i=0; i<elementCount[e]; i++)
+			atom[e][i].co.ord[axis] /= length;
 
 	//scale lattice-----------
-	for(int a=0; a<3; a++)
-		atom_cls::lattice[a] *= scale[a];
+	lattice[axis] *= length;
+	return 1;
+}
+bool simulation::Scale(unsigned int scale[3])
+{	//error catching
 
+	//copy unit cell
+	for(int a=0; a<3; a++)	//for each axis
+		if(!CopyCell(scale[a],a)) return 0;
 
 	//trim outliers---------------
-	for(int e=0; e < elementNum; e++)			//for every atom
-		for(int i=0; i < elementCount[e]; i++)	//
-			if(atom[e][i].exists)
-			{
-				//inside = 1;
-				for(int a=0; a<3; a++)
-					if(atom[e][i].co.ord[a] < 0 || atom[e][i].co.ord[a] >= 1)
-					{
-						atom[e][i].exists = 0;
-						break;
-					}
-				//count += atom[e][i].exists;
-				elementCount[e] -= atom[e][i].exists;
-			}
+	//cerr << Trim() << " Atoms were trimmed off after Scaling\n";
+	return 1;
 }
+bool simulation::Scale(double scale[3])	//ignores bonding. //FOR SCALING DOWN ONLY! the old algorythm wasnt good.
+{
+	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
+	for(int e=0; e<elementNum; e++)
+		for(int i=0; i<elementCount[e]; i++)
+			atom[e][i].co /= scale;
+	//scale lattice-----------
+	for(int a=0; a<3; a++)
+		lattice[a] *= scale[a];	//XXX a good excuse to make a vector class or use coordinate... (inherit from vecor?)
+	//trim outliers---------------
+	cerr << Trim() << " Atoms were trimmed off after Scaling\n";
+	return 1;
+}
+int simulation::Trim(void)
+{
+	int count =0;
+	for(int e=0; e < elementNum; e++)			//for every atom
+		for(int i=0; i < elementCount[e];)		//making room for exclusions
+			if(!((atom[e][i].co >= 0) && (atom[e][i].co < 1)))	//if not within bounds (important logic here. :P)
+			{
+				RemoveAtom(e,i);
+				count++;
+			} else i++;
+	return count;
+}
+void simulation::RemoveAtom(unsigned int e, unsigned int i)
+{
+	for(int index=i; index+1<elementCount[e]; index++)
+		atom[e][index] = atom[e][index+1];
+	elementCount[e]--;
+	return;
+}
+
+double simulation::Volume(void)			//volume of lattice in m^3
+{
+	double product=1;
+	for(int a=0; a<3; a++)
+		product*=lattice[a];
+	return product*(1e-30);		
+}
+double simulation::Mass(void)				//mass of extant atom 	//XXX NEEDS A LOT OF WORK
+{
+	double sum = 0;
+	for(int e=0; e<elementNum; e++)
+		sum+=Extant(e)*K::MASS[e];
+	return sum;
+}
+unsigned int simulation::Extant(unsigned int e)
+{
+	unsigned int sum=0;
+	for(int i=0; i<elementCount[e]; i++)
+		sum+=atom[e][i].exists;
+	return sum;
+}
+unsigned int simulation::Atoms(void)		//total # extant of atoms
+{
+	unsigned int sum=0;
+	for(int e=0; e<elementNum; e++)
+		sum+=Extant(e);
+	return sum;
+}
+double simulation::Density(void)			//density of system
+{
+	return Mass()/Volume();
+}
+double simulation::operator%(const unsigned int e)	//percent of extant elements
+{
+	return 100 * (double)Extant(e) / (double)Atoms();
+}
+
 double simulation::RealDistance(coordinate a, coordinate b)
 {
-	return Distance(a*lattice,b*lattice);
+	return (a*lattice).Distance(b*lattice);
 }
-double atom_cls::ModDistance(atom_cls *atomP1, atom_cls *atomP2)
+double simulation::ModDistance(coordinate a, coordinate b)
 {
-	coordinate mod = atom->co;	//this will be shifted later...
-	for(int a=0; a<3; a++)		//for each axis
-	{
-		//shift the coords... so the atom of interest is in the center.
-		mod.ord[a]-=(this->co.ord[a]+.5);
-		//shift within bounds
-		while(mod.ord[a]<0)
-			mod.ord[a]++;
-		while(mod.ord[a]>=1)
-			mod.ord[a]--;
-	}
-	return this->RealDistance(mod);	//function of atom_cls
+	coordinate mod = a - (b+.5);//shift the coords so that coord b is in the center.
+	mod.Mod(1);					//shift within bounds
+	return RealDistance(mod, coordinate(.5));
+}
+double simulation::ModDistance(atom_cls* a, atom_cls* b)
+{
+	return ModDistance(a->co, b->co);
 }

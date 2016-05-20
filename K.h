@@ -9,6 +9,9 @@ namespace K
 	//const double BOND_LENGTH[ ((MAX_ELEMENTS+1) * MAX_ELEMENTS)/2 ];
 	const double BOND_LENGTH = 2.4;		//in Angstroms... 
 	const unsigned int PRECISION = 4;
+	const double MASS[MAX_ELEMENTS] = {28.085/6.022e-23 ,12.011/6.022e-23};
+	// unsigned int Si = 0;
+	// unsigned int C = 1;
 	//C-C	1.20	1.54
 	//C-Si	1.86
 	//C-H	1.06	1.12

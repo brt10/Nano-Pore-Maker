@@ -9,72 +9,250 @@ coordinate::coordinate(const double k)
 	for(int a=0; a<3; a++)
 		ord[a] = k;
 }
-double coordinate::Distance(coordinate a, coordinate b)
+double coordinate::Distance(coordinate co)
 {
 	double sum = 0;
 	for(int i=0; i<3; i++)
-		sum += pow(a.ord[i]-b.ord[i], 2);
+		sum += pow(co.ord[i]-ord[i], 2);
 	return sqrt(sum);
 }
-coordinate coordinate::operator+(const coordinate& co)
+double Distance(coordinate a, coordinate b)
 {
-	coordinate sum;
-	for(int a=0; a<3; a++)
-		sum.ord[a] = ord[a] + co.ord[a];
-	return sum;
+	return a.Distance(b);
 }
-coordinate coordinate::operator+(const double k)
+void coordinate::Mod(double k)
 {
-	coordinate sum;
-	for(int a=0; a<3; a++)
-		sum.ord[a] = ord[a] + k;
-	return sum;
+	while(*this<0)
+		*this+=k;
+	while(*this>=k)
+		*this-=k;
+	return;
 }
+
 double coordinate::operator[](const unsigned int i)
 {
 	return ord[i];
 }
-coordinate coordinate::operator=(const coordinate& co)
-{
-	for(int a=0; a<3; a++)
-		this->ord[a] = co.ord[a];
-	return *this;
-}
-coordinate coordinate::operator=(const double k)
+// coordinate coordinate::operator=(const coordinate& co)
+// {
+// 	for(int a=0; a<3; a++)
+// 		this->ord[a] = co.ord[a];
+// 	return *this;
+// }
+coordinate& coordinate::operator=(const double k)
 {
 	for(int a=0; a<3; a++)
 		this->ord[a] = k;
 	return *this;
 }
-void coordinate::operator+=(const coordinate& co)
-{
-	(*this)=(*this)+co;
-	return;
-}
-void coordinate::operator+=(const double k)
-{
-	(*this)=(*this)+k;
-	return;
-}
-coordinate coordinate::operator*(const coordinate& co)
-{
-	coordinate product;
-	for(int a=0; a<3; a++)
-		product.ord[a] = ord[a] * co.ord[a];
-	return product;
+//+
+	coordinate coordinate::operator+(const coordinate& co)
+	{
+		coordinate sum;
+		for(int a=0; a<3; a++)
+			sum.ord[a] = ord[a] + co.ord[a];
+		return sum;
+	}
+	coordinate coordinate::operator+(const double k)
+	{
+		coordinate sum;
+		for(int a=0; a<3; a++)
+			sum.ord[a] = ord[a] + k;
+		return sum;
+	}
+	void coordinate::operator+=(const coordinate& co)
+	{
+		(*this)=(*this)+co;
+		return;
+	}
+	void coordinate::operator+=(const double k)
+	{
+		(*this)=(*this)+k;
+		return;
+	}
+//-
+	coordinate coordinate::operator-(const coordinate& co)
+	{
+		coordinate diff;
+		for(int a=0; a<3; a++)
+			diff.ord[a] = ord[a] + co.ord[a];
+		return diff;
+	}
+	coordinate coordinate::operator-(const double k)
+	{
+		coordinate diff;
+		for(int a=0; a<3; a++)
+			diff.ord[a] = ord[a] - k;
+		return diff;
+	}
+	void coordinate::operator-=(const coordinate& co)
+	{
+		(*this)=(*this)-co;
+		return;
+	}
+	void coordinate::operator-=(const double k)
+	{
+		(*this)=(*this)-k;
+		return;
+	}
+//*
+	coordinate coordinate::operator*(const coordinate& co)
+	{
+		coordinate product;
+		for(int a=0; a<3; a++)
+			product.ord[a] = ord[a] * co.ord[a];
+		return product;
 
-}
-coordinate coordinate::operator*(const double k)
-{
-	coordinate product;
-	for(int a=0; a<3; a++)
-		product.ord[a] = ord[a] * k;
-	return product;
-}
-coordinate coordinate::operator*(const double k[3])
-{
-	coordinate product;
-	for(int a=0; a<3; a++)
-		product.ord[a] = ord[a] * k[a];
-	return product;
-}
+	}
+	coordinate coordinate::operator*(const double k)
+	{
+		coordinate product;
+		for(int a=0; a<3; a++)
+			product.ord[a] = ord[a] * k;
+		return product;
+	}
+	coordinate coordinate::operator*(const double k[3])
+	{
+		coordinate product;
+		for(int a=0; a<3; a++)
+			product.ord[a] = ord[a] * k[a];
+		return product;
+	}
+	void coordinate::operator*=(const coordinate& co)
+	{
+		(*this) = (*this) * co;
+		return;
+	}
+	void coordinate::operator*=(const double k)
+	{
+		(*this) = (*this) * k;
+		return;
+	}
+	void coordinate::operator*=(const double k[3])
+	{
+		(*this) = (*this) * k;
+		return;
+	}
+///
+	coordinate coordinate::operator/(const coordinate& co)
+	{
+		coordinate quotent;
+		for(int a=0; a<3; a++)
+			quotent.ord[a] = ord[a] / co.ord[a];
+		return quotent;
+
+	}
+	coordinate coordinate::operator/(const double k)
+	{
+		coordinate quotent;
+		for(int a=0; a<3; a++)
+			quotent.ord[a] = ord[a] / k;
+		return quotent;
+	}
+	coordinate coordinate::operator/(const double k[3])
+	{
+		coordinate quotent;
+		for(int a=0; a<3; a++)
+			quotent.ord[a] = ord[a] / k[a];
+		return quotent;
+	}
+	void coordinate::operator/=(const coordinate& co)
+	{
+		(*this) = (*this) / co;
+		return;
+	}
+	void coordinate::operator/=(const double k)
+	{
+		(*this) = (*this) / k;
+		return;
+	}
+	void coordinate::operator/=(const double k[3])
+	{
+		(*this) = (*this) / k;
+		return;
+	}
+//compare
+	bool coordinate::operator<(const coordinate& co)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]>=co.ord[a])
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator<(const double k)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]>=k)
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator<=(const coordinate& co)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]>co.ord[a])
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator<=(const double k)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]>k)
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator>(const coordinate& co)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]<=co.ord[a])
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator>(const double k)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]<=k)
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator>=(const coordinate& co)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]<co.ord[a])
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator>=(const double k)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]<k)
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator==(const coordinate& co)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]!=co.ord[a])
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator==(const double k)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]!=k)
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator!=(const coordinate& co)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]==co.ord[a])
+				return 0;
+		return 1;
+	}
+	bool coordinate::operator!=(const double k)
+	{
+		for(int a=0; a<3; a++)
+			if(ord[a]==k)
+				return 0;
+		return 1;
+	}

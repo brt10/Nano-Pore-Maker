@@ -7,22 +7,29 @@ atom_cls::atom_cls()
 	bondNum = 0;
 	exists = 1;
 }
-atom_cls::atom_cls(const atom_cls& atom)
+atom_cls::atom_cls(const atom_cls& atom)	//should not copy bonds
 {
-	for(int a=0; a<K::MAX_BONDS; a++)
-		bond[a] = atom.bond[a];
+	for(int a=0; a<K::MAX_BONDS; a++)	//nulify bonds
+		bond[a] = 0;
 	co = atom.co;
-	bondNum = atom.bondNum;
+	bondNum = 0;
 	exists = atom.exists;
-	element = atom.element;
+	element = atom.element;			
 	for(int a=0; a<3; a++)
 		freedom[a] = atom.freedom[a];
 }
-// atom_cls atom_cls::operator=(const atom_cls& atom)
-// {
-// 	this->(atom);
-// 	return (*this)
-// }
+atom_cls& atom_cls::operator=(const atom_cls& atom)
+{
+	for(int a=0; a<K::MAX_BONDS; a++)	//nulify bonds
+		bond[a] = 0;
+	co = atom.co;
+	bondNum = 0;
+	exists = atom.exists;
+	element = atom.element;			
+	for(int a=0; a<3; a++)
+		freedom[a] = atom.freedom[a];
+	return (*this);
+}
 
 void atom_cls::BreakBond(atom_cls* atomP)
 {

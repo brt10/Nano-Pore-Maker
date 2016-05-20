@@ -10,18 +10,18 @@ class atom_cls
 	public:
 		//constructors-------------------
 		atom_cls();
-		atom_cls(const atom_cls&);		//copy an existing atom
+		atom_cls(const atom_cls&);		//copy an existing atom without bonds
 		//prototypes----------------------
-		// atom_cls operator=(const atom_cls&);	//for initializing by reference...
+		atom_cls& operator=(const atom_cls&);	
 		int IsBound(const atom_cls*);			//may be useful to write (impliment in breakbond) (returns the index of the bond)
 		void BreakBond(atom_cls*);		//may add error catching to this later...
 		//variables---------------------
-		coordinate co;					//coordinate
-		atom_cls *bond[K::MAX_BONDS];	//pointer array of atoms bound to 
+		coordinate co;					//coordinate 
 		unsigned int bondNum;			//number of bonds
 		bool exists;					//if the atom should be concidered
 		bool freedom[3];				//if free to move along axis
 		unsigned int element;			//index of atoms element in the array... later use for bond lengths
+		atom_cls *bond[K::MAX_BONDS];	//pointer array of atoms bound to
 };
 
 		
