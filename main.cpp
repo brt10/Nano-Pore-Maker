@@ -32,38 +32,48 @@ int main()
 	// sim.Disassociate();
 	sim.Associate();
 	
-	// int e=1;
-	// int i=62;
-	// coordinate x = sim.atom[e][i].co;
-	// coordinate y;
-	// cout << "1\t" << sim.atom[e][i].bondNum << "\n\t";
+	int e=0;
+	int i=27;
+	coordinate x = sim.atom[e][i].co;
+	coordinate y;
+	cout << "1\t" << sim.atom[e][i].bondNum << "\n\t";
+	for(int a=0; a<3; a++)
+		cout << x[a] << '\t';
+		// cout << .5 << '\t';
+	cout << "TTT\n";  
+	for(int a=0; a<sim.atom[e][i].bondNum; a++)
+	{
+		y = sim.atom[e][i].bond[a]->co;
+		// y = (x-y)+.5;
+		// y.Dec();
+		cout << "\t";
+		for(int b=0; b<3; b++)
+			cout << y[b] << '\t';
+		// cout << sim.ModDistance(&sim.atom[e][i], sim.atom[e][i].bond[a]);
+		cout << "TTT\n";
+	}
+	//-----------------
+	// coordinate x,y,z;
+	// x=0;
+	// y=.5;
+	// z=y*sim.lattice;
+	// cout << sim.ModDistance(x,y) << " A\n";
 	// for(int a=0; a<3; a++)
-	// 	// cout << x[a] << '\t';
-	// 	cout << .5 << '\t';
-	// cout << "TTT\n";  
-	// for(int a=0; a<sim.atom[e][i].bondNum; a++)
-	// {
-	// 	y = sim.atom[e][i].bond[a]->co;
-	// 	y = (x-y)+.5;
-	// 	y.Dec();
-	// 	cout << "\t";
-	// 	for(int b=0; b<3; b++)
-	// 		cout << y[b] << '\t';
-	// 	// cout << sim.ModDistance(&sim.atom[e][i], sim.atom[e][i].bond[a]);
-	// 	cout << "TTT\n";
-	// }
-	int count=0;
-	for(int e=0; e<sim.elementNum; e++)
-		for(int i=0; i<sim.elementCount[e]; e++)
-			if(sim.atom[e][i].bondNum ==4)
-				count++;
-			else
-				cout << e << i << ' ' << sim.atom[e][i].bondNum << '\n';
-	cout << count << " of " << sim.Atoms() << " atoms are OK\n";
+	// 	cout << sim.lattice[a] << "\t";
+	// cout << '\n';
+	//------------------
+	// int count=0;
+	// for(int e=0; e<sim.elementNum; e++)
+	// 	for(int i=0; i<sim.elementCount[e]; i++)
+	// 		if(sim.atom[e][i].bondNum ==4)
+	// 			count++;
+	// 		else
+	// 			cout << e << i << ' ' << sim.atom[e][i].bondNum << '\n';
+	// cout << count << " of " << sim.Atoms() << " atoms are OK\n";
 	// cout << sim.Hole(hole,holeRadius);
-	cout << sim.PassivatedHole(sim.atom[0][15].co, 10, &sim.atom[0][15]);
+	cout << sim.PassivatedHole(sim.atom[0][14].co, 6, &sim.atom[0][14]);
 	cout << " atoms removed.\n";
-	sim.Trim();
+	cout << sim.Trim() << " atoms trimmed";
 	sim >> outFilename;
 	// for(int e=0; e<sim.elementNum; e++)
 	// 	cout << sim%e << "% " << sim.element[e] << "\n";

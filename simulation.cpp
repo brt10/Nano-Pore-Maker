@@ -129,8 +129,9 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 			atomP[0] = &atom[e[0]][i[0]];		//make temporary pointer to atom
 			if(!atomP[0]->exists) continue;		//make sure atom exists
 			for(e[1]=e[0]; e[1]<elementNum; e[1]++)					//check only the atoms not yet analyzed.
-				for(i[1]=i[0]+1; i[1]<elementCount[e[1]]; i[1]++)	//i[1]=i[0]+1 i OK b/c of the condition ;)
+				for(i[1]= (e[0]==e[1] ? i[0]+1 : 0); i[1]<elementCount[e[1]]; i[1]++)	//i[1]=i[0]+1 i OK b/c of the condition ;)
 				{
+					// cout << e[0] << ',' << e[1] << '\t' << i[0] << ',' << i[1] << '\n';
 					atomP[1] = &atom[e[1]][i[1]];	//create temporary pointer to atom
 					if(!atomP[1]->exists) continue;	//make sure atom[] exists						
 					if( ModDistance(atomP[0], atomP[1]) <= K::BOND_LENGTH[atomP[0]->element][atomP[1]->element] )	//if close enough
@@ -506,7 +507,7 @@ double simulation::RealDistance(coordinate a, coordinate b)
 double simulation::ModDistance(coordinate a, coordinate b)
 {
 	coordinate mod = a - (b+.5);//shift the coords so that coord b is in the center.
-	mod.Mod(1);					//shift within bounds
+	mod.Dec();					//shift within bounds
 	return RealDistance(mod, coordinate(.5));
 }
 double simulation::ModDistance(atom_cls* a, atom_cls* b)
