@@ -22,13 +22,25 @@ double Distance(coordinate a, coordinate b)
 }
 void coordinate::Mod(double k)
 {
-	while(*this<0)
-		*this+=k;
-	while(*this>=k)
-		*this-=k;
+	for(int a=0; a<3; a++)	//for each axis
+	{
+		while(ord[a]<0)
+			ord[a]+=k;
+		while(ord[a]>=k)
+			ord[a]-=k;
+	}
 	return;
 }
-
+void coordinate::Dec(void)
+{
+	for(int a=0; a<3; a++)
+	{
+		if(ord[a]<0)
+			ord[a] = -ord[a];
+		ord[a] -= (int)ord[a];
+	}
+	return;
+}
 double coordinate::operator[](const unsigned int i)
 {
 	return ord[i];
@@ -75,7 +87,7 @@ coordinate& coordinate::operator=(const double k)
 	{
 		coordinate diff;
 		for(int a=0; a<3; a++)
-			diff.ord[a] = ord[a] + co.ord[a];
+			diff.ord[a] = ord[a] - co.ord[a];
 		return diff;
 	}
 	coordinate coordinate::operator-(const double k)

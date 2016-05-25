@@ -21,27 +21,35 @@ class simulation
 		//constructors------------
 		simulation();
 		//prototypes--------------
+		void ClearData(void);			//clears all data in class
 		bool ReadData(const string);	//reads datafile	XXX may want to return number of atoms read in?
 		bool operator<<(const string);
 		void Standardize(void);			//moves all atoms to [0,1) (usefull after reading in data) XXX would be nice to know how many were changed
 
+		void Disassociate(void);		//unbind all
 		int Associate(void);			//bonds neighbors
+		bool Bond(atom_cls*, atom_cls*);//bond, Covalent Bond
+		bool Bond(atom_cls*[2]);
 		int Hole(coordinate,double);	//creates hole in atoms of radius
-		// int Passivate();				//passivates hole
+		void Passivate(atom_cls*, atom_cls*);	//passivates hole
 		bool WriteData(const string);	//outputs current state to datafile
 		bool operator>>(const string);
 		// int UnitCell(double[3]);		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
 		bool CopyCell(unsigned int, unsigned int);		//makes a mosaic of the current cell to the given scale. (may overload as int... not too important)
 		bool Scale(unsigned int[3]);
 		bool Scale(double[3]);			//scales the model to a certain size, retaining structure, and bond lengths
-		int Trim(void);					//trims off all atoms that are outside of bounds
+		bool Scale(string,string);				//scales model to values in file.
+		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
+		int PassivatedHole(coordinate, unsigned int);	//makes a passivated hole by recursion.
+		int PassivatedHole(coordinate, unsigned int, atom_cls*);	//fastest hole-maker. (specify hole by atom)
+		// int Remove(void);		//removes all non-extant atoms
 
 		double Volume(void);				//volume of lattice in m^3
 		double Mass(void);					//mass of extant atoms
 		unsigned int Extant(unsigned int);	//#extant atoms of element
 		unsigned int Atoms(void);			//total # of extant atoms
-		double Density(void);				//density of system
+		double Density(void);				//density of system g/cm^3
 		double operator%(const unsigned int);//percent of element
 
 		double RealDistance(coordinate, coordinate);	//the real distance to a coord

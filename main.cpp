@@ -1,55 +1,74 @@
 using namespace std;	//for now... easier
 
 #include <iostream>	//for cout
-// #include <fstream>	//file io
 #include <string>	//strings
-// #include <cmath>	//sqrt(), pow()
 #include "simulation.h"
 #include "coordinate.h"
 
 int main()
 {
+	//variables
 	simulation sim;		//simulation object
-	string filename[2];	//io filenames
-	coordinate hole;	//hole coords	(may remove coordinate struct...)
-	double holeRadius;	//radius of hole...
-	double cell[3] = {.25, .5, .5};	//a particular unit cell (testing)
-	unsigned int scale[3] = {7,4,4};		//a particualr scale for tseting 
+	//string scaleFilename;
+	string dataFilename;
+	string outFilename;
+	coordinate hole;
+	double holeRadius;
+	double cell[3] = {.25,.5,.5};
+	unsigned int scale[3] = {8,4,4};		//the scales to output... use scalefile later.
 
-	//temporary for testing
-		holeRadius = 5.4;	//in angstroms
-		// for(int a=0; a<3; a++)
-		// 	hole.ord[a] = .5;
-		hole = .5;	//made an operator for this. :D
-		filename[0] = "IN.txt";
-		filename[1] = "OUT.txt";
-	
-	//read data from file----------
-	//sim.ReadData( filename[0] );
-	sim << filename[0];
+	//assignments
+	//scaleFilename = "data/scalefile.txt";
+	hole = .5;
+	hole.ord[0] = 0;
+	holeRadius = 5;
+	dataFilename = "data/64.vasp";
+	outFilename = "data/OUT.vasp";
 
-	//standardize the data
+	sim << dataFilename;
 	sim.Standardize();
-
-	//scale model(copies of particular unit cell)
 	sim.Scale(cell);
 	sim.Scale(scale);
-
-	//outut fancy data
-	for(int a=0; a<sim.elementNum; a++)
-		cout << sim%a << "% " << sim.element[a] << "\n";
-	cout << "Density: " << sim.Density() << endl;
-
-	//find neighbors---------------
-	// cout << sim.Associate();
-	// cout << " Atoms bonded\n";
-
-	//Create Hole-------------------
-	// cout << sim.Hole(hole, holeRadius);
-	// cout << " Atoms removed when making hole\n";
-
-	//output file--------------------
-	// sim.WriteData( filename[1] );
-	sim >> filename[1];
+	// sim.Disassociate();
+	sim.Associate();
+	
+	// int e=1;
+	// int i=62;
+	// coordinate x = sim.atom[e][i].co;
+	// coordinate y;
+	// cout << "1\t" << sim.atom[e][i].bondNum << "\n\t";
+	// for(int a=0; a<3; a++)
+	// 	// cout << x[a] << '\t';
+	// 	cout << .5 << '\t';
+	// cout << "TTT\n";  
+	// for(int a=0; a<sim.atom[e][i].bondNum; a++)
+	// {
+	// 	y = sim.atom[e][i].bond[a]->co;
+	// 	y = (x-y)+.5;
+	// 	y.Dec();
+	// 	cout << "\t";
+	// 	for(int b=0; b<3; b++)
+	// 		cout << y[b] << '\t';
+	// 	// cout << sim.ModDistance(&sim.atom[e][i], sim.atom[e][i].bond[a]);
+	// 	cout << "TTT\n";
+	// }
+	int count=0;
+	for(int e=0; e<sim.elementNum; e++)
+		for(int i=0; i<sim.elementCount[e]; e++)
+			if(sim.atom[e][i].bondNum ==4)
+				count++;
+			else
+				cout << e << i << ' ' << sim.atom[e][i].bondNum << '\n';
+	cout << count << " of " << sim.Atoms() << " atoms are OK\n";
+	// cout << sim.Hole(hole,holeRadius);
+	cout << sim.PassivatedHole(sim.atom[0][15].co, 10, &sim.atom[0][15]);
+	cout << " atoms removed.\n";
+	sim.Trim();
+	sim >> outFilename;
+	// for(int e=0; e<sim.elementNum; e++)
+	// 	cout << sim%e << "% " << sim.element[e] << "\n";
+	// cout << "Density: " << sim.Density() << " g/cm^3\n";
+	// cout << K::MASS[0] << endl;
+	//sim.Scale(outFilename, scaleFilename);
 	return 0;
 }

@@ -2,6 +2,7 @@ out = n
 name = nate
 dbg = -g
 
+a: all
 all: $(name)
 
 $(name): main.o coordinate.o atom.o simulation.o
@@ -14,9 +15,15 @@ atom.o: atom.cpp
 	g++ -c $(dbg) atom.cpp
 simulation.o: simulation.cpp
 	g++ -c $(dbg) simulation.cpp
+c: clean
 clean:
 	rm $(out)
+p: purge
 purge: #clean
 	rm *.o $(out)
+r: remake
+remake:
+	make purge
+	make all
 #debug: main.dbg coordinate.dbg atom.dbg simulation.dbg
 #	g++ main.dbg coordinate.dbg atom.dbg simulation.dbg -o 

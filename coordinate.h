@@ -15,6 +15,7 @@ class coordinate
 		//functions
 		double Distance(coordinate);				//distance to another coord
 		void Mod(double);							//takes mod of coordinate XXX currently inefficient
+		void Dec(void);		//returns the decimal of the number(=modulus1)
 		//operators
 		double operator[](const unsigned int);		//allows one to refer to the coordinate directly. :)
 		// coordinate operator=(const coordinate&);	//set equal to another coord. (able to do: coord = coordA = coordB)

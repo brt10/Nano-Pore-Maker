@@ -2,21 +2,27 @@
 
 atom_cls::atom_cls()
 {
-	for(int a=0; a<K::MAX_BONDS; a++)
-		bond[a] = 0;	//nulify all pointers
-	bondNum = 0;
-	exists = 1;
+	ClearData();
 }
 atom_cls::atom_cls(const atom_cls& atom)	//should not copy bonds
 {
-	for(int a=0; a<K::MAX_BONDS; a++)	//nulify bonds
-		bond[a] = 0;
+	ClearData();
 	co = atom.co;
-	bondNum = 0;
 	exists = atom.exists;
 	element = atom.element;			
 	for(int a=0; a<3; a++)
 		freedom[a] = atom.freedom[a];
+}
+void atom_cls::ClearData(void)
+{
+
+	for(int a=0; a<K::MAX_BONDS; a++)
+		bond[a] = 0;	//nulify all pointers
+	bondNum = 0;
+	exists = 1;
+	for(int a=0; a<3; a++)
+		freedom[a] = 1;
+	return;
 }
 atom_cls& atom_cls::operator=(const atom_cls& atom)
 {

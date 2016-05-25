@@ -1,5 +1,50 @@
+ATOM eye (MIT)
+visualization software
+
+check bonding nubers
+
+FOR THURSDAY:
+	passivation working at all costs
+
+
+FOR TUESDAY:
+	make slides of progress, etc.
+	get a working simulation and output results.
+
+
 write:
 	sim::passivate
 	sim::Mass() - a rather poor start so far
+	impliment multipliers! not used right now! will come back to bite me!
+reWrite:
+	sim::ReadData()	- need better way to read int 
 dynamic allocation
 test limits of memory on lion xf
+
+XXX there will be problems with removing atoms... (pointers will no longer work!)
+	make sure associate unassocates first.
+	make sure removing atoms accounts for pointers!
+	dynamic memory? aat least replace atom[][] with *atom[][]
+		need to be able to do operations on all atoms efficiently
+		arrays are easy.
+
+rewrite bond lengths... not SUPER important... yet.
+
+
+sorted lists of atoms. faster searching
+
+recursive hole-making algorythm... would not work across boundaries... or for free (unbound atoms)
+but would be extremely efficient!
+
+
+1. make porous models using model which is 4x2x2 of the unit cell ( ~ 12.4 A x 10.6 A x 10.1 A  with 64 si and 64 c ).
+2. Make various crystalline supercells 3x2x2 , 4x2x2, 5x3x3, 6x4x4, 7x4x4, 8x4x4
+3. repeat 1 with pores on edge putting center of pore at edge.si and 64 c
+	HUH? what is edge Si?
+4. coding project start with 8x4x4 model input final density and average pore size.
+5. get onto lion xf and run code there and put models in group file
+
+
+
+WOW
+	I misplaced a negative in the coordinate file... that was a nightmare.

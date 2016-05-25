@@ -12,6 +12,7 @@ class atom_cls
 		atom_cls();
 		atom_cls(const atom_cls&);		//copy an existing atom without bonds
 		//prototypes----------------------
+		void ClearData(void);
 		atom_cls& operator=(const atom_cls&);	
 		int IsBound(const atom_cls*);			//may be useful to write (impliment in breakbond) (returns the index of the bond)
 		void BreakBond(atom_cls*);		//may add error catching to this later...
