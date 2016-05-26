@@ -32,26 +32,26 @@ int main()
 	// sim.Disassociate();
 	sim.Associate();
 	
-	int e=0;
-	int i=27;
-	coordinate x = sim.atom[e][i].co;
-	coordinate y;
-	cout << "1\t" << sim.atom[e][i].bondNum << "\n\t";
-	for(int a=0; a<3; a++)
-		cout << x[a] << '\t';
-		// cout << .5 << '\t';
-	cout << "TTT\n";  
-	for(int a=0; a<sim.atom[e][i].bondNum; a++)
-	{
-		y = sim.atom[e][i].bond[a]->co;
-		// y = (x-y)+.5;
-		// y.Dec();
-		cout << "\t";
-		for(int b=0; b<3; b++)
-			cout << y[b] << '\t';
-		// cout << sim.ModDistance(&sim.atom[e][i], sim.atom[e][i].bond[a]);
-		cout << "TTT\n";
-	}
+	// int e=0;
+	// int i=27;
+	// coordinate x = sim.atom[e][i].co;
+	// coordinate y;
+	// cout << "1\t" << sim.atom[e][i].bondNum << "\n\t";
+	// for(int a=0; a<3; a++)
+	// 	cout << x[a] << '\t';
+	// 	// cout << .5 << '\t';
+	// cout << "TTT\n";  
+	// for(int a=0; a<sim.atom[e][i].bondNum; a++)
+	// {
+	// 	y = sim.atom[e][i].bond[a]->co;
+	// 	// y = (x-y)+.5;
+	// 	// y.Dec();
+	// 	cout << "\t";
+	// 	for(int b=0; b<3; b++)
+	// 		cout << y[b] << '\t';
+	// 	// cout << sim.ModDistance(&sim.atom[e][i], sim.atom[e][i].bond[a]);
+	// 	cout << "TTT\n";
+	// }
 	//-----------------
 	// coordinate x,y,z;
 	// x=0;
@@ -71,7 +71,7 @@ int main()
 	// 			cout << e << i << ' ' << sim.atom[e][i].bondNum << '\n';
 	// cout << count << " of " << sim.Atoms() << " atoms are OK\n";
 	// cout << sim.Hole(hole,holeRadius);
-	cout << sim.PassivatedHole(sim.atom[0][14].co, 6, &sim.atom[0][14]);
+	cout << sim.PassivatedHole(sim.atom[0][203].co, 6, &sim.atom[0][203]);
 	cout << " atoms removed.\n";
 	cout << sim.Trim() << " atoms trimmed";
 	sim >> outFilename;

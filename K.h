@@ -8,13 +8,12 @@ namespace K
 	//in future, use array of bond lengths... limiting factor is reading these in from a file... [shrug] easy nuff.
 	//const double BOND_LENGTH[ ((MAX_ELEMENTS+1) * MAX_ELEMENTS)/2 ];
 	// const double BOND_LENGTH = 1.9;		//in Angstroms... 
-	const double DEV = 1.1;	//deviation of bond length
+	const double BOND_DEVIATION = 1.1;	//deviation of bond length
 	//https://en.wikipedia.org/wiki/Bond_length
 	//									Si 		C 		H
-	const double BOND_LENGTH[3][3] ={	{2.33*DEV,	1.86*DEV,	1.46*DEV},	//Si
-										{1.86*DEV,	1.54*DEV,	1.10*DEV},//C
-										{1.46*DEV,	1.10*DEV,	0.74*DEV}};//H
-	const double BOND_LENGTH_H = 1;
+	const double BOND_LENGTH[3][3] ={	{2.33,	1.86,	1.46},	//Si
+										{1.86,	1.54,	1.10},//C
+										{1.46,	1.10,	0.74}};//H
 	const unsigned int PRECISION = 4;
 	const double MOLE = 6.022e23;//		Si 				C 				H
 	const double MASS[MAX_ELEMENTS] = {28.085/MOLE ,12.011/MOLE, 1.00794/MOLE};

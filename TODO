@@ -13,7 +13,7 @@ FOR TUESDAY:
 
 
 write:
-	sim::passivate
+	a better call for passivated hole  (atuomatically center at atom (default nullpointer))
 	sim::Mass() - a rather poor start so far
 	impliment multipliers! not used right now! will come back to bite me!
 reWrite:

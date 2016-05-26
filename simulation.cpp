@@ -134,7 +134,7 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 					// cout << e[0] << ',' << e[1] << '\t' << i[0] << ',' << i[1] << '\n';
 					atomP[1] = &atom[e[1]][i[1]];	//create temporary pointer to atom
 					if(!atomP[1]->exists) continue;	//make sure atom[] exists						
-					if( ModDistance(atomP[0], atomP[1]) <= K::BOND_LENGTH[atomP[0]->element][atomP[1]->element] )	//if close enough
+					if( ModDistance(atomP[0], atomP[1]) <= K::BOND_LENGTH[atomP[0]->element][atomP[1]->element]*K::BOND_DEVIATION )	//if close enough
 					{
 						if(Bond(atomP))
 							bondCount++;
@@ -204,8 +204,13 @@ void simulation::Passivate(atom_cls* removed, atom_cls* passivated)	//assume to 
 	H = &atom[2][elementCount[2]];
 	H->ClearData();
 	H->exists=1;
-	H->co = (((r-p)*ratio)+p);
-	H->co.Dec();
+	// H->co = (((r-p)*ratio)+p);	//XXX this is wrong because the distance is not r-p!
+	H->co = ((r-p)+.5);	//center around .5 to use Dec()
+	H->co.Dec();		//Modulus 1
+	H->co -= .5;		//center around 0
+	H->co *= ratio;		//fit to new length
+	H->co += p;			//center around p
+	H->co.Dec();		//Modulus 1
 	H->bond[0] = passivated;
 	//XXX should check to make sure doesnt exceed max bonds: alternatively replace old bond...
 	//bond passivated to Hydrogen
