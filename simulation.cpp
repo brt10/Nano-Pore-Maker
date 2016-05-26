@@ -450,15 +450,17 @@ int simulation::PassivatedHole(coordinate hole, unsigned int radius)	//makes a p
 
 	// return 0;
 }
-int simulation::PassivatedHole(coordinate center, unsigned int radius, atom_cls* subject)	//makes a passivated hole by recursion.
+int simulation::PassivatedHole(unsigned int radius, atom_cls* subject, atom_cls* center)	//makes a passivated hole by recursion.
 {
+	if(!center)	//null pointer
+		center = subject;
 	int count = 1;
 	subject->exists=0;	//mark for removal.	//XXX later simply remove atoms (rewuires using a pointer array of atoms)
 	for(int a=0; a<subject->bondNum; a++)
 		if(subject->bond[a]->exists)	//if not already marked.
 		{
-			if(ModDistance(subject->bond[a]->co, center) < radius)	//if bonded atom is within radius
-				count+=PassivatedHole(center,radius,subject->bond[a]);
+			if(ModDistance(subject->bond[a]->co, center->co) < radius)	//if bonded atom is within radius
+				count+=PassivatedHole(radius,subject->bond[a],center);
 			else 	//passivate here
 				Passivate(subject, subject->bond[a]);
 		}
@@ -468,6 +470,53 @@ int simulation::PassivatedHole(coordinate center, unsigned int radius, atom_cls*
 // {
 // 	return count;
 // }
+atom_cls* simulation::Center(const int E)	//default = -1
+{
+	double testDist;
+	double minDist;
+	atom_cls* minP=0;	//pointer to closest atom
+	atom_cls* testP=0;	//pointer to test atom
+	unsigned int e,i;
+
+	if(E==-1){	//no element selected
+		//ititialization
+		e=0;
+		minP = Center(e);
+		minDist = ModDistance(minP->co, coordinate(.5));
+		//for all others
+		for(e=1; e<elementNum; e++)
+		{
+			testP = Center(e);
+			testDist = ModDistance(testP->co, coordinate(.5));
+			if(testDist<minDist)
+			{
+				minDist = testDist;
+				minP = testP;
+			}
+		}
+	}else if(E<0 || E>=elementNum){	//out of bounds
+		cerr << "element select of: " << e << "Is out of bounds\n";
+		//return 0;	//null pointer
+	}else{
+		//initialize
+		i=0;
+		minP = &atom[E][i];
+		minDist = ModDistance(minP->co, coordinate(.5));
+		//for all others
+		for(i=1; i<elementCount[E]; i++)
+		{
+			testP = &atom[E][i];
+			testDist = ModDistance(testP->co, coordinate(.5));
+
+			if( testDist < minDist)
+			{
+				minDist = testDist;
+				minP = &atom[E][i];
+			}
+		}
+	}
+	return minP;
+}
 double simulation::Volume(void)			//volume of lattice in cm^3
 {
 	double product=1;

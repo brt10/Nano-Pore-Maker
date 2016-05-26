@@ -42,8 +42,9 @@ class simulation
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
 		int PassivatedHole(coordinate, unsigned int);	//makes a passivated hole by recursion.
-		int PassivatedHole(coordinate, unsigned int, atom_cls*);	//fastest hole-maker. (specify hole by atom)
+		int PassivatedHole(unsigned int, atom_cls*, atom_cls* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
+		atom_cls* Center(const int E=-1);	//returns the center most atom of specified element;
 
 		double Volume(void);				//volume of lattice in m^3
 		double Mass(void);					//mass of extant atoms
