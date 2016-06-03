@@ -37,14 +37,16 @@ class simulation
 		// int UnitCell(double[3]);		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
 		bool CopyCell(unsigned int, unsigned int);		//makes a mosaic of the current cell to the given scale. (may overload as int... not too important)
 		bool Scale(unsigned int[3]);
+		bool Scale(unsigned int);
 		bool Scale(double[3]);			//scales the model to a certain size, retaining structure, and bond lengths
 		bool Scale(string,string);				//scales model to values in file.
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
-		int PassivatedHole(coordinate, unsigned int);	//makes a passivated hole by recursion.
-		int PassivatedHole(unsigned int, atom_cls*, atom_cls* center=0);	//fastest hole-maker. (specify hole by atom)
+		int PassivatedHole(unsigned int, coordinate* center=0);	//makes a passivated hole by recursion.
+		int PassivatedHole(unsigned int, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
-		atom_cls* Center(const int E=-1);	//returns the center most atom of specified element;
+		atom_cls* Closest(coordinate c, int E=-1);	//returns the atom closest to the coordinate of given element
+		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
 
 		double Volume(void);				//volume of lattice in m^3
 		double Mass(void);					//mass of extant atoms

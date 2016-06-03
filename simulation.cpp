@@ -240,14 +240,14 @@ bool simulation::WriteData(const string filename)
 	for(int a=0; a<3; a++)
 	{
 		for(int b=0; b<3; b++)
-			outfile << ((a==b) ? lattice[a] : 0) << "\t";
+			outfile << ((a==b) ? lattice[a] : 0) << " ";
 		outfile << "\n";
 	}
 	for(int e=0; e<elementNum; e++)	//element names
-		outfile << element[e] << "\t";
+		outfile << element[e] << " ";
 	outfile << "\n";
 	for(int e=0; e<elementNum; e++)	//# extant atoms
-		outfile << Extant(e) << '\t';
+		outfile << Extant(e) << ' ';
 	outfile << "\n" << tag << "\n";
 
 	//only write out atoms if they exist ;)
@@ -255,8 +255,9 @@ bool simulation::WriteData(const string filename)
 		for(int i=0; i<elementCount[e]; i++)
 			if(atom[e][i].exists)
 			{
+				outfile << ' ';	//preceed with space
 				for(int a=0; a<3; a++)
-					outfile << atom[e][i].co.ord[a] << "\t";
+					outfile << atom[e][i].co.ord[a] << " ";
 				for(int a=0; a<3; a++)
 					outfile << (atom[e][i].freedom[a] ? "T " : "F ");
 				outfile << "\n";	//write a newline (do not use endl (forces flush))
@@ -269,35 +270,6 @@ bool simulation::operator>>(const string filename)
 {
 	return WriteData(filename);
 }
-// int simulation::UnitCell(double scale[3])		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
-	// {
-	// 	unsigned int count = 0; //# atoms in cell
-	// 	//bool inside=1; 	//if atom is inside.
-
-	// 	for(int e=0; e < elementNum; e++)			//for every atom
-	// 		for(int i=0; i < elementCount[e]; i++)	//
-	// 			if(atom[e][i].exists)
-	// 			{
-	// 				//inside = 1;
-	// 				for(int a=0; a<3; a++)
-	// 					if(atom[e][i].co.ord[a] > scale[a])
-	// 					{
-	// 						atom[e][i].exists = 0;
-	// 						break;
-	// 					}
-	// 				//atom[e][i].exists = inside;
-	// 				count += atom[e][i].exists;
-	// 				elementCount[e] -= atom[e][i].exists;
-
-	// 					// if(atom[e][i].co.ord[a] <= scale[a]) {
-	// 					// 	count++;	//do not set exists to true here... I bet bad things would happen... ;)
-	// 					// } else {
-	// 					// 	atom[e][i].exists = 0;
-	// 					// 	elementCount[e]--;
-	// 					// }
-	// 			}
-	// 	return count;	//lil lazy to impliment count just yet...
-	// }
 bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mosaic of the current cell of given length and axis
 {
 	unsigned int index;	//for index of new atom
@@ -344,6 +316,11 @@ bool simulation::Scale(unsigned int scale[3])
 	//trim outliers---------------
 	//cerr << Trim() << " Atoms were trimmed off after Scaling\n";
 	return 1;
+}
+bool simulation::Scale(unsigned int s)
+{
+	unsigned int scale[3] = {s,s,s};
+	return Scale(scale);
 }
 bool simulation::Scale(double scale[3])	//ignores bonding. //FOR SCALING DOWN ONLY! the old algorythm wasnt good.
 {
@@ -438,28 +415,26 @@ void simulation::RemoveAtom(unsigned int e, unsigned int i)
 	elementCount[e]--;
 	return;
 }
-int simulation::PassivatedHole(coordinate hole, unsigned int radius)	//makes a passivated hole by recursion.
+int simulation::PassivatedHole(unsigned int radius, coordinate* center)	//makes a passivated hole by recursion.
 {
-	//this is gonna be kinda hacky...
-	//append an atom to list at coordinates, and run association.
-	//remove from list, and run Passivate hole on the list of bonds.
-	//return number of atoms removed
-
-	// atom[0][elementCount].co = hole
-	// elementCount[0]++;
-
-	// return 0;
+	coordinate c =.5;
+	if(!center)
+		center = &c;
+	atom_cls* centerAtom = Closest(*center);			//find atom closest to the coordinates
+	if(ModDistance(centerAtom->co, *center) > radius)	//if the atom is too far away
+		return 0;
+	return PassivatedHole(radius, centerAtom, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
-int simulation::PassivatedHole(unsigned int radius, atom_cls* subject, atom_cls* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedHole(unsigned int radius, atom_cls* subject, coordinate* center)	//makes a passivated hole by recursion.
 {
 	if(!center)	//null pointer
-		center = subject;
+		center = &(subject->co);
 	int count = 1;
 	subject->exists=0;	//mark for removal.	//XXX later simply remove atoms (rewuires using a pointer array of atoms)
 	for(int a=0; a<subject->bondNum; a++)
 		if(subject->bond[a]->exists)	//if not already marked.
 		{
-			if(ModDistance(subject->bond[a]->co, center->co) < radius)	//if bonded atom is within radius
+			if(ModDistance(subject->bond[a]->co, *center) < radius)	//if bonded atom is within radius
 				count+=PassivatedHole(radius,subject->bond[a],center);
 			else 	//passivate here
 				Passivate(subject, subject->bond[a]);
@@ -470,52 +445,44 @@ int simulation::PassivatedHole(unsigned int radius, atom_cls* subject, atom_cls*
 // {
 // 	return count;
 // }
-atom_cls* simulation::Center(const int E)	//default = -1
+atom_cls* simulation::Closest(coordinate c, int E)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
 {
 	double testDist;
 	double minDist;
 	atom_cls* minP=0;	//pointer to closest atom
 	atom_cls* testP=0;	//pointer to test atom
-	unsigned int e,i;
+	unsigned int e,i;	//indexing
 
-	if(E==-1){	//no element selected
-		//ititialization
-		e=0;
-		minP = Center(e);
-		minDist = ModDistance(minP->co, coordinate(.5));
-		//for all others
-		for(e=1; e<elementNum; e++)
+	if(E==-1){						//no element selected
+		for(e=0; e<elementNum; e++)	//for all elements
 		{
-			testP = Center(e);
-			testDist = ModDistance(testP->co, coordinate(.5));
-			if(testDist<minDist)
+			testP = Closest(c,e);
+			testDist = ModDistance(testP->co, c);	// XXX will contributs slightly to the time... but how many elements does one have?
+			if(testDist < minDist || i==0)
 			{
 				minDist = testDist;
 				minP = testP;
 			}
 		}
-	}else if(E<0 || E>=elementNum){	//out of bounds
-		cerr << "element select of: " << e << "Is out of bounds\n";
-		//return 0;	//null pointer
-	}else{
-		//initialize
-		i=0;
-		minP = &atom[E][i];
-		minDist = ModDistance(minP->co, coordinate(.5));
-		//for all others
-		for(i=1; i<elementCount[E]; i++)
+	}else if(E>=0 && E<elementNum){	//element has been selected
+		for(i=0; i<elementCount[E]; i++)
 		{
 			testP = &atom[E][i];
-			testDist = ModDistance(testP->co, coordinate(.5));
-
-			if( testDist < minDist)
+			testDist = ModDistance(testP->co, c);
+			if( testDist < minDist || i==0)
 			{
 				minDist = testDist;
 				minP = &atom[E][i];
 			}
 		}
+	}else{							//out of bounds
+		cerr << "element select of: " << e << "Is out of bounds\n";	//returns null pointer
 	}
 	return minP;
+}
+atom_cls* simulation::Center(int E)	//default = -1
+{
+	return Closest(coordinate(.5),E);
 }
 double simulation::Volume(void)			//volume of lattice in cm^3
 {

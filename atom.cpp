@@ -26,14 +26,11 @@ void atom_cls::ClearData(void)
 }
 atom_cls& atom_cls::operator=(const atom_cls& atom)
 {
-	for(int a=0; a<K::MAX_BONDS; a++)	//nulify bonds
-		bond[a] = 0;
-	co = atom.co;
-	bondNum = 0;
-	exists = atom.exists;
-	element = atom.element;			
-	for(int a=0; a<3; a++)
-		freedom[a] = atom.freedom[a];
+	ClearData();
+	//do not transfer freedoms
+	co = atom.co;			//coords
+	exists = atom.exists;	//extant
+	element = atom.element;	//element
 	return (*this);
 }
 

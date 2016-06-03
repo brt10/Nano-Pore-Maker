@@ -3,6 +3,13 @@ visualization software
 
 check bonding nubers
 
+FOR Friday(may3):
+X	make sure that scaled models movement restrictions are removed.
+	replace tabs with spaces.
+	make  hole models from exact center
+	make filename obj and impliment
+	maybe remake atom array to pointers... dynamic allocation and better bonding
+
 FOR THURSDAY:
 	passivation working at all costs
 
@@ -13,7 +20,7 @@ FOR TUESDAY:
 
 
 write:
-	a better call for passivated hole  (atuomatically center at atom (default nullpointer))
+	bonding numbers and lengths (check jobs dir)
 	sim::Mass() - a rather poor start so far
 	impliment multipliers! not used right now! will come back to bite me!
 reWrite:
@@ -48,3 +55,30 @@ but would be extremely efficient!
 
 WOW
 	I misplaced a negative in the coordinate file... that was a nightmare.
+
+POSTCAR
+1	<comment>
+2	<universal scaling factor>
+3	<lattice vector>
+4	<lattice vector>
+5	<lattice vector>
+6	<#atoms per species>
+7	<selective dynamics switch>
+ 8	deals with selective dynamics
+coord coord coord tag tag tag
+
+POSTCAR file format - courtesy of: http://cms.mpi.univie.ac.at/vasp/guide/node59.html
+1)	is treated as a comment line (you should write down the 'name' of the system). 
+2)	line provides a universal scaling factor ('lattice constant'), which is used to 
+	scale all lattice vectors and all atomic coordinates. (If this value is negative
+	it is interpreted as the total volume of the cell). 
+3,4,5) the three lattice vectors defining the unit cell of the system are given 
+	(first line corresponding to the first lattice vector, second to the second, and third to the third). 
+6)	supplies the number of atoms per atomic species (one number for each atomic species). 
+	The ordering must be consistent with the POTCAR and the INCAR file. 
+7)	switches to 'Selective dynamics' (only the first character is relevant and must be 'S' or 's'). 
+	This mode allows to provide extra flags for each atom signaling whether the respective coordinate(s) of this atom will be allowed to change during the ionic relaxation. This setting is useful if only certain 'shells' around a defect or 'layers' near a surface should relax. Mind: The 'Selective dynamics' input tag is optional: The seventh line supplies the switch between cartesian and direct lattice if the 'Selective dynamics' tag is omitted.
+
+POSCAR format (This is strait to the point)
+http://scent.gist.ac.kr/downloads/tutorial/2012/1/Lecture_Note_VASP_20120705.pdf
+thank you so much!
