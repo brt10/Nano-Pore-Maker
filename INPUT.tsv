@@ -1,0 +1,26 @@
+#This is a comment(should have no characters before '#')
+#-------------------------------------
+#file in coscarr form, or tsv of those files with optional associated scaling in file
+INPUT		
+	filename		<2H.vasp (unsigned int scale) | files.tsv>
+#--------scaling of outputs------------
+SCALING
+	filename		scaling.tsv
+#-------------------------------------
+BONDING		
+	tolerance		(double)
+	lengths			<default | bonding.tsv>
+#-------------------------------------
+PORES		
+	number			(unsigned int)
+	centering		<atomic | coordinate>
+	distribution	<random (unsigned int seed) | centered | (holes.tsv)>
+	radius			(double)
+	iterations		<all | (unsigned int)>
+	passivation 	<(string element) | none>
+#-------------------------------------
+OUTPUT		
+	path			(directory name)
+	convention		<Index,Polytype,Center,Radius>
+	delimeter		<none | space | tab | char(character)>
+	extension		(extension name)

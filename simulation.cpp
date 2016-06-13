@@ -123,6 +123,9 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 	unsigned int i[2];
 	atom_cls *atomP[2];
 	unsigned int bondCount=0;
+	double distance;		//distance between atoms
+	double bondLength;		//optimal bond length for atoms
+
 	for(e[0]=0; e[0] < elementNum; e[0]++)				//for every atom
 		for(i[0]=0; i[0] < elementCount[e[0]]; i[0]++)	//
 		{
@@ -133,11 +136,17 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 				{
 					// cout << e[0] << ',' << e[1] << '\t' << i[0] << ',' << i[1] << '\n';
 					atomP[1] = &atom[e[1]][i[1]];	//create temporary pointer to atom
-					if(!atomP[1]->exists) continue;	//make sure atom[] exists						
-					if( ModDistance(atomP[0], atomP[1]) <= K::BOND_LENGTH[atomP[0]->element][atomP[1]->element]*K::BOND_DEVIATION )	//if close enough
+					if(!atomP[1]->exists) continue;	//make sure atom[] exists	
+					distance = ModDistance(atomP[0], atomP[1]);
+					bondLength = K::BOND_LENGTH[atomP[0]->element][atomP[1]->element]
+					if( distance <= bondLength*(1+K::BOND_TOLERANCE))	//if not too far away
 					{
-						if(Bond(atomP))
-							bondCount++;
+						if(distance >= bondLength*(1-K::BOND_TOLERANCE))	//if not too close
+						{
+							if(Bond(atomP))
+								bondCount++;
+						}
+						else cerr<<"Atoms "<<e[0]<<','<<i[0]<<" and "<<e[1]<<','<<i[1]<<"were unnaturally close at "<<length<<"Angstroms\n";
 					}
 
 				}

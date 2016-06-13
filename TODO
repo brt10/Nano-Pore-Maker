@@ -3,9 +3,22 @@ visualization software
 
 check bonding nubers
 
+for monday:
+	make functions return all UPPECASE or all lowercase for easy checking (pair with UC(), LC() respectively)
+
+for thursday:
+	outout unmodified cell as 0
+	remove #5... zeolite
+	are there any Si-Si or C-C bonds? faster bonding algoyrythm...
+	Volume Relaxation
+	input defaults. on file
+
+
+
 FOR Friday(may3):
 X	make sure that scaled models movement restrictions are removed.
-	replace tabs with spaces.
+X	replace tabs with spaces.
+	figure out hole and bond ratios... gathering and analyzing data
 	make  hole models from exact center
 	make filename obj and impliment
 	maybe remake atom array to pointers... dynamic allocation and better bonding
