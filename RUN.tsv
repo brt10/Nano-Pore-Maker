@@ -1,0 +1,12 @@
+INPUT
+	filename	data/3C.vasp	3	3	3
+BONDING
+	tolerance	.2
+PORE
+	number		1
+	radius		5
+OUTPUT
+	path		nowhere/
+	convention	fsp
+	delimiter	_
+	extension	.vasp

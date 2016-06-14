@@ -17,9 +17,11 @@ PORES
 	distribution	<random (unsigned int seed) | centered | (holes.tsv)>
 	radius			(double)
 	iterations		<all | (unsigned int)>
+	step			(double)
 	passivation 	<(string element) | none>
 #-------------------------------------
 OUTPUT		
+#use path to append a prefix to filenames
 	path			(directory name)
 	convention		<Index,Polytype,Center,Radius>
 	delimeter		<none | space | tab | char(character)>

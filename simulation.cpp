@@ -138,7 +138,7 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 					atomP[1] = &atom[e[1]][i[1]];	//create temporary pointer to atom
 					if(!atomP[1]->exists) continue;	//make sure atom[] exists	
 					distance = ModDistance(atomP[0], atomP[1]);
-					bondLength = K::BOND_LENGTH[atomP[0]->element][atomP[1]->element]
+					bondLength = K::BOND_LENGTH[atomP[0]->element][atomP[1]->element];
 					if( distance <= bondLength*(1+K::BOND_TOLERANCE))	//if not too far away
 					{
 						if(distance >= bondLength*(1-K::BOND_TOLERANCE))	//if not too close
@@ -146,7 +146,7 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 							if(Bond(atomP))
 								bondCount++;
 						}
-						else cerr<<"Atoms "<<e[0]<<','<<i[0]<<" and "<<e[1]<<','<<i[1]<<"were unnaturally close at "<<length<<"Angstroms\n";
+						else cerr<<"Atoms "<<e[0]<<','<<i[0]<<" and "<<e[1]<<','<<i[1]<<"were unnaturally close at "<<distance<<"Angstroms\n";
 					}
 
 				}
@@ -424,7 +424,7 @@ void simulation::RemoveAtom(unsigned int e, unsigned int i)
 	elementCount[e]--;
 	return;
 }
-int simulation::PassivatedHole(unsigned int radius, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedHole(double radius, coordinate* center)	//makes a passivated hole by recursion.
 {
 	coordinate c =.5;
 	if(!center)
@@ -434,7 +434,7 @@ int simulation::PassivatedHole(unsigned int radius, coordinate* center)	//makes 
 		return 0;
 	return PassivatedHole(radius, centerAtom, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
-int simulation::PassivatedHole(unsigned int radius, atom_cls* subject, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedHole(double radius, atom_cls* subject, coordinate* center)	//makes a passivated hole by recursion.
 {
 	if(!center)	//null pointer
 		center = &(subject->co);
@@ -467,7 +467,7 @@ atom_cls* simulation::Closest(coordinate c, int E)	//default E=-1 //XXX should m
 		{
 			testP = Closest(c,e);
 			testDist = ModDistance(testP->co, c);	// XXX will contributs slightly to the time... but how many elements does one have?
-			if(testDist < minDist || i==0)
+			if(testDist < minDist || e==0)
 			{
 				minDist = testDist;
 				minP = testP;

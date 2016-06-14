@@ -3,6 +3,12 @@ visualization software
 
 check bonding nubers
 
+for Friday:
+	have functions output what they change to teh screen.
+	FIXED:
+		integers not double in passivated hole! O.o
+		forgot to associate atoms
+
 for monday:
 	make functions return all UPPECASE or all lowercase for easy checking (pair with UC(), LC() respectively)
 

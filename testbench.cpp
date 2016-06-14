@@ -1,3 +1,11 @@
+#include "testbench.h"
+//CONSTANTS
+	// const int testbench::MAX_SECTIONS = 10;		//max # of sections
+	// const int testbench::MAX_SETTINGS = 10;		//max # of settings per section
+	// const int testbench::MAX_FILES = 10;			//max # of datafiles
+	// const int testbench::MAX_SCALES = 10;			//max # of scales to make
+	// const int testbench::MAX_PORES = 10;			//max # of pores
+
 //SETTINGS
 	//INPUT
 		string testbench::Input_Filename(string line)
@@ -30,9 +38,9 @@
 				ifstream header;
 				string headerLine;	//a witty remix of headline
 				dataFileNum = 0;	//reset... defaut = 1;
-				header.open(filename);
+				header.open(filename.c_str());
 				//allready checked if could be opened.
-				while(getline(header,headerline) && dataFileNum < MAX_FILES)
+				while(getline(header,headerLine) && dataFileNum < MAX_FILES)
 					Input_Filename(headerLine);
 					// dataFileNum++;	//keep track of number of files
 				header.close();	
@@ -66,7 +74,7 @@
 					ss >> scale[scaleNum][a];
 				scaleNum++;
 			}
-			scalefile.close();
+			scaleFile.close();
 			return "";
 		}
 	//BONDING
@@ -75,7 +83,7 @@
 			if(line=="") return "tolerance";	//default
 			stringstream ss;
 			ss << line;
-			ss >> K::BOND_TOLERANCE;
+			// ss >> K::BOND_TOLERANCE;
 			return "";
 		}
 		string testbench::Bonding_Lengths(string line)
@@ -126,25 +134,36 @@
 		string testbench::Output_Path(string line)
 		{
 			if(line=="") return "path";	//default
-			
+			path = line;
 			return "";
 		}
 		string testbench::Output_Convention(string line)
 		{
 			if(line=="") return "convention";	//default
-			
+			convention = line;	//strait up copy it over.
 			return "";
 		}
-		string testbench::Output_Delimeter(string line)
+		string testbench::Output_Delimiter(string line)
 		{
-			if(line=="") return "delimeter";	//default
+			if(line=="") return "delimiter";	//default
+			switch(line[0])
+			{
+				case 't':
+					delimiter += "\t";
+					break;
+				case 's':
+					delimiter += " ";
+					break;
+				default:
+					delimiter += line;
+			}
 			
 			return "";
 		}
 		string testbench::Output_Extension(string line)
 		{
 			if(line=="") return "extension";	//default
-			
+			extension = line;
 			return "";
 		}
 //string operations
@@ -200,39 +219,43 @@ string testbench::Extension(string filename)
 	return filename.substr(period+1);
 }
 //constructor
-testbench::testbench : MAX_SECTIONS(10), MAX_SETTINGS(10) (void)
+testbench::testbench(void)/*:	MAX_SECTIONS=10,
+						MAX_SETTINGS=10,
+						MAX_FILES=10,
+						MAX_SCALES=10,
+						MAX_PORES=10 */
 {
 	//used to count functions
 	unsigned int i = 0;
 	unsigned int n[MAX_SECTIONS] = {0};
 	//initialize function pointers and counts
-	sections[i] = "INPUT";
-		setting[i][n[i]] = Input_Filename;	n[i]++;
+	section[i] = "INPUT";
+		setting[i][n[i]] = &testbench::Input_Filename;		n[i]++;
 		i++;
-	sections[i] = "SCALING";
-		setting[i][0] = Scaling_Filename;	n[i]++;
+	section[i] = "SCALING";
+		setting[i][n[i]] = &testbench::Scaling_Filename;	n[i]++;
 		i++;
-	sections[i] = "BONDING";
-		settings[i][0] = Bonding_Tolerance;	n[i]++;
-		settings[i][1] = Bonding_Lengths;	n[i]++;
+	section[i] = "BONDING";
+		setting[i][n[i]] = &testbench::Bonding_Tolerance;	n[i]++;
+		setting[i][n[i]] = &testbench::Bonding_Lengths;		n[i]++;
 		i++;
-	sections[i] = "PORE";
-		settings[i][0] = Pore_Number;		n[i]++;
-		settings[i][1] = Pore_Centering;	n[i]++;
-		settings[i][2] = Pore_Radius;		n[i]++;
-		settings[i][3] = Pore_Iterations;	n[i]++;
-		settings[i][4] = Pore_Passivation;	n[i]++;
+	section[i] = "PORE";
+		setting[i][n[i]] = &testbench::Pore_Number;			n[i]++;
+		setting[i][n[i]] = &testbench::Pore_Centering;		n[i]++;
+		setting[i][n[i]] = &testbench::Pore_Radius;			n[i]++;
+		setting[i][n[i]] = &testbench::Pore_Iterations;		n[i]++;
+		setting[i][n[i]] = &testbench::Pore_Passivation;	n[i]++;
 		i++;
-	sections[i] = "OUTPUT";
-		settings[i][0] = Output_Path;		n[i]++;
-		settings[i][1] = Output_Convention;	n[i]++;
-		settings[i][2] = Output_Delimeter;	n[i]++;
-		settings[i][3] = Output_Extension;	n[i]++;
+	section[i] = "OUTPUT";
+		setting[i][n[i]] = &testbench::Output_Path;			n[i]++;
+		setting[i][n[i]] = &testbench::Output_Convention;	n[i]++;
+		setting[i][n[i]] = &testbench::Output_Delimiter;	n[i]++;
+		setting[i][n[i]] = &testbench::Output_Extension;	n[i]++;
 		i++;
 	//initialize the numbers of functions
 	sectionNum = i;
 	for(int a=0; a<i; a++)
-		settingNum = n[a];
+		settingNum[a] = n[a];
 }
 int testbench::Read(string inputName)
 {
@@ -240,8 +263,8 @@ int testbench::Read(string inputName)
 	string line;	//line of file
 	string tag;		//tag to compare
 	stringstream ss;
-	unsigned int sectionIndex;	//index of section
-	unsigned int settingIndex;	//index of setting
+	unsigned int sectionIndex = MAX_SECTIONS;	//index of section
+	unsigned int settingIndex = MAX_SETTINGS;	//index of setting
 
 	input.open(inputName.c_str());
 	if(input.fail())
@@ -271,14 +294,14 @@ int testbench::Read(string inputName)
 			line = Trim(line);						//remove any whitespace
 
 			for(settingIndex = 0; settingIndex < settingNum[sectionIndex]; settingIndex++)	//find tag
-				if(tag == setting[sectionIndex][settingIndex]())	//search for function matches
+				if(tag == (this->*setting[sectionIndex][settingIndex])(""))	//search for function matches	//XXX ugh, default values for function pointers are a pain...
 				{
-					setting[sectionIndex][settingIndex](line);	//pass line over to be used as a setting
+					(this->*setting[sectionIndex][settingIndex])(line);	//pass line over to be used as a setting
 					break;										//discontinue search
 				}
-			if(setting >= MAX_SECTIONS)	//unrecognized
+			if(settingIndex >= settingNum[sectionIndex])	//unrecognized
 			{
-				cerr << "\"" << tag << "\"" << " Not recognized as a setting under " << sectionTag[section] << endl;
+				cerr << "\"" << tag << "\"" << " Not recognized as a setting under " << section[sectionIndex] << endl;
 				continue;
 			}				
 		}
@@ -299,22 +322,62 @@ int testbench::Read(string inputName)
 }
 int testbench::Test(void)
 {
+	// sim << dataFilename[0];
+	// sim.Scale(fileScale[0]);
+	// sim.Associate();
+	// sim.PassivatedHole(poreRadius);
+	// sim >> "F";
 	for(int f=0; f<dataFileNum; f++)//for each datafile
 		for(int s=0; s<scaleNum; s++)//for each scale
-			for(int p=0; p<poreNum; p++//for each pore
+		{
+			sim << dataFilename[f];		//read in file
+			sim.Scale(fileScale[f]);	//file-specific scale
+			sim.Scale(scale[s]);		//scale
+			sim.Associate();			//create bonds
+			for(int p=0; p<poreNum; p++)//for each pore
 			{
-				//for each iteration
-				sim << dataFilename;		//read in file
-				sim.Scale(fileScale[f]);	//file-specific scale
-				sim.Scale(scale[s]);		//scale
+				// sim.PassivatedHole(poreRadius, poreCoord[p]);
+				sim.PassivatedHole(poreRadius);
+				// for(int i=0; i<poreIterations; i++)//for each iteration
+				// {
+				// 	sim << dataFilename[f];	//XXX replace with sim = sim2, etc. (faster rates)
+				// 	sim.Scale(fileScale[f]);
+				// 	sim.Scale(scale[s]);
+				// 	removed = sim.PassivatedHole(poreRadius, poreCoord[p]);
+				// }
 				//untill new pore
 					//make and compare atoms removed
-				//make output name
-				sim >> //output
+				
+
+				
+				
 			}
+			outFilename = path;	//reset name
+			for(int c=0; c<convention.length(); c++)
+			{
+				if(c>0)
+					outFilename += delimiter;
+				switch(convention[c])//make output name
+				{
+					case 'f':
+						outFilename += "f";
+						break;
+					case 's':
+						outFilename += "s";
+						break;
+					case 'p':
+						outFilename += "p";
+						break;
+					default:
+						cerr << "convention " << convention[c] << "was not recognized\n"; 
+				}
+			}
+			outFilename += extension;
+			sim >> outFilename;//output
+		}
 	return 0;
 }
-int testbench::Run(string inuputName)
+int testbench::Run(string inputName)
 {
 	Default();			//set all defaut settings
 	if(Read(inputName))	//incorporate settings from file
@@ -325,9 +388,13 @@ int testbench::Run(string inuputName)
 void testbench::Default(void)
 {
 	dataFileNum = 0;//no datafiles... incremented as read from.
-	scaleNum = 0;	//no scales
+	scaleNum = 1;
 	poreNum = 0;	//no pores
 	poreRadius = 0;	//no size to pores
+	path = "";
+	convention = "f";	//default output defiined after filename
+	delimiter = "";		//no delimiter by default
+	extension = ".vasp";
 
 	for(int a=0; a<MAX_FILES; a++)
 		for(int b=0; b<3; b++)

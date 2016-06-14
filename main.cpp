@@ -6,28 +6,11 @@ using namespace std;	//for now... easier
 #include <sstream>	//for stringstream	XXX only used in input file parsing
 // #include "simulation.h"
 // #include "coordinate.h"
-// #include "testbench.h"
+#include "testbench.h"
 
 int main()
 {
-	string text = "2	4	8";
-	stringstream ss;
-	int scale;
-
-	ss << text;
-	for(int a=0; a<3; a++)
-	{
-		ss >> scale;
-		cout << scale << endl;
-	}
-	// ss.str("");
-	ss.clear();
-	ss << text;
-	for(int a=0; a<4; a++)
-	{
-		ss >> scale;
-		cout << scale << endl;
-	}
-
-	
+	testbench test;
+	test.Run("RUN.tsv");
+	return 0;
 }

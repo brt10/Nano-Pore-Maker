@@ -1,3 +1,5 @@
+#ifndef TESTBENCH_H
+#define TESTBENCH_H
 #include <iostream>	//cout, cerr, etc.
 #include <fstream>	//file io
 #include <string>	//strings
@@ -8,15 +10,16 @@
 using namespace std;	//easier for now....
 
 //for setting function integration
-typedef string (*functionP)(string);
+// typedef string (*FunctionP)(string);
 
 class testbench
 {
 	private:
-		const unsigned int MAX_SECTIONS;		//max # of sections
-		const unsigned int MAX_SETTINGS;		//max # of settings per section
-		const unsigned int MAX_FILES;			//max # of datafiles
-		const unsigned int MAX_SCALES;			//max # of scales to make
+		static const unsigned int MAX_SECTIONS = 10;		//max # of sections
+		static const unsigned int MAX_SETTINGS = 10;		//max # of settings per section
+		static const unsigned int MAX_FILES = 10;			//max # of datafiles
+		static const unsigned int MAX_SCALES = 10;			//max # of scales to make
+		static const unsigned int MAX_PORES = 10;			//max # of pores
 
 		unsigned int sectionNum;				//#of sections
 		unsigned int settingNum[MAX_SETTINGS];	//#of settings per section
@@ -35,21 +38,18 @@ class testbench
 		//PORE
 		unsigned int poreNum;					//#of pores to make
 		char centering;							//Atomic, Coordinate
-		char distribution;						//Random, Centered, File
+		char distribution;						//Random, Centered, File, coordinate
+		coordinate poreCoord[MAX_PORES];		//coordinates of pores
 		string holeFilename;
 		double poreRadius;						//radius of pores (only nessesary if constant)
 		unsigned int poreIterations;			//iterations of pore sizes
-		//MODELS
-		
-		string bondLengthFilename;
-
+		//OUTPUT
 		string path;
 		string convention;
-		string delimeter;
+		string delimiter;
 		string extension;
+		string outFilename;
 
-		ifstream data;
-		ifstream hole;
 		//INPUT
 		string Input_Filename(string line = "");
 		//SCALING
@@ -66,11 +66,13 @@ class testbench
 		//OUTPUT
 		string Output_Path(string line = "");
 		string Output_Convention(string line = "");
-		string Output_Delimeter(string line = "");
+		string Output_Delimiter(string line = "");
 		string Output_Extension(string line = "");
 		//settings
 		string section[MAX_SECTIONS];
-		FunctionP setting[MAX_SETTINGS];
+		typedef string (testbench::*FunctionP)(string);
+		FunctionP setting[MAX_SECTIONS][MAX_SETTINGS];
+		// string testbench::*setting[MAX_SECTIONS][MAX_SETTINGS](string);
 
 		void Default(void);				//seta all values to default
 		//string manipulation
@@ -86,7 +88,7 @@ class testbench
 		testbench(void);		//constructor
 		int Run(string);	//runs the testbench from specifications in file
 };
-
+#endif
 
 // INPUT		
 // 	filename		<2H.vasp (unsigned int scale) | files.tsv>

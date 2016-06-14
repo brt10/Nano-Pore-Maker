@@ -42,8 +42,8 @@ class simulation
 		bool Scale(string,string);				//scales model to values in file.
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
-		int PassivatedHole(unsigned int, coordinate* center=0);	//makes a passivated hole by recursion.
-		int PassivatedHole(unsigned int, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
+		int PassivatedHole(double, coordinate* center=0);	//makes a passivated hole by recursion.
+		int PassivatedHole(double, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
 		atom_cls* Closest(coordinate c, int E=-1);	//returns the atom closest to the coordinate of given element
 		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
