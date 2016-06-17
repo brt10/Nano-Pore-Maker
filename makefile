@@ -1,31 +1,43 @@
-out = ppm
-name = nate
-dbg = -g
+SRCDIR = src
+BINDIR = bin
+OBJDIR = build
+TARGET = $(BINDIR)ppm
+DEBUG = -g
+CFLAGS = -Wall -c $(DEBUG)
+LFLAGS = -Wall $(DEBUG)
+CXX = g++
+SRCS =	main.cpp\
+		coordinate.cpp\
+		atom.cpp\
+		simulation.cpp\
+		testbench.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+CSRCS = $(addprefix $(SRCDIR),$(SRCS))
+COBJS = $(addprefix $(OBJDIR),$(OBJS))
+CTARGET = $(addprefix $(BINDIR),$(TARGET))
 
 a: all
-all: $(name)
+all: $(CTARGET)
 
-$(name): main.o coordinate.o atom.o simulation.o testbench.o
-	g++ $(dbg) main.o coordinate.o atom.o simulation.o testbench.o -o $(out)
-main.o: main.cpp
-	g++ -c $(dbg) main.cpp
+$(TARGET): $(COBJS)
+	$(CXX) $(LFLAGS) $(COBJS) -o $(CTARGET)
+main.o: main.cpp testbench.h
+	$(CXX) $(CFLAGS) main.cpp
 coordinate.o: coordinate.cpp
-	g++ -c $(dbg) coordinate.cpp
-atom.o: atom.cpp
-	g++ -c $(dbg) atom.cpp
-simulation.o: simulation.cpp
-	g++ -c $(dbg) simulation.cpp
-testbench.0: testbench.cpp
-	g++ -c $(dbg) testbench.cpp
+	$(CXX) $(CFLAGS) coordinate.cpp
+atom.o: atom.cpp atom.h coordinate.h
+	$(CXX) $(CFLAGS) atom.cpp
+simulation.o: simulation.cpp simulation.h atom.h
+	$(CXX) $(CFLAGS) simulation.cpp
+testbench.o: testbench.cpp testbench.h simulation.h coordinate.h
+	$(CXX) $(CFLAGS) testbench.cpp
 c: clean
 clean:
-	rm $(out)
-p: purge
-purge: #clean
-	rm *.o $(out)
+	@echo cleaning...
+	#rm -f *.o $(TARGET)	
+	rm -rf $(OBJDIR) $(CTARGET)
 r: remake
 remake:
-	make purge
+	make clean
 	make all
-#debug: main.dbg coordinate.dbg atom.dbg simulation.dbg
-#	g++ main.dbg coordinate.dbg atom.dbg simulation.dbg -o 

@@ -10,12 +10,11 @@
 	//INPUT
 		string testbench::Input_Filename(string line)
 		{
+			if(line=="") return "FILENAME";	//default
 			int split = line.find('\t');
 			string scaleText;
 			string filename;
 			stringstream ss;
-
-			if(line=="") return "filename";	//default
 			//get filename and scale if exists
 			if(split == string::npos)	//if no scale, Default will pick it up
 				filename = line;
@@ -41,7 +40,10 @@
 				header.open(filename.c_str());
 				//allready checked if could be opened.
 				while(getline(header,headerLine) && dataFileNum < MAX_FILES)
+				{
+					headerLine = Trim(headerLine);
 					Input_Filename(headerLine);
+				}
 					// dataFileNum++;	//keep track of number of files
 				header.close();	
 			}
@@ -55,11 +57,10 @@
 	//SCALING
 		string testbench::Scaling_Filename(string line)
 		{
+			if(line=="") return "FILENAME";	//default
 			ifstream scaleFile;
 			stringstream ss;
-			string scaleLine;
-
-			if(line=="") return "filename";	//default
+			string scaleLine;			
 			if(!FileExists(line))
 			{
 				cerr << '\"' << line << "\" does not exist or cannot be opened!\n";
@@ -80,7 +81,7 @@
 	//BONDING
 		string testbench::Bonding_Tolerance(string line)
 		{
-			if(line=="") return "tolerance";	//default
+			if(line=="") return "TOLERANCE";	//default
 			stringstream ss;
 			ss << line;
 			// ss >> K::BOND_TOLERANCE;
@@ -88,34 +89,71 @@
 		}
 		string testbench::Bonding_Lengths(string line)
 		{
-			if(line=="") return "lengths";	//default
+			if(line=="") return "LENGTHS";	//default
 			
 			return "";
 		}
 	//PORE
-		string testbench::Pore_Number(string line)
+		/*string testbench::Pore_Number(string line)
 		{
-			if(line=="") return "number";	//default
+			if(line=="") return "NUMBER";	//default
 			stringstream ss;
 			ss << line;
 			ss >> poreNum;			
 			return "";
-		}
+		}*/
 		string testbench::Pore_Coordinate(string line)
 		{
-			if(line=="") return "coordinate";	//default
-			stringstream ss;
-			ss << line;
-			for(int a=0; a<3; a++)
+			if(line=="") return "COORDINATE";	//default
+			stringstream ss;			//for conversion between strings and numbers
+			ifstream coordFile;			//ifile obj for reading recursively
+			string coordLine;			//line in coordfile
+			unsigned int randCoordNum;	//number of random coords to generate
+			int mark;					//marks place in tag
+
+			if(Extension(line) == "tsv")	//if arg is file
 			{
-				ss >> poreCoord[0].ord[a];	//XXX will have to change when dynamic
+				coordFile.open(line.c_str());
+				if(coordFile.fail())
+				{
+					cerr << "Coordinate File \"" << line << "\" Does not exist!\n";
+					return "";	//XXX need error catching
+				}
+				while(getline(coordFile,coordLine) && poreNum < MAX_PORES)
+				{
+					coordLine = Trim(coordLine);	//trim whitespace
+					Pore_Coordinate(coordLine);		//recurse
+				}
+				coordFile.close();
 			}
-			poreNum++;
+			else if(Uppercase(line.substr(0,6))=="RANDOM")	//if random coord
+			{
+				mark = line.find('\t');
+				if(mark != string::npos)	//if tab found
+				{
+					line = Trim(line.substr(mark));	//cut off tag and trim
+					ss << line;
+					ss >> randCoordNum;	//read as number of coords
+				}
+				else	//default
+					randCoordNum = 1;
+				for(int a=0; a<randCoordNum; a++, poreNum++)
+					poreCoord[poreNum] = RandCoord();
+			}
+			else	//if coordinate
+			{
+				ss << line;
+				for(int a=0; a<3; a++)
+				{
+					ss >> poreCoord[poreNum].ord[a];	//XXX will have to change when dynamic
+				}
+				poreNum++;	//increment # of pores
+			}
 			return "";
 		}
-		string testbench::Pore_Centering(string line)
+		string testbench::Pore_Center(string line)
 		{
-			if(line=="") return "centering";	//default
+			if(line=="") return "CENTER";	//default
 			centering = Uppercase(line[0]);
 			switch(centering)
 			{
@@ -130,48 +168,48 @@
 		}
 		string testbench::Pore_Radius(string line)
 		{
-			if(line=="") return "radius";	//default
+			if(line=="") return "RADIUS";	//default
 			stringstream ss;
 			ss << line;
 			ss >> poreRadius;
 			return "";
 		}
-		string testbench::Pore_Iterations(string line)
+		/*string testbench::Pore_Iterations(string line)
 		{
 			if(line=="") return "interactions";	//default
 			stringstream ss;
 			ss << line;
 			ss >> poreIterations;
 			return "";
-		}
+		}*/
 		string testbench::Pore_Passivation(string line)
 		{
-			if(line=="") return "passivation";	//default
+			if(line=="") return "PASSIVATION";	//default
 			
 			return "";
 		}
 	//OUTPUT
 		string testbench::Output_Path(string line)
 		{
-			if(line=="") return "path";	//default
+			if(line=="") return "PATH";	//default
 			path = line;
 			return "";
 		}
 		string testbench::Output_Filename(string line)
 		{
-			if(line=="") return "filename";	//default
+			if(line=="") return "FILENAME";	//default
 			customName = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Convention(string line)
 		{
-			if(line=="") return "convention";	//default
+			if(line=="") return "CONVENTION";	//default
 			convention = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Delimiter(string line)
 		{
-			if(line=="") return "delimiter";	//default
+			if(line=="") return "DELIMITER";	//default
 			switch(line[0])
 			{
 				case 't':
@@ -188,10 +226,11 @@
 		}
 		string testbench::Output_Extension(string line)
 		{
-			if(line=="") return "extension";	//default
+			if(line=="") return "EXTENSION";	//default
 			extension = line;
 			return "";
 		}
+//----------------------------------------------------------------------------------------
 //string operations
 string testbench::Trim(string line)
 {
@@ -239,7 +278,7 @@ string testbench::Uppercase(string s)
 		s[a] = Uppercase(s[a]);
 	return s;
 }
-//file opeerations
+//file operations
 bool testbench::FileExists(string filename)
 {
 	ifstream file;
@@ -284,12 +323,17 @@ string testbench::CreateFilename(void)
 	}
 	return fn;
 }
+//coordinate operations
+coordinate testbench::RandCoord(void)
+{
+	coordinate co;
+	for(int a=0; a<3; a++)
+		co.ord[a] = double(rand())/RAND_MAX;
+	return co;
+}
+//---------------------------------------------------------------------------------------------
 //constructor
-testbench::testbench(void)/*:	MAX_SECTIONS=10,
-						MAX_SETTINGS=10,
-						MAX_FILES=10,
-						MAX_SCALES=10,
-						MAX_PORES=10 */
+testbench::testbench(void)
 {
 	//used to count functions
 	unsigned int i = 0;
@@ -306,11 +350,11 @@ testbench::testbench(void)/*:	MAX_SECTIONS=10,
 		setting[i][n[i]] = &testbench::Bonding_Lengths;		n[i]++;
 		i++;
 	section[i] = "PORE";
-		setting[i][n[i]] = &testbench::Pore_Number;			n[i]++;
+		// setting[i][n[i]] = &testbench::Pore_Number;			n[i]++;
 		setting[i][n[i]] = &testbench::Pore_Coordinate;		n[i]++;
-		setting[i][n[i]] = &testbench::Pore_Centering;		n[i]++;
+		setting[i][n[i]] = &testbench::Pore_Center;			n[i]++;
 		setting[i][n[i]] = &testbench::Pore_Radius;			n[i]++;
-		setting[i][n[i]] = &testbench::Pore_Iterations;		n[i]++;
+		// setting[i][n[i]] = &testbench::Pore_Iterations;		n[i]++;
 		setting[i][n[i]] = &testbench::Pore_Passivation;	n[i]++;
 		i++;
 	section[i] = "OUTPUT";
@@ -348,7 +392,7 @@ int testbench::Read(string inputName)
 			continue;
 		if(line[0]!='\t')	//if heading text, set section
 		{
-			tag = Trim(line);	//cut off trailing whitespace
+			tag = Uppercase(Trim(line));	//cut off trailing whitespace and make uppercase
 			for(sectionIndex=0; sectionIndex < sectionNum; sectionIndex++)	//find tag
 				if(tag == section[sectionIndex])
 					break;
@@ -359,7 +403,7 @@ int testbench::Read(string inputName)
 		{
 			line = Trim(line);						//remove tab and any leading/trailing whitespace
 			tag = line.substr(0,line.find('\t'));	//retreive tag
-			tag = Trim(tag);						//trim any whitespace from tag
+			tag = Uppercase(Trim(tag));				//trim any whitespace from tag and make uppercase
 			line = line.substr(tag.length());		//cut off tag
 			line = Trim(line);						//remove any whitespace
 
@@ -453,5 +497,8 @@ void testbench::Default(void)
 			scale[a][b] = 1;
 	for(int a=0; a<MAX_PORES; a++)
 		poreCoord[a]=.5;
+
+	//seed rand
+	srand(time(NULL));
 	return;
 }

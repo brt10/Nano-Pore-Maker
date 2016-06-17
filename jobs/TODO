@@ -3,6 +3,11 @@ visualization software
 
 X	check bonding nubers
 
+IDEAS:
+	use vasp to evenly distribute pores as a particle
+		or use simple relaxation for that matter.
+
+
 for tuesday:
 X	coordiate centers
 X	radius
@@ -21,6 +26,8 @@ X	runfile name
 	make directory if dne		//wow this is messy
 	README
 	default.tsv
+X	make all tags uppercase for comparison
+	make multiple pores behave with any overlap
 
 
 
@@ -32,7 +39,7 @@ for Friday:
 		forgot to associate atoms
 
 for monday:
-	make functions return all UPPECASE or all lowercase for easy checking (pair with UC(), LC() respectively)
+X	make functions return all UPPECASE or all lowercase for easy checking (pair with UC(), LC() respectively)
 
 for thursday:
 	outout unmodified cell as 0

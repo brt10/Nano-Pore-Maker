@@ -4,8 +4,11 @@
 #include <fstream>	//file io
 #include <string>	//strings
 #include <sstream>	//for parsing strings into integers and doubles especially
+#include <cstdlib>	//for random numbers
+#include <ctime>	//for seeding random numbers
 #include "simulation.h"	//for simulations
 #include "coordinate.h"	//for coordinates of holes, etc.
+
 
 using namespace std;	//easier for now....
 
@@ -42,7 +45,7 @@ class testbench
 		char distribution;						//Random, File, Coordinate
 		string holeFilename;
 		double poreRadius;						//radius of pores (only nessesary if constant)
-		unsigned int poreIterations;			//iterations of pore sizes
+		// unsigned int poreIterations;			//iterations of pore sizes
 		//OUTPUT
 		string path;
 		string customName;
@@ -60,11 +63,11 @@ class testbench
 		string Bonding_Tolerance(string line = "");
 		string Bonding_Lengths(string line = "");
 		//PORE
-		string Pore_Number(string line = "");
+		// string Pore_Number(string line = "");
 		string Pore_Coordinate(string line = "");
-		string Pore_Centering(string line = "");
+		string Pore_Center(string line = "");
 		string Pore_Radius(string line = "");
-		string Pore_Iterations(string line = "");
+		//string Pore_Iterations(string line = "");
 		string Pore_Passivation(string line = "");
 		//OUTPUT
 		string Output_Path(string line = "");
@@ -89,6 +92,8 @@ class testbench
 		int Read(string);	//reads settings from file
 		int Test(void);			//runs test with settings
 		string CreateFilename(void);	//creates filename with current settings.
+		//coord operations
+		coordinate RandCoord(void);		//returns a random coordinate
 
 	public:
 		testbench(void);		//constructor
