@@ -30,7 +30,7 @@
 			}
 			if(!FileExists(filename))
 			{
-				cerr << '\"' << filename << "\" does not exist or cannot be opened!/n";
+				cerr << '\"' << filename << "\" does not exist or cannot be opened!\n";
 				return "";	//XXX NEED TO ADD ERROR CATCHING!
 			}
 			if(Extension(filename) == "tsv")	//read recursively from this file.
@@ -101,11 +101,31 @@
 			ss >> poreNum;			
 			return "";
 		}
+		string testbench::Pore_Coordinate(string line)
+		{
+			if(line=="") return "coordinate";	//default
+			stringstream ss;
+			ss << line;
+			for(int a=0; a<3; a++)
+			{
+				ss >> poreCoord[0].ord[a];	//XXX will have to change when dynamic
+			}
+			poreNum++;
+			return "";
+		}
 		string testbench::Pore_Centering(string line)
-
 		{
 			if(line=="") return "centering";	//default
-			
+			centering = Uppercase(line[0]);
+			switch(centering)
+			{
+				case 'A':	//atomic
+					break;
+				case 'C':	//coordinate
+					break;
+				default:
+					cerr << "Centering \'" << centering << "\' not recognized\n";
+			}
 			return "";
 		}
 		string testbench::Pore_Radius(string line)
@@ -135,6 +155,12 @@
 		{
 			if(line=="") return "path";	//default
 			path = line;
+			return "";
+		}
+		string testbench::Output_Filename(string line)
+		{
+			if(line=="") return "filename";	//default
+			customName = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Convention(string line)
@@ -201,6 +227,18 @@ string testbench::I_Str(int a)
 	if(n) s='s'+s;
 	return s;
 }
+char testbench::Uppercase(char c)
+{
+	if(c>='a' && c<='z')
+		return c-'a'+'A';
+	return c;
+}
+string testbench::Uppercase(string s)
+{
+	for(int a=0; a<s.length(); a++)
+		s[a] = Uppercase(s[a]);
+	return s;
+}
 //file opeerations
 bool testbench::FileExists(string filename)
 {
@@ -217,6 +255,34 @@ string testbench::Extension(string filename)
 	if(period == string::npos)
 		return "";
 	return filename.substr(period+1);
+}
+string testbench::CreateFilename(void)
+{
+	string fn;
+	fn += customName;
+	for(int c=0; c<convention.length(); c++)
+	{
+		if(c>0 || fn.length()>0)
+			outFilename += delimiter;
+		switch(Uppercase(convention[c]))//make output name
+		{
+			case 'F':
+				fn += "f";
+				break;
+			case 'S':
+				fn += "s";
+				break;
+			case 'P':
+				fn += "p";
+				break;
+			case 'N':
+				fn += I_Str(outFileCount);
+				break;
+			default:
+				cerr << "Convention \'" << convention[c] << "\' was not recognized\n"; 
+		}
+	}
+	return fn;
 }
 //constructor
 testbench::testbench(void)/*:	MAX_SECTIONS=10,
@@ -241,6 +307,7 @@ testbench::testbench(void)/*:	MAX_SECTIONS=10,
 		i++;
 	section[i] = "PORE";
 		setting[i][n[i]] = &testbench::Pore_Number;			n[i]++;
+		setting[i][n[i]] = &testbench::Pore_Coordinate;		n[i]++;
 		setting[i][n[i]] = &testbench::Pore_Centering;		n[i]++;
 		setting[i][n[i]] = &testbench::Pore_Radius;			n[i]++;
 		setting[i][n[i]] = &testbench::Pore_Iterations;		n[i]++;
@@ -248,6 +315,7 @@ testbench::testbench(void)/*:	MAX_SECTIONS=10,
 		i++;
 	section[i] = "OUTPUT";
 		setting[i][n[i]] = &testbench::Output_Path;			n[i]++;
+		setting[i][n[i]] = &testbench::Output_Filename;		n[i]++;
 		setting[i][n[i]] = &testbench::Output_Convention;	n[i]++;
 		setting[i][n[i]] = &testbench::Output_Delimiter;	n[i]++;
 		setting[i][n[i]] = &testbench::Output_Extension;	n[i]++;
@@ -259,6 +327,7 @@ testbench::testbench(void)/*:	MAX_SECTIONS=10,
 }
 int testbench::Read(string inputName)
 {
+	ofstream copy;	//copy of input file
 	ifstream input;	//infile
 	string line;	//line of file
 	string tag;		//tag to compare
@@ -290,6 +359,7 @@ int testbench::Read(string inputName)
 		{
 			line = Trim(line);						//remove tab and any leading/trailing whitespace
 			tag = line.substr(0,line.find('\t'));	//retreive tag
+			tag = Trim(tag);						//trim any whitespace from tag
 			line = line.substr(tag.length());		//cut off tag
 			line = Trim(line);						//remove any whitespace
 
@@ -313,7 +383,12 @@ int testbench::Read(string inputName)
 	}
 
 	input.close();
-
+	input.open(inputName.c_str());
+	copy.open( (path+CreateFilename()+"-settings.tsv").c_str() );
+	while(getline(input,line))
+		copy << line << '\n';
+	copy.close();
+	input.close();
 	//make scale models
 	//make 
 
@@ -322,11 +397,6 @@ int testbench::Read(string inputName)
 }
 int testbench::Test(void)
 {
-	// sim << dataFilename[0];
-	// sim.Scale(fileScale[0]);
-	// sim.Associate();
-	// sim.PassivatedHole(poreRadius);
-	// sim >> "F";
 	for(int f=0; f<dataFileNum; f++)//for each datafile
 		for(int s=0; s<scaleNum; s++)//for each scale
 		{
@@ -337,7 +407,7 @@ int testbench::Test(void)
 			for(int p=0; p<poreNum; p++)//for each pore
 			{
 				// sim.PassivatedHole(poreRadius, poreCoord[p]);
-				sim.PassivatedHole(poreRadius);
+				sim.PassivatedHole(poreRadius, &poreCoord[p]);
 				// for(int i=0; i<poreIterations; i++)//for each iteration
 				// {
 				// 	sim << dataFilename[f];	//XXX replace with sim = sim2, etc. (faster rates)
@@ -347,33 +417,10 @@ int testbench::Test(void)
 				// }
 				//untill new pore
 					//make and compare atoms removed
-				
-
-				
-				
 			}
-			outFilename = path;	//reset name
-			for(int c=0; c<convention.length(); c++)
-			{
-				if(c>0)
-					outFilename += delimiter;
-				switch(convention[c])//make output name
-				{
-					case 'f':
-						outFilename += "f";
-						break;
-					case 's':
-						outFilename += "s";
-						break;
-					case 'p':
-						outFilename += "p";
-						break;
-					default:
-						cerr << "convention " << convention[c] << "was not recognized\n"; 
-				}
-			}
-			outFilename += extension;
-			sim >> outFilename;//output
+			outFilename = CreateFilename();
+			sim >> (path+outFilename+extension);//output
+			outFileCount++;
 		}
 	return 0;
 }
@@ -392,9 +439,11 @@ void testbench::Default(void)
 	poreNum = 0;	//no pores
 	poreRadius = 0;	//no size to pores
 	path = "";
-	convention = "f";	//default output defiined after filename
+	customName = "";
+	convention = "";	//default output defiined after filename
 	delimiter = "";		//no delimiter by default
 	extension = ".vasp";
+	outFileCount = 0;	//number of files outputed so far
 
 	for(int a=0; a<MAX_FILES; a++)
 		for(int b=0; b<3; b++)
@@ -402,5 +451,7 @@ void testbench::Default(void)
 	for(int a=0; a<MAX_SCALES; a++)
 		for(int b=0; b<3; b++)
 			scale[a][b] = 1;
+	for(int a=0; a<MAX_PORES; a++)
+		poreCoord[a]=.5;
 	return;
 }

@@ -1,4 +1,4 @@
-out = n
+out = ppm
 name = nate
 dbg = -g
 

@@ -12,17 +12,17 @@ BONDING
 	lengths			<default | bonding.tsv>
 #-------------------------------------
 PORES		
-	number			(unsigned int)
+	number			<(unsigned int)>
+	coordinate		<pores.tsv | (double[3]) | random (unsigned int seed)>
 	centering		<atomic | coordinate>
-	distribution	<random (unsigned int seed) | centered | (holes.tsv)>
-	radius			(double)
-	iterations		<all | (unsigned int)>
-	step			(double)
+#	distribution	<(double)>
+	radius			<(double) | from (double) to (double) by (double)>
 	passivation 	<(string element) | none>
 #-------------------------------------
 OUTPUT		
 #use path to append a prefix to filenames
 	path			(directory name)
-	convention		<Index,Polytype,Center,Radius>
+	filename		(string)
+	convention		<Index,Polytype,Center,Radius,>
 	delimeter		<none | space | tab | char(character)>
 	extension		(extension name)

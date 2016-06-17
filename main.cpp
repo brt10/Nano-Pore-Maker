@@ -4,13 +4,25 @@ using namespace std;	//for now... easier
 #include <fstream>	//for file io
 #include <string>	//strings
 #include <sstream>	//for stringstream	XXX only used in input file parsing
-// #include "simulation.h"
+#include "simulation.h"
 // #include "coordinate.h"
 #include "testbench.h"
 
-int main()
+int main(int argc, char *argv[])
 {
+	/*double scale[] = {.25,.5,.5};
+	simulation sim;
+	sim << "data/2H.vasp";
+	sim.Standardize();
+	sim.Scale(scale);
+	sim >> "data/2H_UNIT.vasp";*/
 	testbench test;
-	test.Run("RUN.tsv");
+	if(argc < 2)
+	{
+		cout << "Please supply a command line argument!\nex: \"./ppm INPUT.tsv\"\n\n";
+		return 1;
+	}
+	string filename(argv[1]);
+	test.Run(filename);
 	return 0;
 }

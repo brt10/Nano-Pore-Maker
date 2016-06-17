@@ -38,17 +38,19 @@ class testbench
 		//PORE
 		unsigned int poreNum;					//#of pores to make
 		char centering;							//Atomic, Coordinate
-		char distribution;						//Random, Centered, File, coordinate
-		coordinate poreCoord[MAX_PORES];		//coordinates of pores
+		coordinate poreCoord[MAX_PORES];		//coordinate of pores
+		char distribution;						//Random, File, Coordinate
 		string holeFilename;
 		double poreRadius;						//radius of pores (only nessesary if constant)
 		unsigned int poreIterations;			//iterations of pore sizes
 		//OUTPUT
 		string path;
+		string customName;
 		string convention;
 		string delimiter;
 		string extension;
 		string outFilename;
+		unsigned int outFileCount;
 
 		//INPUT
 		string Input_Filename(string line = "");
@@ -59,12 +61,14 @@ class testbench
 		string Bonding_Lengths(string line = "");
 		//PORE
 		string Pore_Number(string line = "");
+		string Pore_Coordinate(string line = "");
 		string Pore_Centering(string line = "");
 		string Pore_Radius(string line = "");
 		string Pore_Iterations(string line = "");
 		string Pore_Passivation(string line = "");
 		//OUTPUT
 		string Output_Path(string line = "");
+		string Output_Filename(string line = "");
 		string Output_Convention(string line = "");
 		string Output_Delimiter(string line = "");
 		string Output_Extension(string line = "");
@@ -72,39 +76,22 @@ class testbench
 		string section[MAX_SECTIONS];
 		typedef string (testbench::*FunctionP)(string);
 		FunctionP setting[MAX_SECTIONS][MAX_SETTINGS];
-		// string testbench::*setting[MAX_SECTIONS][MAX_SETTINGS](string);
 
 		void Default(void);				//seta all values to default
 		//string manipulation
 		string Trim(string);		//trims from and back of string for whitespace, etc.
 		string I_Str(int);			//integer -> string
+		char Uppercase(char);
+		string Uppercase(string);
 		//file operations
 		bool FileExists(string);	//returns 1 if file exists
 		string Extension(string);	//returns the extension of file without the period
 		int Read(string);	//reads settings from file
 		int Test(void);			//runs test with settings
+		string CreateFilename(void);	//creates filename with current settings.
 
 	public:
 		testbench(void);		//constructor
 		int Run(string);	//runs the testbench from specifications in file
 };
 #endif
-
-// INPUT		
-// 	filename		<2H.vasp (unsigned int scale) | files.tsv>
-// SCALING
-// 	filename		scaling.tsv
-// BONDING		
-// 	tolerance		(double)
-// 	lengths			<default | bonding.tsv>
-// PORES		
-// 	number			(unsigned int)
-// 	centering		<atomic | coordinate>
-// 	distribution	<random | centered | (holes.tsv)>
-// 	radius			(double)
-// 	iterations		<all | (unsigned int)>
-// OUTPUT		
-// 	path			(directory name)
-// 	convention		<Index,Polytype,Center,Radius>
-// 	delimeter		<none | space | tab | char(character)>
-// 	extension		(extension name)
