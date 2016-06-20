@@ -16,7 +16,7 @@ atom_cls::atom_cls(const atom_cls& atom)	//should not copy bonds
 void atom_cls::ClearData(void)
 {
 
-	for(int a=0; a<K::MAX_BONDS; a++)
+	for(unsigned int a=0; a<K::MAX_BONDS; a++)
 		bond[a] = 0;	//nulify all pointers
 	bondNum = 0;
 	exists = 1;
@@ -40,14 +40,14 @@ void atom_cls::BreakBond(atom_cls* atomP)
 	if(index == -1)
 		return;
 	//move the other pointers down
-	for(int a=index; a <bondNum-1; a++)	//move all refs
+	for(unsigned int a=index; a <bondNum-1; a++)	//move all refs
 		bond[a] = bond[a+1];
 	bondNum--;	//decrease the number of bonds
 	return;
 }
 int atom_cls::IsBound(const atom_cls* atomP)
 {
-	int index;
+	unsigned int index;
 	for(index=0; index<bondNum; index++)
 		if(bond[index] == atomP)
 			return index;

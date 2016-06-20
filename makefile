@@ -1,43 +1,49 @@
-SRCDIR = src
-BINDIR = bin
-OBJDIR = build
-TARGET = $(BINDIR)ppm
+S = src
+B = bin
+O = build
+TARGET = $(B)/ppm
 DEBUG = -g
-CFLAGS = -Wall -c $(DEBUG)
+CFLAGS = -Wall -c $(DEBUG) -o $@
 LFLAGS = -Wall $(DEBUG)
 CXX = g++
-SRCS =	main.cpp\
-		coordinate.cpp\
-		atom.cpp\
-		simulation.cpp\
-		testbench.cpp
-OBJS = $(SRCS:.cpp=.o)
-
-CSRCS = $(addprefix $(SRCDIR),$(SRCS))
-COBJS = $(addprefix $(OBJDIR),$(OBJS))
-CTARGET = $(addprefix $(BINDIR),$(TARGET))
+OBJS =	$(O)/main.o\
+		$(O)/coordinate.o\
+		$(O)/atom.o\
+		$(O)/simulation.o\
+		$(O)/testbench.o
+RM = rm
+#OBJS = $(SRCS:%.cpp=%.o)
+#SRCS = $(addprefix $(S)/,$(SRCS))
 
 a: all
-all: $(CTARGET)
-
-$(TARGET): $(COBJS)
-	$(CXX) $(LFLAGS) $(COBJS) -o $(CTARGET)
-main.o: main.cpp testbench.h
-	$(CXX) $(CFLAGS) main.cpp
-coordinate.o: coordinate.cpp
-	$(CXX) $(CFLAGS) coordinate.cpp
-atom.o: atom.cpp atom.h coordinate.h
-	$(CXX) $(CFLAGS) atom.cpp
-simulation.o: simulation.cpp simulation.h atom.h
-	$(CXX) $(CFLAGS) simulation.cpp
-testbench.o: testbench.cpp testbench.h simulation.h coordinate.h
-	$(CXX) $(CFLAGS) testbench.cpp
 c: clean
-clean:
-	@echo cleaning...
-	#rm -f *.o $(TARGET)	
-	rm -rf $(OBJDIR) $(CTARGET)
 r: remake
-remake:
-	make clean
-	make all
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CXX) $(LFLAGS) $(OBJS) -o $(TARGET)
+$(O)/main.o:	$(S)/main.cpp\
+				$(S)/testbench.o
+	$(CXX) $(CFLAGS) $(S)/main.cpp
+$(O)/coordinate.o:	$(S)/coordinate.cpp\
+					$(S)/coordinate.h
+	$(CXX) $(CFLAGS) $(S)/coordinate.cpp $(OUTFLAG)
+$(O)/atom.o:	$(S)/atom.cpp\
+				$(S)/atom.h\
+				$(S)/coordinate.o\
+				$(S)/K.h
+	$(CXX) $(CFLAGS) $(S)/atom.cpp
+$(O)/simulation.o:	$(S)/simulation.cpp\
+					$(S)/simulation.h\
+					$(S)/atom.o\
+					$(S)/coordinate.o\
+					$(S)/K.h
+	$(CXX) $(CFLAGS) $(S)/simulation.cpp
+$(O)/testbench.o:	$(S)/testbench.cpp\
+					$(S)/testbench.h\
+					$(S)/simulation.o\
+					$(S)/coordinate.o
+	$(CXX) $(CFLAGS) $(S)/testbench.cpp
+clean:
+	$(RM) -f $(O)/* $(B)/$(TARGET)
+remake: clean all

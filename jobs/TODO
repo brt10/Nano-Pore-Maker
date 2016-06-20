@@ -6,7 +6,16 @@ X	check bonding nubers
 IDEAS:
 	use vasp to evenly distribute pores as a particle
 		or use simple relaxation for that matter.
+	use hilbert curve/other space filling curve to evenly distibute nodes (http://arxiv.org/pdf/1406.4549.pdf)
 
+INSANE IDEAS:
+	use hilbert curve to encode coordinates with a single number...
+		would be plausible with hilbert-arithmatic
+		would control resolution of simulation easily
+		less memory, possibly more computing
+		possibly giving up fast matrix operations (depends on hilbert-maths)
+	use a backwards-hilbert curve to STORE NODES in a space-filling way
+		one dimensional array to search within bounds for nearest nodes...
 
 for tuesday:
 X	coordiate centers
@@ -18,11 +27,11 @@ X	runfile name
 		30-40% H
 		2.1-2.4 g/cm3
 	github permissions
-	organize the code
+X	organize the code
 	numbering system for files with output tsv with DATA and meaning of numbering system.
 	output:
 		settings used	- copy input.tsv for now...
-	open file... poremaker INPUT.tsv
+X	open file... poremaker INPUT.tsv
 	make directory if dne		//wow this is messy
 	README
 	default.tsv

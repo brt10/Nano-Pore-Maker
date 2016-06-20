@@ -11,7 +11,7 @@
 		string testbench::Input_Filename(string line)
 		{
 			if(line=="") return "FILENAME";	//default
-			int split = line.find('\t');
+			unsigned int split = line.find('\t');
 			string scaleText;
 			string filename;
 			stringstream ss;
@@ -109,7 +109,7 @@
 			ifstream coordFile;			//ifile obj for reading recursively
 			string coordLine;			//line in coordfile
 			unsigned int randCoordNum;	//number of random coords to generate
-			int mark;					//marks place in tag
+			unsigned int mark;					//marks place in tag
 
 			if(Extension(line) == "tsv")	//if arg is file
 			{
@@ -137,7 +137,7 @@
 				}
 				else	//default
 					randCoordNum = 1;
-				for(int a=0; a<randCoordNum; a++, poreNum++)
+				for(unsigned int a=0; a<randCoordNum; a++, poreNum++)
 					poreCoord[poreNum] = RandCoord();
 			}
 			else	//if coordinate
@@ -238,7 +238,7 @@ string testbench::Trim(string line)
 	static const unsigned int whiteNum = sizeof(whitespace)/sizeof(char);
 	
 	for(int a=0; a<2; a++)
-		for(int b=0; b<whiteNum; b++)
+		for(unsigned int b=0; b<whiteNum; b++)
 			if( line[a==0 ? 0:line.length()-1] == whitespace[b])
 			{
 				line.erase(a==0 ? 0:line.length()-1,1);
@@ -274,7 +274,7 @@ char testbench::Uppercase(char c)
 }
 string testbench::Uppercase(string s)
 {
-	for(int a=0; a<s.length(); a++)
+	for(unsigned int a=0; a<s.length(); a++)
 		s[a] = Uppercase(s[a]);
 	return s;
 }
@@ -290,7 +290,7 @@ bool testbench::FileExists(string filename)
 }
 string testbench::Extension(string filename)
 {
-	int period = filename.find('.');
+	unsigned int period = filename.find('.');
 	if(period == string::npos)
 		return "";
 	return filename.substr(period+1);
@@ -299,7 +299,7 @@ string testbench::CreateFilename(void)
 {
 	string fn;
 	fn += customName;
-	for(int c=0; c<convention.length(); c++)
+	for(unsigned int c=0; c<convention.length(); c++)
 	{
 		if(c>0 || fn.length()>0)
 			outFilename += delimiter;
@@ -366,7 +366,7 @@ testbench::testbench(void)
 		i++;
 	//initialize the numbers of functions
 	sectionNum = i;
-	for(int a=0; a<i; a++)
+	for(unsigned int a=0; a<i; a++)
 		settingNum[a] = n[a];
 }
 int testbench::Read(string inputName)
@@ -441,14 +441,15 @@ int testbench::Read(string inputName)
 }
 int testbench::Test(void)
 {
-	for(int f=0; f<dataFileNum; f++)//for each datafile
-		for(int s=0; s<scaleNum; s++)//for each scale
+	unsigned int f,s,p;	//indexing
+	for(f=0; f<dataFileNum; f++)//for each datafile
+		for(s=0; s<scaleNum; s++)//for each scale
 		{
 			sim << dataFilename[f];		//read in file
 			sim.Scale(fileScale[f]);	//file-specific scale
 			sim.Scale(scale[s]);		//scale
 			sim.Associate();			//create bonds
-			for(int p=0; p<poreNum; p++)//for each pore
+			for(p=0; p<poreNum; p++)//for each pore
 			{
 				// sim.PassivatedHole(poreRadius, poreCoord[p]);
 				sim.PassivatedHole(poreRadius, &poreCoord[p]);
@@ -489,13 +490,15 @@ void testbench::Default(void)
 	extension = ".vasp";
 	outFileCount = 0;	//number of files outputed so far
 
-	for(int a=0; a<MAX_FILES; a++)
+	unsigned int a;	//indexing
+
+	for(a=0; a<MAX_FILES; a++)
 		for(int b=0; b<3; b++)
 			fileScale[a][b] = 1;
-	for(int a=0; a<MAX_SCALES; a++)
+	for(a=0; a<MAX_SCALES; a++)
 		for(int b=0; b<3; b++)
 			scale[a][b] = 1;
-	for(int a=0; a<MAX_PORES; a++)
+	for(a=0; a<MAX_PORES; a++)
 		poreCoord[a]=.5;
 
 	//seed rand

@@ -7,7 +7,7 @@ simulation::simulation()
 void simulation::ClearData(void)
 {
 	elementNum=0;
-	for(int a=0; a< K::MAX_ELEMENTS; a++)
+	for(unsigned int a=0; a< K::MAX_ELEMENTS; a++)
 		elementCount[a] = 0;
 	multiplier=1;
 	return;
@@ -25,8 +25,8 @@ bool simulation::ReadData(const string filename)
 	//reset class
 	ClearData();
 	//reset atoms
-	for(int e=0; e<K::MAX_ELEMENTS; e++)
-		for(int i=0; i<K::MAX_ATOMS; i++)
+	for(unsigned int e=0; e<K::MAX_ELEMENTS; e++)
+		for(unsigned int i=0; i<K::MAX_ATOMS; i++)
 			atom[e][i].ClearData();
 
 	if(infile.fail()){
@@ -72,13 +72,13 @@ bool simulation::ReadData(const string filename)
 	while(ss >> element[elementNum])
 		elementNum++;
 	// cout << "ELEMENT NUM: " << elementNum << endl;
-	for(int a=0; a<elementNum; a++)
+	for(unsigned int a=0; a<elementNum; a++)
 		infile >> elementCount[a];
 	infile >> tag;
 
 	//read atom data
-	for(int e=0; e<elementNum; e++)			//element
-		for(int i=0; i<elementCount[e]; i++)	//index
+	for(unsigned int e=0; e<elementNum; e++)			//element
+		for(unsigned int i=0; i<elementCount[e]; i++)	//index
 		{
 			atom[e][i].element = e;
 			for(int c=0; c<3; c++)			//read coord
@@ -100,17 +100,18 @@ bool simulation::operator<<(const string filename)
 }
 void simulation::Standardize(void)
 {
-	for(int e=0; e<elementNum; e++)
-		for(int i=0; i<elementCount[e]; i++)
+	for(unsigned int e=0; e<elementNum; e++)
+		for(unsigned int i=0; i<elementCount[e]; i++)
 			atom[e][i].co.Mod(1);	//XXX should probaly check for overlap with others...
 	return;
 }
 //returns how many bonds were made
 void simulation::Disassociate(void)
 {
-	for(int e=0; e < elementNum; e++)			//for every atom
-		for(int i=0; i < elementCount[e]; i++)	//
-			for(int b=0; b<K::MAX_BONDS; b++)
+	unsigned int e,i,b;	//indexing
+	for(e=0; e < elementNum; e++)			//for every atom
+		for(i=0; i < elementCount[e]; i++)	//
+			for(b=0; b<K::MAX_BONDS; b++)
 			{
 				atom[e][i].bondNum = 0;
 				atom[e][i].bond[b] = 0;
@@ -184,8 +185,8 @@ bool simulation::Bond(atom_cls* atomP[2])
 int simulation::Hole(coordinate h, double r)
 {
 	unsigned int atomCount =0;
-	for(int e=0; e < elementNum; e++)			//for each atom
-		for(int i=0; i < elementCount[e];)	//
+	for(unsigned int e=0; e < elementNum; e++)			//for each atom
+		for(unsigned int i=0; i < elementCount[e];)	//
 			if( ModDistance(h, atom[e][i].co) < r && atom[e][i].exists)	//if in the hole and extant
 			{
 				RemoveAtom(e,i);
@@ -214,12 +215,12 @@ void simulation::Passivate(atom_cls* removed, atom_cls* passivated)	//assume to 
 	H->ClearData();
 	H->exists=1;
 	// H->co = (((r-p)*ratio)+p);	//XXX this is wrong because the distance is not r-p!
-	H->co = ((r-p)+.5);	//center around .5 to use Dec()
-	H->co.Dec();		//Modulus 1
+	H->co = ((r-p)+.5);	//center around .5 to use Mod() (Dec will return decimal value not mod it!)
+	H->co.Mod();		//Modulus 1
 	H->co -= .5;		//center around 0
 	H->co *= ratio;		//fit to new length
 	H->co += p;			//center around p
-	H->co.Dec();		//Modulus 1
+	H->co.Mod();		//Modulus 1
 	H->bond[0] = passivated;
 	//XXX should check to make sure doesnt exceed max bonds: alternatively replace old bond...
 	//bond passivated to Hydrogen
@@ -231,6 +232,7 @@ void simulation::Passivate(atom_cls* removed, atom_cls* passivated)	//assume to 
 bool simulation::WriteData(const string filename)
 {
 	//variables
+	unsigned int e,i;	//indexing
 	ofstream outfile;
 	outfile.open(filename.c_str());
 
@@ -252,16 +254,16 @@ bool simulation::WriteData(const string filename)
 			outfile << ((a==b) ? lattice[a] : 0) << " ";
 		outfile << "\n";
 	}
-	for(int e=0; e<elementNum; e++)	//element names
+	for(e=0; e<elementNum; e++)	//element names
 		outfile << element[e] << " ";
 	outfile << "\n";
-	for(int e=0; e<elementNum; e++)	//# extant atoms
+	for(e=0; e<elementNum; e++)	//# extant atoms
 		outfile << Extant(e) << ' ';
 	outfile << "\n" << tag << "\n";
 
 	//only write out atoms if they exist ;)
-	for(int e=0; e<elementNum; e++)
-		for(int i=0; i<elementCount[e]; i++)
+	for(e=0; e<elementNum; e++)
+		for(i=0; i<elementCount[e]; i++)
 			if(atom[e][i].exists)
 			{
 				outfile << ' ';	//preceed with space
@@ -282,8 +284,9 @@ bool simulation::operator>>(const string filename)
 bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mosaic of the current cell of given length and axis
 {
 	unsigned int index;	//for index of new atom
+	unsigned int e,i,b;	//indexing
 	//errorcatching
-	for(int e=0; e<elementNum; e++)
+	for(e=0; e<elementNum; e++)
 		if(elementCount[e]*length > K::MAX_ATOMS)
 		{
 			cerr << "cannot copy, the scale is too big!";
@@ -294,10 +297,10 @@ bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mos
 			return 0;
 		}
 	//copy cell
-	for(int e=0; e<elementNum; e++)				//for each element,
+	for(e=0; e<elementNum; e++)				//for each element,
 	{
-		for(int i=0; i<elementCount[e]; i++)	//for each atom
-			for(int b=1; b<length; b++)			//for each block (except first -already have it. :P)
+		for(i=0; i<elementCount[e]; i++)	//for each atom
+			for(b=1; b<length; b++)			//for each block (except first -already have it. :P)
 			{
 				index = i+b*elementCount[e];		//index of new atom
 				atom[e][index] = atom[e][i];		//copy the atom into the block
@@ -307,8 +310,8 @@ bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mos
 	}
 
 	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
-	for(int e=0; e<elementNum; e++)
-		for(int i=0; i<elementCount[e]; i++)
+	for(e=0; e<elementNum; e++)
+		for(i=0; i<elementCount[e]; i++)
 			atom[e][i].co.ord[axis] /= length;
 
 	//scale lattice-----------
@@ -334,8 +337,8 @@ bool simulation::Scale(unsigned int s)
 bool simulation::Scale(double scale[3])	//ignores bonding. //FOR SCALING DOWN ONLY! the old algorythm wasnt good.
 {
 	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
-	for(int e=0; e<elementNum; e++)
-		for(int i=0; i<elementCount[e]; i++)
+	for(unsigned int e=0; e<elementNum; e++)
+		for(unsigned int i=0; i<elementCount[e]; i++)
 			atom[e][i].co /= scale;
 	//scale lattice-----------
 	for(int a=0; a<3; a++)
@@ -363,7 +366,7 @@ bool simulation::Scale(string inFilename, string scaleFilename)	//XXX create a f
 
 	scaleFile >> count;
 
-	for(int a=0; a<count; a++)
+	for(unsigned int a=0; a<count; a++)
 	{
 		//read in scale
 		outFilename = "";	//reset outfilename
@@ -400,8 +403,10 @@ bool simulation::Scale(string inFilename, string scaleFilename)	//XXX create a f
 int simulation::Trim(void)
 {
 	int count =0;
-	for(int e=0; e < elementNum; e++)			//for every atom
-		for(int i=0; i < elementCount[e];)		//making room for exclusions
+	unsigned int e,i;	//indexing
+
+	for(e=0; e < elementNum; e++)			//for every atom
+		for(i=0; i < elementCount[e];)		//making room for exclusions
 			if(!((atom[e][i].co >= 0) && (atom[e][i].co < 1)) || !atom[e][i].exists)	//if not within bounds (important logic here. :P)
 			{
 				RemoveAtom(e,i);
@@ -411,7 +416,7 @@ int simulation::Trim(void)
 }
 void simulation::RemoveAtom(unsigned int e, unsigned int i)
 {	//unbind atoms to this
-	for(int a=0; a<atom[e][i].bondNum; a++)
+	for(unsigned int a=0; a<atom[e][i].bondNum; a++)
 	{
 		atom[e][i].bond[a]->BreakBond(&atom[e][i]);	//break the bond from the other side.
 		atom[e][i].bond[a] = 0;						//nulify pointer
@@ -419,7 +424,7 @@ void simulation::RemoveAtom(unsigned int e, unsigned int i)
 	atom[e][i].bondNum = 0;
 
 	//remove atom from list
-	for(int index=i; index+1<elementCount[e]; index++)
+	for(unsigned int index=i; index+1<elementCount[e]; index++)
 		atom[e][index] = atom[e][index+1];
 	elementCount[e]--;
 	return;
@@ -440,7 +445,7 @@ int simulation::PassivatedHole(double radius, atom_cls* subject, coordinate* cen
 		center = &(subject->co);
 	int count = 1;
 	subject->exists=0;	//mark for removal.	//XXX later simply remove atoms (rewuires using a pointer array of atoms)
-	for(int a=0; a<subject->bondNum; a++)
+	for(unsigned int a=0; a<subject->bondNum; a++)
 		if(subject->bond[a]->exists)	//if not already marked.
 		{
 			if(ModDistance(subject->bond[a]->co, *center) < radius)	//if bonded atom is within radius
@@ -454,7 +459,7 @@ int simulation::PassivatedHole(double radius, atom_cls* subject, coordinate* cen
 // {
 // 	return count;
 // }
-atom_cls* simulation::Closest(coordinate c, int E)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
+atom_cls* simulation::Closest(coordinate c, unsigned int E)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
 {
 	double testDist;
 	double minDist;
@@ -462,7 +467,7 @@ atom_cls* simulation::Closest(coordinate c, int E)	//default E=-1 //XXX should m
 	atom_cls* testP=0;	//pointer to test atom
 	unsigned int e,i;	//indexing
 
-	if(E==-1){						//no element selected
+	if(E == (unsigned int)-1){						//no element selected
 		for(e=0; e<elementNum; e++)	//for all elements
 		{
 			testP = Closest(c,e);
@@ -485,7 +490,7 @@ atom_cls* simulation::Closest(coordinate c, int E)	//default E=-1 //XXX should m
 			}
 		}
 	}else{							//out of bounds
-		cerr << "element select of: " << e << "Is out of bounds\n";	//returns null pointer
+		cerr << "element select of: " << E << "Is out of bounds\n";	//returns null pointer
 	}
 	return minP;
 }
@@ -503,21 +508,21 @@ double simulation::Volume(void)			//volume of lattice in cm^3
 double simulation::Mass(void)				//mass of extant atom in g	//XXX NEEDS A LOT OF WORK
 {
 	double sum = 0;
-	for(int e=0; e<elementNum; e++)
+	for(unsigned int e=0; e<elementNum; e++)
 		sum+=Extant(e)*K::MASS[e];
 	return sum;
 }
 unsigned int simulation::Extant(unsigned int e)
 {
 	unsigned int sum=0;
-	for(int i=0; i<elementCount[e]; i++)
+	for(unsigned int i=0; i<elementCount[e]; i++)
 		sum+=atom[e][i].exists;
 	return sum;
 }
 unsigned int simulation::Atoms(void)		//total # extant of atoms
 {
 	unsigned int sum=0;
-	for(int e=0; e<elementNum; e++)
+	for(unsigned int e=0; e<elementNum; e++)
 		sum+=Extant(e);
 	return sum;
 }
@@ -537,7 +542,7 @@ double simulation::RealDistance(coordinate a, coordinate b)
 double simulation::ModDistance(coordinate a, coordinate b)
 {
 	coordinate mod = a - (b+.5);//shift the coords so that coord b is in the center.
-	mod.Dec();					//shift within bounds
+	mod.Mod();					//shift within bounds
 	return RealDistance(mod, coordinate(.5));
 }
 double simulation::ModDistance(atom_cls* a, atom_cls* b)

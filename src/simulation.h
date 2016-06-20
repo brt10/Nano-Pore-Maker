@@ -45,7 +45,7 @@ class simulation
 		int PassivatedHole(double, coordinate* center=0);	//makes a passivated hole by recursion.
 		int PassivatedHole(double, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
-		atom_cls* Closest(coordinate c, int E=-1);	//returns the atom closest to the coordinate of given element
+		atom_cls* Closest(coordinate c, unsigned int E=-1);	//returns the atom closest to the coordinate of given element
 		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
 
 		double Volume(void);				//volume of lattice in m^3

@@ -14,7 +14,7 @@ class coordinate
 		double ord[3];	//XXX make private later... this involves a lot of organizing of other code...
 		//functions
 		double Distance(coordinate);				//distance to another coord
-		void Mod(double);							//takes mod of coordinate XXX currently inefficient
+		void Mod(double=1);							//takes mod of coordinate XXX currently inefficient
 		void Dec(void);		//returns the decimal of the number(=modulus1)
 		//operators
 		double operator[](const unsigned int);		//allows one to refer to the coordinate directly. :)
