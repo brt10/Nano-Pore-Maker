@@ -1,7 +1,0 @@
-INPUT
-	filename	data/3C.vasp	4	4	4
-PORE
-	coordinate	.5	.5	.56
-	radius		8.09
-OUTPUT
-	filename 	focus/test

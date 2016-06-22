@@ -1,0 +1,5 @@
+from terminal:
+pore <INPUT.tsv>
+
+FORMATS:
+	INPUT.tsv - see "INPUT.tsv" for general format. no lines are required. comment lines begin with '#' (may be preceded by whitespace)

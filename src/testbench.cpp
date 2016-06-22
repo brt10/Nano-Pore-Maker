@@ -2,7 +2,7 @@
 //CONSTANTS
 	// const int testbench::MAX_SECTIONS = 10;		//max # of sections
 	// const int testbench::MAX_SETTINGS = 10;		//max # of settings per section
-	// const int testbench::MAX_FILES = 10;			//max # of datafiles
+	// const int testbench::MAX_FILES = 10;			//max # of inputfiles
 	// const int testbench::MAX_SCALES = 10;			//max # of scales to make
 	// const int testbench::MAX_PORES = 10;			//max # of pores
 
@@ -16,7 +16,7 @@
 			string filename;
 			stringstream ss;
 			//get filename and scale if exists
-			if(split == string::npos)	//if no scale, Default will pick it up
+			if(split == unsigned(string::npos))	//if no scale, Default will pick it up
 				filename = line;
 			else
 			{
@@ -25,32 +25,33 @@
 				scaleText = Trim(scaleText);	//trim off whitespace
 				ss << scaleText;
 				for(int a=0; a<3; a++)					//set fileScale
-					ss >> fileScale[dataFileNum][a];	//note that this already duplicates if out of output... default built in
+					ss >> fileScale[inputFileNum][a];	//note that this already duplicates if out of output... default built in
 			}
+			//check for existance of file
 			if(!FileExists(filename))
 			{
 				cerr << '\"' << filename << "\" does not exist or cannot be opened!\n";
 				return "";	//XXX NEED TO ADD ERROR CATCHING!
 			}
+			//check if file is list of files
 			if(Extension(filename) == "tsv")	//read recursively from this file.
 			{
 				ifstream header;
-				string headerLine;	//a witty remix of headline
-				dataFileNum = 0;	//reset... defaut = 1;
-				header.open(filename.c_str());
-				//allready checked if could be opened.
-				while(getline(header,headerLine) && dataFileNum < MAX_FILES)
+				string headerLine;				//a witty remix of headline
+				// inputFileNum = 0;				//reset... defaut = 1;
+				header.open(filename.c_str());	//allready checked if could be opened.
+				while(getline(header,headerLine) && inputFileNum < MAX_FILES)
 				{
 					headerLine = Trim(headerLine);
 					Input_Filename(headerLine);
 				}
-					// dataFileNum++;	//keep track of number of files
+					// inputFileNum++;	//keep track of number of files
 				header.close();	
 			}
 			else	//assume vasp format
 			{
-				dataFilename[dataFileNum] =  filename;
-				dataFileNum++;
+				inputFilename[inputFileNum] =  filename;
+				inputFileNum++;
 			}
 			return "";
 		}
@@ -170,8 +171,40 @@
 		{
 			if(line=="") return "RADIUS";	//default
 			stringstream ss;
-			ss << line;
-			ss >> poreRadius;
+			const string tag = "from";	//for comparison to tag
+			// char trash;
+			double rad[3];
+
+			if(line.substr(0,tag.length()) == tag)//for loop
+			{
+				ss << line;
+				for(int a=0; a<3; a++)
+				{
+					while((ss.peek()<'0'||ss.peek()>'9') && ss.peek()!='.' && !ss.eof())	//char is not numeric or decimal
+						ss.get();	//discard
+					if(ss.eof())
+					{
+						cerr << "Not enough args for Radius, setting any unknown " << a << " to 1" << endl;
+						rad[a] = 1;
+						continue;
+					}
+					ss >> rad[a];
+				}
+				poreRadMin = rad[0];
+				poreRadMax = rad[1];
+				poreRadStep= rad[2];
+				if(poreRadStep == 0)	//infinate loop catching
+				{
+					cerr << "A step of ZERO won't get you very far... ;)\t Defaulting to 1.0" << endl;
+					poreRadStep = 1;
+				}
+			}
+			else
+			{
+				ss << line;
+				ss >> poreRadMin;
+				poreRadMax = poreRadMin;	//for just one size of pore
+			}
 			return "";
 		}
 		/*string testbench::Pore_Iterations(string line)
@@ -228,6 +261,19 @@
 		{
 			if(line=="") return "EXTENSION";	//default
 			extension = line;
+			return "";
+		}
+	//DATA
+		string testbench::Data_Tag(string line)
+		{
+			if(line=="") return "TAG";	//default
+			dataTag = line;
+			return "";
+		}
+		string testbench::Data_Filename(string line)
+		{
+			if(line=="") return "FILENAME";	//default
+			dataFilename = line;
 			return "";
 		}
 //----------------------------------------------------------------------------------------
@@ -302,7 +348,7 @@ string testbench::CreateFilename(void)
 	for(unsigned int c=0; c<convention.length(); c++)
 	{
 		if(c>0 || fn.length()>0)
-			outFilename += delimiter;
+			fn += delimiter;
 		switch(Uppercase(convention[c]))//make output name
 		{
 			case 'F':
@@ -364,11 +410,16 @@ testbench::testbench(void)
 		setting[i][n[i]] = &testbench::Output_Delimiter;	n[i]++;
 		setting[i][n[i]] = &testbench::Output_Extension;	n[i]++;
 		i++;
+	section[i] = "DATA";
+		setting[i][n[i]] = &testbench::Data_Tag;			n[i]++;
+		setting[i][n[i]] = &testbench::Data_Filename;		n[i]++;
+		i++;
 	//initialize the numbers of functions
 	sectionNum = i;
 	for(unsigned int a=0; a<i; a++)
 		settingNum[a] = n[a];
 }
+//-------------------------------------------------------------------------------------------
 int testbench::Read(string inputName)
 {
 	ofstream copy;	//copy of input file
@@ -378,6 +429,7 @@ int testbench::Read(string inputName)
 	stringstream ss;
 	unsigned int sectionIndex = MAX_SECTIONS;	//index of section
 	unsigned int settingIndex = MAX_SETTINGS;	//index of setting
+	const char comment = '#';
 
 	input.open(inputName.c_str());
 	if(input.fail())
@@ -388,8 +440,10 @@ int testbench::Read(string inputName)
 	//read file line by line
 	while(getline(input,line))
 	{
-		if(line[0]=='#')	//comment
+		if(line[0]==comment)	//comment
 			continue;
+		line = line.substr(0,line.find(comment));	//cut off any trailing comments
+
 		if(line[0]!='\t')	//if heading text, set section
 		{
 			tag = Uppercase(Trim(line));	//cut off trailing whitespace and make uppercase
@@ -406,7 +460,8 @@ int testbench::Read(string inputName)
 			tag = Uppercase(Trim(tag));				//trim any whitespace from tag and make uppercase
 			line = line.substr(tag.length());		//cut off tag
 			line = Trim(line);						//remove any whitespace
-
+			if(line[0]==comment)	//comment
+				continue;
 			for(settingIndex = 0; settingIndex < settingNum[sectionIndex]; settingIndex++)	//find tag
 				if(tag == (this->*setting[sectionIndex][settingIndex])(""))	//search for function matches	//XXX ugh, default values for function pointers are a pain...
 				{
@@ -427,12 +482,13 @@ int testbench::Read(string inputName)
 	}
 
 	input.close();
-	input.open(inputName.c_str());
-	copy.open( (path+CreateFilename()+"-settings.tsv").c_str() );
-	while(getline(input,line))
-		copy << line << '\n';
-	copy.close();
-	input.close();
+	// //output data
+	// input.open(inputName.c_str());
+	// copy.open( (path+CreateFilename()+"-settings.tsv").c_str() );
+	// while(getline(input,line))
+	// 	copy << line << '\n';
+	// copy.close();
+	// input.close();
 	//make scale models
 	//make 
 
@@ -441,31 +497,57 @@ int testbench::Read(string inputName)
 }
 int testbench::Test(void)
 {
-	unsigned int f,s,p;	//indexing
-	for(f=0; f<dataFileNum; f++)//for each datafile
+	//variables
+	unsigned int f,s,p;		//indexing
+	unsigned int removed;	//# atoms removed by pore
+	unsigned int lastRem;	//last # atoms removed
+
+	if(dataTag!="")			//if outputing to a datafile
+	{
+		sim << inputFilename[0];		//read in file
+		if(DataHeader())
+		{
+			cerr << "Error writing to the datafile: \"" << dataFilename << "\"" << endl;
+			return 0;
+		}
+	}
+	//routine
+	for(f=0; f<inputFileNum; f++)//for each inputfile
 		for(s=0; s<scaleNum; s++)//for each scale
 		{
-			sim << dataFilename[f];		//read in file
-			sim.Scale(fileScale[f]);	//file-specific scale
-			sim.Scale(scale[s]);		//scale
-			sim.Associate();			//create bonds
-			for(p=0; p<poreNum; p++)//for each pore
+			lastRem = 0;				//initialize # removed
+			for(double r=poreRadMin; r<=poreRadMax; r+=poreRadStep)	//for each pore size
 			{
-				// sim.PassivatedHole(poreRadius, poreCoord[p]);
-				sim.PassivatedHole(poreRadius, &poreCoord[p]);
-				// for(int i=0; i<poreIterations; i++)//for each iteration
-				// {
-				// 	sim << dataFilename[f];	//XXX replace with sim = sim2, etc. (faster rates)
-				// 	sim.Scale(fileScale[f]);
-				// 	sim.Scale(scale[s]);
-				// 	removed = sim.PassivatedHole(poreRadius, poreCoord[p]);
-				// }
-				//untill new pore
-					//make and compare atoms removed
+				sim << inputFilename[f];		//read in file
+				sim.Standardize();			//standardize input
+				sim.Scale(fileScale[f]);	//file-specific scale
+				sim.Scale(scale[s]);		//scale
+				sim.Associate();			//create bonds
+				removed = 0;				//reset count
+				for(p=0; p<poreNum; p++)	//for each pore
+					removed += sim.PassivatedHole(r, &poreCoord[p]);	//XXX will have probs with multiple pores if any overlap!
+				if(removed > lastRem)		//ifunique: output file
+				{
+					cout << removed << endl;
+					outFilename = CreateFilename();
+					sim >>(path+outFilename+extension);
+					outFileCount++;
+					lastRem = removed;				//remember how many were removed
+					DataLine(f,s,r);		//writes data to line in file
+				}
 			}
-			outFilename = CreateFilename();
-			sim >> (path+outFilename+extension);//output
-			outFileCount++;
+			if(poreRadMax == -1)	//no pores initialized, output as normal
+			{
+				sim << inputFilename[f];		//read in file
+				sim.Standardize();			//standardize input
+				sim.Scale(fileScale[f]);	//file-specific scale
+				sim.Scale(scale[s]);		//scale
+				sim.Associate();			//create bonds
+				outFilename = CreateFilename();
+				sim >> (path+outFilename+extension);//output
+				outFileCount++;				//count output
+				DataLine(f,s,-1);			//write line to datafile
+			}
 		}
 	return 0;
 }
@@ -477,18 +559,135 @@ int testbench::Run(string inputName)
 	Test();
 	return 0;
 }
+int testbench::DataHeader(void)
+{
+	ofstream data;
+	data.open(dataFilename.c_str(),ofstream::app);
+	if(data.fail())
+	{
+		cerr << "Failed to open datafile for writing." << endl;
+		return 1;
+	}
+	for(unsigned int a=0; a<dataTag.length(); a++)
+	{
+		if(a>0) data << '\t';
+		switch(Uppercase(dataTag[a]))
+		{
+			case 'O':
+				data << "OutFilename";
+				break;
+			case 'P':
+				data << "Path";
+				break;
+			case 'E':
+				data << "Extension";
+				break;
+			case '%':
+				data << '%';	//in case no elements are initialized... XXX ugly bug. :(
+				for(unsigned int e=0; e<sim.elementNum; e++)
+				{
+					if(e>0) data << "\t%";
+					data << sim.element[e];
+				}
+				break;
+			case 'N':
+				data << '#';	//XXX fixes ugly bug
+				for(unsigned int e=0; e<sim.elementNum; e++)
+				{
+					if(e>0) data << "\t#";
+					data << sim.element[e];
+				}
+				break;
+			case 'D':
+				data << "Density";
+				break;
+			case 'R':
+				data << "Radius";
+				break;
+			case 'S':
+				data << "FullScale_X\tFullScale_Y\tFullScale_Z";
+				break;
+			case 'I':
+				data << "InputFilename";
+				break;
+			default:
+				cerr << "unrecognized tag: \'" << dataTag[a] << '\'' << endl;
+		}
+	}
+	data << endl;
+	data.close();
+	return 0;
+}
+int testbench::DataLine(unsigned int f, unsigned int s, double r)
+{
+	ofstream data;
+	data.open(dataFilename.c_str(),ofstream::app);
+	if(data.fail())
+	{
+		cerr << "Failed to open datafile for writing." << endl;
+		return 1;
+	}
+	for(unsigned int a=0; a<dataTag.length(); a++)
+	{
+		if(a>0) data << '\t';
+		switch(Uppercase(dataTag[a]))
+		{
+			case 'O':	//outfilename
+				data << outFilename;
+				break;
+			case 'P':	//path
+				data << path;
+				break;
+			case 'E':	//extension
+				data << extension;
+				break;
+			case '%':	//all percentages
+				for(unsigned int e=0; e<sim.elementNum; e++)
+					data << sim%e << '\t';
+				break;
+			case 'N':	//all numbers
+				for(unsigned int e=0; e<sim.elementNum; e++)
+					data << sim.Extant(e) << '\t';
+				break;
+			case 'D':	//density
+				data << sim.Density();
+				break;
+			case 'R':	//radius
+				data << r;
+				break;
+			case 'S':	//fullscale
+				for(int b=0; b<3; b++)
+					data << (fileScale[f][b]*scale[s][b]) << '\t';
+				break;
+			case 'I':	//inputfile
+				data << inputFilename[f];
+				break;
+			default:
+				cerr << "unrecognized tag: \'" << dataTag[a] << '\'' << endl;
+		}
+	}
+	data << endl;
+	data.close();
+	return 0;
+}
+//----------------------------------------------------------------------------------------
 void testbench::Default(void)
 {
-	dataFileNum = 0;//no datafiles... incremented as read from.
+	inputFileNum = 0;//no inputfiles... incremented as read from.
 	scaleNum = 1;
 	poreNum = 0;	//no pores
-	poreRadius = 0;	//no size to pores
 	path = "";
 	customName = "";
 	convention = "";	//default output defiined after filename
 	delimiter = "";		//no delimiter by default
 	extension = ".vasp";
 	outFileCount = 0;	//number of files outputed so far
+	poreRadMin = 0;
+	poreRadMax = -1;		//prevent holes from being made (less than Min)
+	poreRadStep = 1;	
+	dataFilename = "DATA.tsv";
+	dataTag = "";	//default to no datafile
+
 
 	unsigned int a;	//indexing
 

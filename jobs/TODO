@@ -17,6 +17,15 @@ INSANE IDEAS:
 	use a backwards-hilbert curve to STORE NODES in a space-filling way
 		one dimensional array to search within bounds for nearest nodes...
 
+bugs:
+	proper form of header unknowm till execute. :( possibly write header last, or better yet:
+		SELECT SPECIFIC ELEMENT!
+		(perfect b/c need to do bondlengthfile anyway)
+
+for thursday (jun 23)
+	Please recreate single pore models with %H between 20 and 35 %.  As it turns out models with larger % H also have significant oxygen, which we will worry about later.
+	For the crystalline supercells, please use 3C 3x3x3 and 4x4x4 as well as 2H 4x2x2 and 5x3x3
+	
 for tuesday:
 X	coordiate centers
 X	radius
@@ -26,7 +35,7 @@ X	runfile name
 	make models in range:
 		30-40% H
 		2.1-2.4 g/cm3
-	github permissions
+X	github permissions
 X	organize the code
 	numbering system for files with output tsv with DATA and meaning of numbering system.
 	output:

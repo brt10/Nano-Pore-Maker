@@ -1,7 +1,7 @@
 S = src
 B = bin
 O = build
-TARGET = $(B)/ppm
+TARGET = $(B)/pore
 DEBUG = -g
 CFLAGS = -Wall -c $(DEBUG) -o $@
 LFLAGS = -Wall $(DEBUG)

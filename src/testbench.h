@@ -20,7 +20,7 @@ class testbench
 	private:
 		static const unsigned int MAX_SECTIONS = 10;		//max # of sections
 		static const unsigned int MAX_SETTINGS = 10;		//max # of settings per section
-		static const unsigned int MAX_FILES = 10;			//max # of datafiles
+		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
 		static const unsigned int MAX_SCALES = 10;			//max # of scales to make
 		static const unsigned int MAX_PORES = 10;			//max # of pores
 
@@ -32,8 +32,8 @@ class testbench
 		simulation sim;
 
 		//INPUT
-		unsigned int dataFileNum;				//#of datafiles to read from
-		string dataFilename[MAX_FILES];			//names of datafiles
+		unsigned int inputFileNum;				//#of inputfiles to read from
+		string inputFilename[MAX_FILES];			//names of datafiles
 		unsigned int fileScale[MAX_FILES][3];	//scale associated with file; default = {1,1,1}
 		//SCALING
 		unsigned int scaleNum;					//#scales to make
@@ -44,7 +44,9 @@ class testbench
 		coordinate poreCoord[MAX_PORES];		//coordinate of pores
 		char distribution;						//Random, File, Coordinate
 		string holeFilename;
-		double poreRadius;						//radius of pores (only nessesary if constant)
+		double poreRadMin;						//min radius of pore
+		double poreRadMax;						//max pore size
+		double poreRadStep;						//step size of pore radius
 		// unsigned int poreIterations;			//iterations of pore sizes
 		//OUTPUT
 		string path;
@@ -52,8 +54,11 @@ class testbench
 		string convention;
 		string delimiter;
 		string extension;
-		string outFilename;
+		string outFilename;			//name of the vasp file
 		unsigned int outFileCount;
+		//DATA
+		string dataFilename;		//fn of the data output file
+		string dataTag;				//string of characters that represent the data to be written to tsv
 
 		//INPUT
 		string Input_Filename(string line = "");
@@ -75,6 +80,10 @@ class testbench
 		string Output_Convention(string line = "");
 		string Output_Delimiter(string line = "");
 		string Output_Extension(string line = "");
+		//DATA
+		string Data_Tag(string line = "");
+		string Data_Filename(string line = "");
+
 		//settings
 		string section[MAX_SECTIONS];
 		typedef string (testbench::*FunctionP)(string);
@@ -89,11 +98,15 @@ class testbench
 		//file operations
 		bool FileExists(string);	//returns 1 if file exists
 		string Extension(string);	//returns the extension of file without the period
-		int Read(string);	//reads settings from file
-		int Test(void);			//runs test with settings
 		string CreateFilename(void);	//creates filename with current settings.
 		//coord operations
 		coordinate RandCoord(void);		//returns a random coordinate
+
+		//main functions
+		int Read(string);		//reads settings from file
+		int Test(void);			//runs test with settings
+		int DataLine(unsigned int, unsigned int, double);	//outputs a line of data to file
+		int DataHeader(void);	//outputs a header to the file
 
 	public:
 		testbench(void);		//constructor

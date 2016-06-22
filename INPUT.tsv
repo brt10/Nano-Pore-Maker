@@ -1,6 +1,6 @@
-#This is a comment(should have no characters before '#')
+#This is a comment (only whitespace before '#')
 #-------------------------------------
-#file in coscarr form, or tsv of those files with optional associated scaling in file
+#file in poscar form, or tsv of those files with optional associated scaling in file
 INPUT		
 	filename		<2H.vasp (unsigned int scale) | files.tsv>
 #--------scaling of outputs------------
@@ -27,3 +27,7 @@ OUTPUT
 	convention		<Index,Polytype,Center,Radius,>
 	delimeter		<none | space | tab | char(character)>
 	extension		(extension name)
+#-------------------------------------
+DATA
+	tag				<XXX>
+	filename		(string)
