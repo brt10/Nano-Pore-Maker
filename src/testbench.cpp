@@ -95,14 +95,6 @@
 			return "";
 		}
 	//PORE
-		/*string testbench::Pore_Number(string line)
-		{
-			if(line=="") return "NUMBER";	//default
-			stringstream ss;
-			ss << line;
-			ss >> poreNum;			
-			return "";
-		}*/
 		string testbench::Pore_Coordinate(string line)
 		{
 			if(line=="") return "COORDINATE";	//default
@@ -111,6 +103,8 @@
 			string coordLine;			//line in coordfile
 			unsigned int randCoordNum;	//number of random coords to generate
 			unsigned int mark;					//marks place in tag
+			const string randomTag = "RANDOM";
+			const string distributeTag = "DISTRIBUTE";
 
 			if(Extension(line) == "tsv")	//if arg is file
 			{
@@ -127,10 +121,10 @@
 				}
 				coordFile.close();
 			}
-			else if(Uppercase(line.substr(0,6))=="RANDOM")	//if random coord
+			else if(Uppercase(line.substr(0,randomTag.length())) == randomTag)	//if random coord
 			{
 				mark = line.find('\t');
-				if(mark != string::npos)	//if tab found
+				if(mark != unsigned(string::npos))	//if tab found
 				{
 					line = Trim(line.substr(mark));	//cut off tag and trim
 					ss << line;
@@ -140,6 +134,22 @@
 					randCoordNum = 1;
 				for(unsigned int a=0; a<randCoordNum; a++, poreNum++)
 					poreCoord[poreNum] = RandCoord();
+			}
+			else if(Uppercase(line.substr(0,distributeTag.length())) == distributeTag)	//if evenly distributed:
+			{
+				//get number of pores desired
+				mark = line.find('\t');
+				if(mark != unsigned(string::npos))	//if tab found
+				{
+					line = Trim(line.substr(mark));	//cut off tag and trim
+					ss << line;
+					ss >> poreDistribute;	//read as number of pores to add
+				}
+				else	//default
+				{
+					cerr << "No number of pores selected to distribute, defaults to 0\n";
+					poreDistribute = 0;
+				}
 			}
 			else	//if coordinate
 			{
@@ -155,16 +165,8 @@
 		string testbench::Pore_Center(string line)
 		{
 			if(line=="") return "CENTER";	//default
-			centering = Uppercase(line[0]);
-			switch(centering)
-			{
-				case 'A':	//atomic
-					break;
-				case 'C':	//coordinate
-					break;
-				default:
-					cerr << "Centering \'" << centering << "\' not recognized\n";
-			}
+			center = line;
+			//XXX add error-checking for center
 			return "";
 		}
 		string testbench::Pore_Radius(string line)
@@ -207,14 +209,6 @@
 			}
 			return "";
 		}
-		/*string testbench::Pore_Iterations(string line)
-		{
-			if(line=="") return "interactions";	//default
-			stringstream ss;
-			ss << line;
-			ss >> poreIterations;
-			return "";
-		}*/
 		string testbench::Pore_Passivation(string line)
 		{
 			if(line=="") return "PASSIVATION";	//default
@@ -274,6 +268,25 @@
 		{
 			if(line=="") return "FILENAME";	//default
 			dataFilename = line;
+			return "";
+		}
+	//CONDITIONS
+		string testbench::Conditions_Density(string line)
+		{
+			if(line=="") return "DENSITY";	//default
+			
+			return "";
+		}
+		string testbench::Conditions_Percent(string line)
+		{
+			if(line=="") return "PERCENT";	//default
+			
+			return "";
+		}
+		string testbench::Conditions_Number(string line)
+		{
+			if(line=="") return "NUMBER";	//default
+			
 			return "";
 		}
 //----------------------------------------------------------------------------------------
@@ -377,6 +390,31 @@ coordinate testbench::RandCoord(void)
 		co.ord[a] = double(rand())/RAND_MAX;
 	return co;
 }
+coordinate testbench::RandCoordFrom(coordinate center, double min, double max)	//may add simulation later
+{//Weisstein, Eric W. "Sphere Point Picking." From MathWorld--A Wolfram Web Resource. http://mathworld.wolfram.com/SpherePointPicking.html
+	//those ^^^ have FASTER methods, this is mine, the most intuitive... but def not the best. :(
+	//XXX make faster someday
+	coordinate co;
+	double sum;			//for finding if coord is in bounds, and distance later
+	double distance = double(rand())/RAND_MAX*(max-min) + min;	//the distance from teh center
+
+	//the following has a PI/6 chance of picking a valid point...
+	//about a 1% chance to have not gotten valid point after 6 tries... honestly undeserving of faster method.
+	//generate random coord within sphere
+	do{
+		sum=0;
+		co = (RandCoord()*2)-1;	//random coord anywhere from -1 to 1 centered at 0
+		for(int a=0; a<3; a++)
+			sum += co[a]*co[a];	//^2
+	}
+	while(sum>1 || sum==0);	//while out of sphere, or without directionality
+
+	co *= (distance/sqrt(sum));	//use vector and distance to plot a point
+	co /= sim.lattice;				//fit to lattice
+	co += center;				//move around center
+	co.Mod();					//wrap over edges of sim...
+	return co;
+}
 //---------------------------------------------------------------------------------------------
 //constructor
 testbench::testbench(void)
@@ -413,6 +451,11 @@ testbench::testbench(void)
 	section[i] = "DATA";
 		setting[i][n[i]] = &testbench::Data_Tag;			n[i]++;
 		setting[i][n[i]] = &testbench::Data_Filename;		n[i]++;
+		i++;
+	section[i] = "CONDITIONS";
+		setting[i][n[i]] = &testbench::Conditions_Density;	n[i]++;
+		setting[i][n[i]] = &testbench::Conditions_Percent;	n[i]++;
+		setting[i][n[i]] = &testbench::Conditions_Number;	n[i]++;
 		i++;
 	//initialize the numbers of functions
 	sectionNum = i;
@@ -501,6 +544,7 @@ int testbench::Test(void)
 	unsigned int f,s,p;		//indexing
 	unsigned int removed;	//# atoms removed by pore
 	unsigned int lastRem;	//last # atoms removed
+	int poisson;			//takes care of cuting proper number of pores
 
 	if(dataTag!="")			//if outputing to a datafile
 	{
@@ -524,8 +568,18 @@ int testbench::Test(void)
 				sim.Scale(scale[s]);		//scale
 				sim.Associate();			//create bonds
 				removed = 0;				//reset count
+				
+				poisson = PoissonDistribution(r);		//distribute pores to min number
+				cout << poisson << "pores added" << endl;
+				if(poisson == -1) cerr << "Error distributing pores!\n";
+				else
+					for(p=0; p<(unsigned)poisson; p++)
+						removed += sim.PassivatedHole(r, &poreDistCoord[p]);
+
 				for(p=0; p<poreNum; p++)	//for each pore
-					removed += sim.PassivatedHole(r, &poreCoord[p]);	//XXX will have probs with multiple pores if any overlap!
+					removed += sim.PassivatedHole(r, &poreCoord[p]);	//XXX may have probs with multiple pores if any overlap!
+
+				
 				if(removed > lastRem)		//ifunique: output file
 				{
 					cout << removed << endl;
@@ -687,6 +741,7 @@ void testbench::Default(void)
 	poreRadStep = 1;	
 	dataFilename = "DATA.tsv";
 	dataTag = "";	//default to no datafile
+	poreDistribute = 0;	//default to no added pores to reach total
 
 
 	unsigned int a;	//indexing
@@ -703,4 +758,89 @@ void testbench::Default(void)
 	//seed rand
 	srand(time(NULL));
 	return;
+}
+//--------------------------------------------------------------------------------------
+int testbench::PoissonDistribution(double r)
+{
+	if(poreDistribute == 0)	
+		return 0;	//not to add any pores
+	//constants
+	const double FILL = M_PI/6;	//% of cube filled by a sphere
+	const double RADIUS = cbrt(sim.Volume()*1E24/(poreNum+poreDistribute)*3/4/M_PI*(FILL))*2;	//maximum radius of the distance between pores, accounting for emptyness to bring to average
+	const unsigned int MAX_ATTEMPTS = 10;	//max number of attempts at finding a suitible location for pore
+	// int grid[MAX_PORES][MAX_PORES][MAX_PORES];		//XXX unsure how to impliment well...
+	//pointers
+	coordinate*	p[MAX_PORES*2];					//pointer to all pores
+	coordinate* activePore[MAX_PORES] = {0};	//array of active pores
+	//counters
+	unsigned int activePoreNum = 0;				//counter of active pores
+	unsigned int poreAdded = 0;					//counter for pores added to poreDist
+	unsigned int pn = 0;						//# of total pores
+	//indexing
+	unsigned int i;				//index of pore
+	unsigned int a;				//index of attempt
+	unsigned int activeIndex;	//index of working active pore
+
+	/*if(radius < r)
+	{
+		cerr<<"Minimum required radius to distribute the pores of \""<<radius<<"\" is smaller than the radius of the pores of \""<<r<<"\"\n";
+		cerr<<"Re-runing with fewer pores...";
+		poreDistribute--;	//XXX WILL give probs later, but perhaps better than going ahead?...
+		return PoissonDistribution(r);
+	}*/
+	/*const double cellSize = radius/sqrt(3);
+	const unsigned int cellNum = 
+	int cells[]*/	//hard to do cells with strange lattice consts...
+	//test
+	cout << "R:" << RADIUS << endl;
+	//initalize active pores
+	if(poreNum == 0)	//if no pores, make one to seed
+	{
+		poreDistCoord[activePoreNum] = RandCoord();				//make random coordinate 
+		activePore[activePoreNum] = &poreDistCoord[poreAdded];	//add to array of active pores
+		p[pn] = &poreDistCoord[0];								//add to array of all pores
+		activePoreNum++;		//increment # active pores
+		poreAdded++;			//increment pores added
+		pn++;					//increment total num of pores
+	}
+	else
+	{
+		for(i=0; i<poreNum; i++)	//set all extant pores to active
+		{
+			activePore[i] = &poreDistCoord[i];	//set pore to active by pointer
+			p[pn] = &poreCoord[i];			//initialize pointer to all pores
+			pn++;							//increment count of pores
+		}
+		activePoreNum = poreNum;
+	}
+
+	while(poreAdded < poreDistribute && activePoreNum>0)	//# of pores is low and more places to add, add pores
+	{
+		activeIndex = rand()%activePoreNum;	//select random pore
+		
+		for(a = 0; a<MAX_ATTEMPTS; a++)	//try set number of times to find fit
+		{
+			poreDistCoord[poreAdded] = RandCoordFrom(*activePore[activeIndex], RADIUS, RADIUS*2);	//make random coordinate
+			for(i=0; i<pn; i++)	//check distance to all pores
+				if(sim.ModDistance(*p[i], poreDistCoord[poreAdded]) < RADIUS)	//if didnt pass, break
+					break;
+			if(i==pn)	//if passed all tests, stop searching
+				break;
+		}
+		if(a==MAX_ATTEMPTS)	//unableto find any spots-> deactivate
+		{
+			for(i=activeIndex; i < (activePoreNum-1); i++)	//remove from active array
+				activePore[i] = activePore[i+1];	//move others to fill spot
+			activePoreNum--;						//decrease # of pores active
+		}
+		else	//good coordinate
+		{
+			p[pn] = &poreDistCoord[poreAdded];	//add new pore to pointer array
+			activePore[activePoreNum] = p[pn];		//add as active pore
+			pn++;			//increment total pore number
+			activePoreNum++;	//increment # of active pores
+			poreAdded++;	//increment # of pores added
+		}
+	}
+	return poreAdded;
 }

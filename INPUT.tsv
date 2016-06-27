@@ -14,8 +14,7 @@ BONDING
 PORES		
 #number only used if random distribution
 	?seed			<(unsigned int)>	
-	coordinate		<pores.tsv | (double[3]) | random (unsigned int number)
-	?distance		<(double) | 
+	coordinate		<pores.tsv | (double[3]) | random (unsigned int number | distribute	(double density)>
 	center			<element>
 	radius			<(double) | from (double) to (double) by (double)>
 	passivation 	<(string element) | none>
@@ -31,3 +30,8 @@ OUTPUT
 DATA
 	tag				<XXX>
 	filename		(string)
+#------------------------------------
+CONDITIONS
+	density			<low, high>
+	Percent			<element>	<low,high>
+	number			<element>	<low,high>			

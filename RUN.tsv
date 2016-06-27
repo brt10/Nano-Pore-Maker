@@ -1,13 +1,13 @@
 INPUT
 	filename	data/3C.vasp	4	4	4
+#	filename	data/2H_UNIT.vasp	3	2	2
 PORE
-	coordinate	.25	.25	.25
-	coordinate	.75	.75	.75
-	radius		from	0	to	7	by	.1
+	coordinate	distribute	5
+	radius		4
 OUTPUT
 	path		focus/
 	convention	n
 	filename 	pore
-DATA
-	filename	focus/data.tsv
-	tag			id%so
+#DATA
+#	filename	focus/data.tsv
+#	tag			id%sro

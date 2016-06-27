@@ -6,6 +6,8 @@
 #include <sstream>	//for parsing strings into integers and doubles especially
 #include <cstdlib>	//for random numbers
 #include <ctime>	//for seeding random numbers
+#define _USE_MATH_DEFINES	//for constants (M_PI, etc.)
+#include <cmath>	//for sqrt() (poisson dist)
 #include "simulation.h"	//for simulations
 #include "coordinate.h"	//for coordinates of holes, etc.
 
@@ -22,7 +24,7 @@ class testbench
 		static const unsigned int MAX_SETTINGS = 10;		//max # of settings per section
 		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
 		static const unsigned int MAX_SCALES = 10;			//max # of scales to make
-		static const unsigned int MAX_PORES = 10;			//max # of pores
+		static const unsigned int MAX_PORES = 100;			//max # of pores
 
 		unsigned int sectionNum;				//#of sections
 		unsigned int settingNum[MAX_SETTINGS];	//#of settings per section
@@ -40,14 +42,13 @@ class testbench
 		unsigned int scale[MAX_SCALES][3];		//scales to apply to each file
 		//PORE
 		unsigned int poreNum;					//#of pores to make
-		char centering;							//Atomic, Coordinate
+		string center;							//element for center
 		coordinate poreCoord[MAX_PORES];		//coordinate of pores
-		char distribution;						//Random, File, Coordinate
-		string holeFilename;
+		coordinate poreDistCoord[MAX_PORES];	//additional pores to bring up pore density
+		double poreDistribute;					//at least this number of pores in sample (distribute untill reached)
 		double poreRadMin;						//min radius of pore
 		double poreRadMax;						//max pore size
 		double poreRadStep;						//step size of pore radius
-		// unsigned int poreIterations;			//iterations of pore sizes
 		//OUTPUT
 		string path;
 		string customName;
@@ -59,6 +60,8 @@ class testbench
 		//DATA
 		string dataFilename;		//fn of the data output file
 		string dataTag;				//string of characters that represent the data to be written to tsv
+		//CONDITIONS
+
 
 		//INPUT
 		string Input_Filename(string line = "");
@@ -83,6 +86,10 @@ class testbench
 		//DATA
 		string Data_Tag(string line = "");
 		string Data_Filename(string line = "");
+		//CONDITIONS
+		string Conditions_Density(string line = "");
+		string Conditions_Percent(string line = "");
+		string Conditions_Number(string line = "");
 
 		//settings
 		string section[MAX_SECTIONS];
@@ -101,12 +108,16 @@ class testbench
 		string CreateFilename(void);	//creates filename with current settings.
 		//coord operations
 		coordinate RandCoord(void);		//returns a random coordinate
+		coordinate RandCoordFrom(coordinate, double, double);
+		int PoissonDistribution(double r);	//distributes temporary coordinates untill a density is reached
 
 		//main functions
 		int Read(string);		//reads settings from file
 		int Test(void);			//runs test with settings
 		int DataLine(unsigned int, unsigned int, double);	//outputs a line of data to file
 		int DataHeader(void);	//outputs a header to the file
+		// bool Conditions(void);	//returns true if meets conditions
+		// bool Output(void);		//output for counting files outputed..
 
 	public:
 		testbench(void);		//constructor

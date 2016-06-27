@@ -12,14 +12,17 @@ OBJS =	$(O)/main.o\
 		$(O)/simulation.o\
 		$(O)/testbench.o
 RM = rm
+MKDIR = mkdir
 #OBJS = $(SRCS:%.cpp=%.o)
 #SRCS = $(addprefix $(S)/,$(SRCS))
 
 a: all
 c: clean
 r: remake
-all: $(TARGET)
+all: build $(TARGET)
 
+build:
+	$(MKDIR) -p build
 $(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) $(OBJS) -o $(TARGET)
 $(O)/main.o:	$(S)/main.cpp\
@@ -45,5 +48,5 @@ $(O)/testbench.o:	$(S)/testbench.cpp\
 					$(S)/coordinate.o
 	$(CXX) $(CFLAGS) $(S)/testbench.cpp
 clean:
-	$(RM) -f $(O)/* $(B)/$(TARGET)
+	$(RM) -f $(O)/* $(TARGET)
 remake: clean all

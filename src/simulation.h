@@ -48,7 +48,7 @@ class simulation
 		atom_cls* Closest(coordinate c, unsigned int E=-1);	//returns the atom closest to the coordinate of given element
 		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
 
-		double Volume(void);				//volume of lattice in m^3
+		double Volume(void);				//volume of lattice in cm^3
 		double Mass(void);					//mass of extant atoms
 		unsigned int Extant(unsigned int);	//#extant atoms of element
 		unsigned int Atoms(void);			//total # of extant atoms

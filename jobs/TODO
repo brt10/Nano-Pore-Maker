@@ -1,3 +1,7 @@
+KEY:
+X	DONE!
+O	IMPORTANT, but not done! (will put O after they have been forgotten for a while... ;)
+
 ATOM eye (MIT)
 visualization software
 
@@ -16,11 +20,33 @@ INSANE IDEAS:
 		possibly giving up fast matrix operations (depends on hilbert-maths)
 	use a backwards-hilbert curve to STORE NODES in a space-filling way
 		one dimensional array to search within bounds for nearest nodes...
+	use a wave model to distribute pores probabilisticly
 
 bugs:
 	proper form of header unknowm till execute. :( possibly write header last, or better yet:
 		SELECT SPECIFIC ELEMENT!
 		(perfect b/c need to do bondlengthfile anyway)
+
+for Friday/thurs
+	radius = the larest sphere that can fit inside the 
+		center of mass of hydrogens added (average radii)
+		(teh definition sortof used by expirements)
+	add # of pores distributed rather than density
+
+
+for monday
+	conventions...
+	random coords multiple seeds?
+		error catching on random without number!
+	1.5 to 2 A pores
+	SETTINGS:
+		conditions
+		bonding
+		random with min dist or even distribution (hilbert curve testing!)
+			may look like:	coordinate	distribute	5
+		redo simulation to have dynamic memory of atoms!
+
+
 
 for thursday (jun 23)
 	Please recreate single pore models with %H between 20 and 35 %.  As it turns out models with larger % H also have significant oxygen, which we will worry about later.
@@ -50,7 +76,7 @@ X	make all tags uppercase for comparison
 
 
 for Friday:
-	copy simulations rather than read from files :) faster
+O	copy simulations rather than read from files :) faster
 	have functions output what they change to teh screen.
 	FIXED:
 		integers not double in passivated hole! O.o
