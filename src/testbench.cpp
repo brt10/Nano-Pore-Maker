@@ -307,13 +307,17 @@ string testbench::Trim(string line)
 	static const char whitespace[] = {'\0', ' ', '\a', '\b', '\t', '\n', '\v', '\f', '\r'};
 	static const unsigned int whiteNum = sizeof(whitespace)/sizeof(char);
 	
-	for(int a=0; a<2; a++)
+	for(int a=0; a<2; a++)	//check front and back
 		for(unsigned int b=0; b<whiteNum; b++)
+		{
+			if(line.empty())	//if empty, return before breaking!
+				return line;
 			if( line[a==0 ? 0:line.length()-1] == whitespace[b])
 			{
 				line.erase(a==0 ? 0:line.length()-1,1);
 				line = Trim(line);
 			}
+		}
 	return line;
 }
 string testbench::I_Str(int a)
@@ -495,15 +499,11 @@ int testbench::Read(string inputName)
 	//read file line by line
 	while(getline(input,line,'\n'))
 	{
-		cout << '\"' << Trim(line) << '\"' << endl;	//TESTING	
-		if(line[0]==comment)	//comment
-			continue;
 		line = line.substr(0,line.find(comment));	//cut off any trailing comments
 		if(Trim(line) == "")	//empty	(check after trailing comments trimmed)
 			continue;
-
-		cout << "not a comment" << endl;
-
+		if(line[0]==comment)	//comment
+			continue;
 		if(line[0]!='\t')	//if heading text, set section
 		{
 			tag = Uppercase(Trim(line));	//cut off trailing whitespace and make uppercase
@@ -517,7 +517,7 @@ int testbench::Read(string inputName)
 		{
 			line = Trim(line);						//remove tab and any leading/trailing whitespace
 			split = line.find('\t');				//find split
-			if(split == (int)string::npos)				//if no settings, abort
+			if(split == (int)string::npos)			//if no settings, abort
 			{
 				cerr << "No settings associated with \"" << line << "\"\n";
 				continue;
@@ -526,7 +526,6 @@ int testbench::Read(string inputName)
 			tag = Uppercase(Trim(tag));				//trim any whitespace from tag and make uppercase
 			line = line.substr(tag.length());		//cut off tag
 			line = Trim(line);						//remove any whitespace
-			cout << tag << endl;
 			if(line[0]==comment)	//comment
 				continue;
 			for(settingIndex = 0; settingIndex < settingNum[sectionIndex]; settingIndex++)	//find tag

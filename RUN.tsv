@@ -4,7 +4,6 @@ INPUT
 SCALING
 	scale		1	2	2
 #	scale		2	1	1
-
 #PORE
 #	coordinate	distribute	5
 #	radius		4

@@ -21,6 +21,9 @@ INSANE IDEAS:
 	use a backwards-hilbert curve to STORE NODES in a space-filling way
 		one dimensional array to search within bounds for nearest nodes...
 	use a wave model to distribute pores probabilisticly
+BAD IDEAS: //or unpopular. :/
+	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
+	poisson distributions... better to be random and wrong than accurate and unnarural.s
 
 
 
@@ -30,6 +33,7 @@ random distribution more real-world
 add distribution random 
 no overlap on random or dist
 multple sims for convergance...random helps
+inout.tsv readme style
 
 bugs:
 	proper form of header unknowm till execute. :( possibly write header last, or better yet:
