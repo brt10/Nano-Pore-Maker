@@ -56,27 +56,38 @@
 			return "";
 		}
 	//SCALING
-		string testbench::Scaling_Filename(string line)
+		string testbench::Scaling_Scale(string line)
 		{
-			if(line=="") return "FILENAME";	//default
-			ifstream scaleFile;
-			stringstream ss;
-			string scaleLine;			
-			if(!FileExists(line))
+			if(line=="") return "SCALE";	//default
+			
+			if(line.find('\t') == string::npos)//if no tabs	-> file of scales
 			{
-				cerr << '\"' << line << "\" does not exist or cannot be opened!\n";
-				return "";	//XXX add error catching!
+				//check for existance of file
+				if(!FileExists(line))
+				{
+					cerr << '\"' << line << "\" does not exist or cannot be opened as a scale file!\n";
+					return "";	//XXX NEED TO ADD ERROR CATCHING!
+				}
+				//read file
+				ifstream header;
+				string headerLine;				//a witty remix of headline
+				header.open(line.c_str());	//allready checked if could be opened.
+				while(getline(header,headerLine) && scaleNum < MAX_SCALES)
+				{
+					headerLine = Trim(headerLine);
+					Scaling_Scale(headerLine);
+				}
+				header.close();	
 			}
-			scaleFile.open(line.c_str());	//allready checked if is file
-			while(getline(scaleFile, scaleLine))	//read each line
+			else//if tab seperation -> single addition to scale
 			{
-				ss.clear();
-				ss << scaleLine;
-				for(int a=0; a<3; a++)
+				stringstream ss;
+				ss << line;
+				for(unsigned int a=0; a<3; a++)
 					ss >> scale[scaleNum][a];
 				scaleNum++;
 			}
-			scaleFile.close();
+
 			return "";
 		}
 	//BONDING
@@ -427,7 +438,7 @@ testbench::testbench(void)
 		setting[i][n[i]] = &testbench::Input_Filename;		n[i]++;
 		i++;
 	section[i] = "SCALING";
-		setting[i][n[i]] = &testbench::Scaling_Filename;	n[i]++;
+		setting[i][n[i]] = &testbench::Scaling_Scale;		n[i]++;
 		i++;
 	section[i] = "BONDING";
 		setting[i][n[i]] = &testbench::Bonding_Tolerance;	n[i]++;
@@ -470,6 +481,7 @@ int testbench::Read(string inputName)
 	string line;	//line of file
 	string tag;		//tag to compare
 	stringstream ss;
+	int split;		//index of split in text
 	unsigned int sectionIndex = MAX_SECTIONS;	//index of section
 	unsigned int settingIndex = MAX_SETTINGS;	//index of setting
 	const char comment = '#';
@@ -481,11 +493,16 @@ int testbench::Read(string inputName)
 		return -1;
 	}
 	//read file line by line
-	while(getline(input,line))
+	while(getline(input,line,'\n'))
 	{
+		cout << '\"' << Trim(line) << '\"' << endl;	//TESTING	
 		if(line[0]==comment)	//comment
 			continue;
 		line = line.substr(0,line.find(comment));	//cut off any trailing comments
+		if(Trim(line) == "")	//empty	(check after trailing comments trimmed)
+			continue;
+
+		cout << "not a comment" << endl;
 
 		if(line[0]!='\t')	//if heading text, set section
 		{
@@ -499,10 +516,17 @@ int testbench::Read(string inputName)
 		else if(sectionIndex < sectionNum)	//line[0]=='\t' && the section is recognized
 		{
 			line = Trim(line);						//remove tab and any leading/trailing whitespace
+			split = line.find('\t');				//find split
+			if(split == string::npos)				//if no settings, abort
+			{
+				cerr << "No settings associated with \"" << line << "\"\n";
+				continue;
+			}
 			tag = line.substr(0,line.find('\t'));	//retreive tag
 			tag = Uppercase(Trim(tag));				//trim any whitespace from tag and make uppercase
 			line = line.substr(tag.length());		//cut off tag
 			line = Trim(line);						//remove any whitespace
+			cout << tag << endl;
 			if(line[0]==comment)	//comment
 				continue;
 			for(settingIndex = 0; settingIndex < settingNum[sectionIndex]; settingIndex++)	//find tag
@@ -555,6 +579,8 @@ int testbench::Test(void)
 			return 0;
 		}
 	}
+	if(scaleNum == 0)	//if no scales were set, default to identity (already filled);
+		scaleNum++;
 	//routine
 	for(f=0; f<inputFileNum; f++)//for each inputfile
 		for(s=0; s<scaleNum; s++)//for each scale
@@ -727,9 +753,9 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 //----------------------------------------------------------------------------------------
 void testbench::Default(void)
 {
-	inputFileNum = 0;//no inputfiles... incremented as read from.
-	scaleNum = 1;
-	poreNum = 0;	//no pores
+	inputFileNum = 0;	//no inputfiles... incremented as read from.
+	scaleNum = 0;		//will check for # of scales at runtime, and default to 1
+	poreNum = 0;		//no pores
 	path = "";
 	customName = "";
 	convention = "";	//default output defiined after filename
@@ -740,7 +766,7 @@ void testbench::Default(void)
 	poreRadMax = -1;		//prevent holes from being made (less than Min)
 	poreRadStep = 1;	
 	dataFilename = "DATA.tsv";
-	dataTag = "";	//default to no datafile
+	dataTag = "";		//default to no datafile
 	poreDistribute = 0;	//default to no added pores to reach total
 
 
@@ -766,7 +792,7 @@ int testbench::PoissonDistribution(double r)
 		return 0;	//not to add any pores
 	//constants
 	const double FILL = M_PI/6;	//% of cube filled by a sphere
-	const double RADIUS = cbrt(sim.Volume()*1E24/(poreNum+poreDistribute)*3/4/M_PI*(FILL))*2;	//maximum radius of the distance between pores, accounting for emptyness to bring to average
+	const double RADIUS = cbrt(sim.Volume()*1E24/(poreNum+poreDistribute)*3/4/M_PI*(FILL))*2*2/3;	//maximum radius of the distance between pores, accounting for emptyness to bring to average
 	const unsigned int MAX_ATTEMPTS = 10;	//max number of attempts at finding a suitible location for pore
 	// int grid[MAX_PORES][MAX_PORES][MAX_PORES];		//XXX unsure how to impliment well...
 	//pointers

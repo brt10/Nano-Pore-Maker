@@ -66,7 +66,7 @@ class testbench
 		//INPUT
 		string Input_Filename(string line = "");
 		//SCALING
-		string Scaling_Filename(string line = "");
+		string Scaling_Scale(string line = "");
 		//BONDING
 		string Bonding_Tolerance(string line = "");
 		string Bonding_Lengths(string line = "");

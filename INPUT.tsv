@@ -5,7 +5,7 @@ INPUT
 	filename		<2H.vasp (unsigned int scale) | files.tsv>
 #--------scaling of outputs------------
 SCALING
-	filename		scaling.tsv
+	scale			<scaling.tsv | unsigned int[3]>
 #-------------------------------------
 BONDING		
 	tolerance		(double)

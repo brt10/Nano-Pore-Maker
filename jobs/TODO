@@ -22,6 +22,15 @@ INSANE IDEAS:
 		one dimensional array to search within bounds for nearest nodes...
 	use a wave model to distribute pores probabilisticly
 
+
+
+
+no atms removed poreR=0 hung up?
+random distribution more real-world
+add distribution random 
+no overlap on random or dist
+multple sims for convergance...random helps
+
 bugs:
 	proper form of header unknowm till execute. :( possibly write header last, or better yet:
 		SELECT SPECIFIC ELEMENT!
