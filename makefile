@@ -26,26 +26,26 @@ build:
 $(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) $(OBJS) -o $(TARGET)
 $(O)/main.o:	$(S)/main.cpp\
-				$(S)/testbench.o
+				$(O)/testbench.o
 	$(CXX) $(CFLAGS) $(S)/main.cpp
 $(O)/coordinate.o:	$(S)/coordinate.cpp\
 					$(S)/coordinate.h
 	$(CXX) $(CFLAGS) $(S)/coordinate.cpp $(OUTFLAG)
 $(O)/atom.o:	$(S)/atom.cpp\
 				$(S)/atom.h\
-				$(S)/coordinate.o\
+				$(O)/coordinate.o\
 				$(S)/K.h
 	$(CXX) $(CFLAGS) $(S)/atom.cpp
 $(O)/simulation.o:	$(S)/simulation.cpp\
 					$(S)/simulation.h\
-					$(S)/atom.o\
-					$(S)/coordinate.o\
+					$(O)/atom.o\
+					$(O)/coordinate.o\
 					$(S)/K.h
 	$(CXX) $(CFLAGS) $(S)/simulation.cpp
 $(O)/testbench.o:	$(S)/testbench.cpp\
 					$(S)/testbench.h\
-					$(S)/simulation.o\
-					$(S)/coordinate.o
+					$(O)/simulation.o\
+					$(O)/coordinate.o
 	$(CXX) $(CFLAGS) $(S)/testbench.cpp
 clean:
 	$(RM) -f $(O)/* $(TARGET)

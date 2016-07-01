@@ -517,7 +517,7 @@ int testbench::Read(string inputName)
 		{
 			line = Trim(line);						//remove tab and any leading/trailing whitespace
 			split = line.find('\t');				//find split
-			if(split == string::npos)				//if no settings, abort
+			if(split == (int)string::npos)				//if no settings, abort
 			{
 				cerr << "No settings associated with \"" << line << "\"\n";
 				continue;
