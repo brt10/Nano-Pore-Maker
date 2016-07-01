@@ -19,10 +19,12 @@ MKDIR = mkdir
 a: all
 c: clean
 r: remake
-all: build $(TARGET)
+all: $(O) $(B) $(TARGET)
 
-build:
-	$(MKDIR) -p build
+$(O):
+	$(MKDIR) -p $(O)
+$(B):
+	$(MKDIR) -p $(B)
 $(TARGET): $(OBJS)
 	$(CXX) $(LFLAGS) $(OBJS) -o $(TARGET)
 $(O)/main.o:	$(S)/main.cpp\
