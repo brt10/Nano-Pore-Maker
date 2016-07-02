@@ -1,12 +1,10 @@
 INPUT
 	filename	data/3C.vasp	3	3	3
 #	filename	data/2H_UNIT.vasp	3	2	2
-SCALING
-	scale		1	2	2
-#	scale		2	1	1
-#PORE
-#	coordinate	distribute	5
-#	radius		4
+PORE
+	coordinate	.01	0	0
+	radius		0
+	#this is another comment...
 OUTPUT
 	path		focus/
 	convention	n

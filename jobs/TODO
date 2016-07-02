@@ -33,7 +33,7 @@ random distribution more real-world
 add distribution random 
 no overlap on random or dist
 multple sims for convergance...random helps
-inout.tsv readme style
+input.tsv readme style
 
 bugs:
 	proper form of header unknowm till execute. :( possibly write header last, or better yet:

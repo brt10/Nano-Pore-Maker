@@ -1,5 +1,41 @@
-from terminal:
-pore <INPUT.tsv>
-
-FORMATS:
-	INPUT.tsv - see "INPUT.tsv" for general format. no lines are required. comment lines begin with '#' (may be preceded by whitespace)
+#This is a comment
+#USING STANDARDS LAID OUT IN: http://pubs.opengroup.org/onlinepubs/009696899/basedefs/xbd_chap12.html
+#(IEEE NOTATION)
+#all whitespace should be tabs to be safe...
+#-------------------------------------
+INPUT		
+	filename		[(string file) (u_int scale[3]) | (file).tsv]	#file.tsv of format for each line: [file.vasp (u_int scale[3]) | files.tsv]
+		default:	<NONE>
+#--------scaling of outputs------------
+SCALING
+	scale			[(u_int scale[3]) | scaling.tsv]	#scaling.tsv of format for each line: [scaling.tsv | u_int scale[3]]
+		default:	1	1	1
+#-------------------------------------
+BONDING		
+	tolerance		[(double tolerance)]
+		default:	.1
+	lengths			[(string element) (double Angstroms) (string element) | bonding.tsv]
+		default:	(see src/K.h)
+#-------------------------------------
+PORES		
+	#	seed			[(unsigned int)]	
+	coordinate		[pores.tsv | (double coordinate[3]) | random (u_int number) | distribute (u_int number)]
+	center			[(string element)]
+	radius			[(double Angstroms) | from (double Angstroms) to (double Angstroms) by (double Angstroms)]
+	passivation 	[(string element) | none]
+#-------------------------------------
+OUTPUT
+	path			[(directory name)]	#use path to append a prefix to filenames
+	filename		[(string)]
+	convention		[Index,Polytype,Center,Radius,]
+	delimeter		[none | space | tab | char(character)]
+	extension		[(extension name)]
+#-------------------------------------
+DATA
+	tag				[XXX]
+	filename		[(string)]
+#------------------------------------
+CONDITIONS
+	density			[(double low)<tab>high]
+	Percent			[element]	[low,high]
+	number			[element]	[low,high]			

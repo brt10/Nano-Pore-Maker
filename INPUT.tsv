@@ -1,8 +1,9 @@
-#This is a comment (only whitespace before '#')
+#This is a comment
+#USING STANDARDS LAID OUT IN: http://pubs.opengroup.org/onlinepubs/009696899/basedefs/xbd_chap12.html
+#(IEEE NOTATION)
 #-------------------------------------
-#file in poscar form, or tsv of those files with optional associated scaling in file
 INPUT		
-	filename		<2H.vasp (unsigned int scale) | files.tsv>
+	filename		<filename (unsigned int scale) | files.tsv>
 #--------scaling of outputs------------
 SCALING
 	scale			<scaling.tsv | unsigned int[3]>
