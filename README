@@ -2,9 +2,10 @@
 #USING STANDARDS LAID OUT IN: http://pubs.opengroup.org/onlinepubs/009696899/basedefs/xbd_chap12.html
 #(IEEE NOTATION)
 #all whitespace should be tabs to be safe...
+#optional in parentheses
 #-------------------------------------
 INPUT		
-	filename		[(string file) (u_int scale[3]) | (file).tsv]	#file.tsv of format for each line: [file.vasp (u_int scale[3]) | files.tsv]
+	filename		[filename (int scale[3]) | (file).tsv]	#file.tsv of format for each line: [file.vasp (int scale[3]) | files.tsv]
 		default:	<NONE>
 #--------scaling of outputs------------
 SCALING
@@ -17,7 +18,7 @@ BONDING
 	lengths			[(string element) (double Angstroms) (string element) | bonding.tsv]
 		default:	(see src/K.h)
 #-------------------------------------
-PORES		
+PORE		
 	#	seed			[(unsigned int)]	
 	coordinate		[pores.tsv | (double coordinate[3]) | random (u_int number) | distribute (u_int number)]
 	center			[(string element)]
@@ -32,7 +33,17 @@ OUTPUT
 	extension		[(extension name)]
 #-------------------------------------
 DATA
-	tag				[XXX]
+	tag				[O|P|E|%|N|D|R|S|I]
+		O	outfilename
+		P	path
+		E	extension
+		%	all percentages
+		N	all numbers
+		D	density
+		R	radius
+		S	fullscale
+		I	inputfile
+		#EXAMPLE:	tag	I%RO
 	filename		[(string)]
 #------------------------------------
 CONDITIONS

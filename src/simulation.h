@@ -8,6 +8,8 @@ using namespace std;	//for now
 #include <iostream>	//for cerr
 #include <sstream>	//for stringstream	(reading in data)	XXX should be able to replace with reading characters
 #include <iomanip>	//for formatting output to file
+//src
+#include "strops.h"	//string operations
 #include "K.h"		//namespace for constants
 #include "coordinate.h"	//for coordinates
 #include "atom.h"	//for atom class
@@ -42,22 +44,24 @@ class simulation
 		bool Scale(string,string);				//scales model to values in file.
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
-		int PassivatedHole(double, coordinate* center=0);	//makes a passivated hole by recursion.
-		int PassivatedHole(double, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
+		int PassivatedPore(double, coordinate* center=0);	//makes a passivated hole by recursion.
+		int PassivatedPore(double, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
 		atom_cls* Closest(coordinate c, unsigned int E=-1);	//returns the atom closest to the coordinate of given element
 		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
-
+		//data
 		double Volume(void);				//volume of lattice in cm^3
 		double Mass(void);					//mass of extant atoms
 		unsigned int Extant(unsigned int);	//#extant atoms of element
 		unsigned int Atoms(void);			//total # of extant atoms
 		double Density(void);				//density of system g/cm^3
 		double operator%(const unsigned int);//percent of element
-
+		//distances
 		double RealDistance(coordinate, coordinate);	//the real distance to a coord
-		double ModDistance(coordinate, coordinate);	//shortest distance to another atom
+		double ModDistance(coordinate, coordinate);		//shortest distance to another atom
 		double ModDistance(atom_cls*, atom_cls*);
+		//element control
+		int ElementIndex(string);	//returns index of element used in atom array if none found return -1;
 
 		// void (*ForEachAtom)(unsigned int, unsigned int);	//will be usefull... buld in error catching later :)
 		//variables-----------------

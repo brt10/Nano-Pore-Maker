@@ -10,7 +10,8 @@ OBJS =	$(O)/main.o\
 		$(O)/coordinate.o\
 		$(O)/atom.o\
 		$(O)/simulation.o\
-		$(O)/testbench.o
+		$(O)/testbench.o\
+		$(O)/strops.o
 RM = rm
 MKDIR = mkdir
 #OBJS = $(SRCS:%.cpp=%.o)
@@ -42,13 +43,19 @@ $(O)/simulation.o:	$(S)/simulation.cpp\
 					$(S)/simulation.h\
 					$(O)/atom.o\
 					$(O)/coordinate.o\
-					$(S)/K.h
+					$(S)/K.h\
+					$(O)/strops.o
 	$(CXX) $(CFLAGS) $(S)/simulation.cpp
 $(O)/testbench.o:	$(S)/testbench.cpp\
 					$(S)/testbench.h\
 					$(O)/simulation.o\
-					$(O)/coordinate.o
+					$(O)/coordinate.o\
+					$(O)/strops.o
 	$(CXX) $(CFLAGS) $(S)/testbench.cpp
+$(O)/strops.o:	$(S)/strops.cpp\
+				$(S)/strops.h
+	$(CXX) $(CFLAGS) $(S)/strops.cpp
+
 clean:
 	$(RM) -f $(O)/* $(TARGET)
 remake: clean all

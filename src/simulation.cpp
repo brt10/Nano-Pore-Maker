@@ -429,7 +429,7 @@ void simulation::RemoveAtom(unsigned int e, unsigned int i)
 	elementCount[e]--;
 	return;
 }
-int simulation::PassivatedHole(double radius, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, coordinate* center)	//makes a passivated hole by recursion.
 {
 	coordinate c =.5;
 	if(!center)
@@ -437,9 +437,9 @@ int simulation::PassivatedHole(double radius, coordinate* center)	//makes a pass
 	atom_cls* centerAtom = Closest(*center);			//find atom closest to the coordinates
 	if(ModDistance(centerAtom->co, *center) > radius)	//if the atom is too far away
 		return 0;
-	return PassivatedHole(radius, centerAtom, center);	//else make passivated hole about this coordinate starting with centerAtom
+	return PassivatedPore(radius, centerAtom, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
-int simulation::PassivatedHole(double radius, atom_cls* subject, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, atom_cls* subject, coordinate* center)	//makes a passivated hole by recursion.
 {
 	if(!center)	//null pointer
 		center = &(subject->co);
@@ -449,7 +449,7 @@ int simulation::PassivatedHole(double radius, atom_cls* subject, coordinate* cen
 		if(subject->bond[a]->exists)	//if not already marked.
 		{
 			if(ModDistance(subject->bond[a]->co, *center) < radius)	//if bonded atom is within radius
-				count+=PassivatedHole(radius,subject->bond[a],center);
+				count+=PassivatedPore(radius,subject->bond[a],center);
 			else 	//passivate here
 				Passivate(subject, subject->bond[a]);
 		}
@@ -534,7 +534,7 @@ double simulation::operator%(const unsigned int e)	//percent of extant elements
 {
 	return 100 * (double)Extant(e) / (double)Atoms();
 }
-
+//distance
 double simulation::RealDistance(coordinate a, coordinate b)
 {
 	return (a*lattice).Distance(b*lattice);
@@ -548,4 +548,13 @@ double simulation::ModDistance(coordinate a, coordinate b)
 double simulation::ModDistance(atom_cls* a, atom_cls* b)
 {
 	return ModDistance(a->co, b->co);
+}
+//element control
+int simulation::ElementIndex(string name)
+{
+	name = Uppercase(name);
+	for(unsigned int e=0; e<elementNum; e++)
+		if(name == Uppercase(element[e]))	//if Found match
+			return e;
+	return -1;	//if failed to find match. return -1
 }

@@ -301,57 +301,6 @@
 			return "";
 		}
 //----------------------------------------------------------------------------------------
-//string operations
-string testbench::Trim(string line)
-{
-	static const char whitespace[] = {'\0', ' ', '\a', '\b', '\t', '\n', '\v', '\f', '\r'};
-	static const unsigned int whiteNum = sizeof(whitespace)/sizeof(char);
-	
-	for(int a=0; a<2; a++)	//check front and back
-		for(unsigned int b=0; b<whiteNum; b++)
-		{
-			if(line.empty())	//if empty, return before breaking!
-				return line;
-			if( line[a==0 ? 0:line.length()-1] == whitespace[b])
-			{
-				line.erase(a==0 ? 0:line.length()-1,1);
-				line = Trim(line);
-			}
-		}
-	return line;
-}
-string testbench::I_Str(int a)
-{
-	if(a==0)	return "0";
-	
-	string s;	//string
-	bool n=0;	//negative
-	
-	if(a<0)
-	{
-		n=1;
-		a=-a;
-	}
-	while(a!=0)
-	{
-		s=char((a%10)+'0')+s;
-		a/=10;
-	}
-	if(n) s='s'+s;
-	return s;
-}
-char testbench::Uppercase(char c)
-{
-	if(c>='a' && c<='z')
-		return c-'a'+'A';
-	return c;
-}
-string testbench::Uppercase(string s)
-{
-	for(unsigned int a=0; a<s.length(); a++)
-		s[a] = Uppercase(s[a]);
-	return s;
-}
 //file operations
 bool testbench::FileExists(string filename)
 {
@@ -429,6 +378,10 @@ coordinate testbench::RandCoordFrom(coordinate center, double min, double max)	/
 	co += center;				//move around center
 	co.Mod();					//wrap over edges of sim...
 	return co;
+}
+double testbench::RealRadius(coordinate center)
+{
+	return sim.ModDistance(sim.Closest(center,2)->co, center);
 }
 //---------------------------------------------------------------------------------------------
 //constructor
@@ -599,10 +552,16 @@ int testbench::Test(void)
 				if(poisson == -1) cerr << "Error distributing pores!\n";
 				else
 					for(p=0; p<(unsigned)poisson; p++)
-						removed += sim.PassivatedHole(r, &poreDistCoord[p]);
+					{
+						removed += sim.PassivatedPore(r, &poreDistCoord[p]);
+						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
+					}
 
 				for(p=0; p<poreNum; p++)	//for each pore
-					removed += sim.PassivatedHole(r, &poreCoord[p]);	//XXX may have probs with multiple pores if any overlap!
+				{
+					removed += sim.PassivatedPore(r, &poreCoord[p]);	//XXX may have probs with multiple pores if any overlap!
+					cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
+				}
 
 				
 				if(removed > lastRem)		//ifunique: output file

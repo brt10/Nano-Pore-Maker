@@ -12,7 +12,7 @@ BONDING
 	tolerance		(double)
 	lengths			<default | bonding.tsv>
 #-------------------------------------
-PORES		
+PORE	
 #number only used if random distribution
 	?seed			<(unsigned int)>	
 	coordinate		<pores.tsv | (double[3]) | random (unsigned int number | distribute	(double density)>

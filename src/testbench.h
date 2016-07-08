@@ -1,13 +1,17 @@
 #ifndef TESTBENCH_H
 #define TESTBENCH_H
+//lib
 #include <iostream>	//cout, cerr, etc.
 #include <fstream>	//file io
 #include <string>	//strings
 #include <sstream>	//for parsing strings into integers and doubles especially
 #include <cstdlib>	//for random numbers
 #include <ctime>	//for seeding random numbers
-#define _USE_MATH_DEFINES	//for constants (M_PI, etc.)
+#define _USE_MATH_DEFINES	//for constants (M_PI, etc.)	//needs to come before cmath
 #include <cmath>	//for sqrt() (poisson dist)
+
+//src
+#include "strops.h"		//for string operations
 #include "simulation.h"	//for simulations
 #include "coordinate.h"	//for coordinates of holes, etc.
 
@@ -97,11 +101,6 @@ class testbench
 		FunctionP setting[MAX_SECTIONS][MAX_SETTINGS];
 
 		void Default(void);				//seta all values to default
-		//string manipulation
-		string Trim(string);		//trims from and back of string for whitespace, etc.
-		string I_Str(int);			//integer -> string
-		char Uppercase(char);
-		string Uppercase(string);
 		//file operations
 		bool FileExists(string);	//returns 1 if file exists
 		string Extension(string);	//returns the extension of file without the period
@@ -109,6 +108,7 @@ class testbench
 		//coord operations
 		coordinate RandCoord(void);		//returns a random coordinate
 		coordinate RandCoordFrom(coordinate, double, double);
+		double RealRadius(coordinate);
 		int PoissonDistribution(double r);	//distributes temporary coordinates untill a density is reached
 
 		//main functions

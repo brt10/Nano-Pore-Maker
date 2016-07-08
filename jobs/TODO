@@ -25,15 +25,23 @@ BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
 
+for someday
+	add default to output filename... kinda trivial :P
 
-
-
-no atms removed poreR=0 hung up?
-random distribution more real-world
-add distribution random 
-no overlap on random or dist
-multple sims for convergance...random helps
-input.tsv readme style
+Thursday
+X	no atms removed poreR=0 hung up?
+		-this was actually an error reading file.
+	random distribution more real-world
+		add distribution random 
+		no overlap on random or dist
+	multple sims for convergance...random helps
+	input.tsv readme style
+	make spaces work as delimiters in input.tsv
+	remove floating hydrogens?
+		(clean function that searches for any atoms unattached?)
+	make args for main bin? command line stuffs?
+	revamp how holes are made?
+	radius calcuations
 
 bugs:
 	proper form of header unknowm till execute. :( possibly write header last, or better yet:
