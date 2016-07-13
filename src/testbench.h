@@ -39,20 +39,21 @@ class testbench
 
 		//INPUT
 		unsigned int inputFileNum;				//#of inputfiles to read from
-		string inputFilename[MAX_FILES];			//names of datafiles
+		string inputFilename[MAX_FILES];		//names of datafiles
 		unsigned int fileScale[MAX_FILES][3];	//scale associated with file; default = {1,1,1}
 		//SCALING
 		unsigned int scaleNum;					//#scales to make
-		unsigned int scale[MAX_SCALES][3];		//scales to apply to each file
+		double scale[MAX_SCALES][3];		//scales to apply to each file
 		//PORE
 		unsigned int poreNum;					//#of pores to make
-		string center;							//element for center
+		string elementCenter;					//element for center
 		coordinate poreCoord[MAX_PORES];		//coordinate of pores
 		coordinate poreDistCoord[MAX_PORES];	//additional pores to bring up pore density
 		double poreDistribute;					//at least this number of pores in sample (distribute untill reached)
 		double poreRadMin;						//min radius of pore
 		double poreRadMax;						//max pore size
 		double poreRadStep;						//step size of pore radius
+		string passivation;						//element that will passivate the pores
 		//OUTPUT
 		string path;
 		string customName;
@@ -60,7 +61,7 @@ class testbench
 		string delimiter;
 		string extension;
 		string outFilename;			//name of the vasp file
-		unsigned int outFileCount;
+		unsigned int outFileCount;	//# of outfiles written
 		//DATA
 		string dataFilename;		//fn of the data output file
 		string dataTag;				//string of characters that represent the data to be written to tsv

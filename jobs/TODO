@@ -25,8 +25,20 @@ BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
 
-for someday
+
+for FRIDAY
+	# of H associated with each pore
+	variabel pore radii
+	R - proper pore radii
+
+for wed
 	add default to output filename... kinda trivial :P
+	sense whitespace not tabs...
+	fix readData() so that it's ooutput is standard! >:(
+X	the string center needs to be renamed in testbench! perhaps elementCenter?
+	element center needs to be implimented... waiting on bonding and element recognizing!
+	alwasy have column for H% 0 is okay!
+	look over all referances to elements, and make double sure all are updated
 
 Thursday
 X	no atms removed poreR=0 hung up?

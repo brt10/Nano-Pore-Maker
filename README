@@ -28,7 +28,8 @@ PORE
 OUTPUT
 	path			[(directory name)]	#use path to append a prefix to filenames
 	filename		[(string)]
-	convention		[Index,Polytype,Center,Radius,]
+	convention		[N|F|S|P]
+		N	number of the model
 	delimeter		[none | space | tab | char(character)]
 	extension		[(extension name)]
 #-------------------------------------

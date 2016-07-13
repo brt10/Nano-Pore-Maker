@@ -1,10 +1,15 @@
 INPUT
-	filename	data/3C.vasp	9	9	9
+	filename	data/3C.vasp	2	2	2
 #	filename	data/2H_UNIT.vasp	3	2	2
 PORE
 	coordinate	.5	.5	.5
-	coordinate	.2	.2	.3
-	radius		2
+#	coordinate	.2	.2	.3
+#	coordinate	distribute	1
+	radius		5
+	passivation	H
+SCALING
+	scale		.5	.5	.5
+#	scale		2	2	2
 OUTPUT
 	path		focus/
 	convention	n

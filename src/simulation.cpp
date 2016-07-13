@@ -8,7 +8,11 @@ void simulation::ClearData(void)
 {
 	elementNum=0;
 	for(unsigned int a=0; a< K::MAX_ELEMENTS; a++)
+	{
+		elementIndex[a] = 0;
 		elementCount[a] = 0;
+		element[a] = "";
+	}
 	multiplier=1;
 	return;
 }
@@ -20,6 +24,7 @@ bool simulation::ReadData(const string filename)
 	char freedomChar;
 	ifstream infile;
 	infile.open(filename.c_str());
+	unsigned int eIndex;			//index of element in K.h
 
 	//elementNum = 0;	//from simulation
 	//reset class
@@ -34,7 +39,6 @@ bool simulation::ReadData(const string filename)
 		return 0;
 	}
 	//read from file...
-	//infile >> title;
 	getline(infile, title);
 	infile >> multiplier;
 	for(int a=0; a<3; a++)
@@ -47,7 +51,7 @@ bool simulation::ReadData(const string filename)
 	// do{
 	// 	infile >> elementChar;
 
-	// 	if(elementChar>=A && elementChar<=Z && elementChar>=a && elementChar<=z)
+	// 	if(elementChar>=A && elementChar<=Z || elementChar>=a && elementChar<=z)
 	// 	{
 	// 		elementNum
 	// 	}
@@ -69,26 +73,44 @@ bool simulation::ReadData(const string filename)
 	// 	cout << "char " << a << " : \"" << (int)line[a] << "\"\n";
 	// }
 	// std::cout << "line contents: \""<< line << "\"\n";
+
+	//read in names of elements
 	while(ss >> element[elementNum])
 		elementNum++;
-	// cout << "ELEMENT NUM: " << elementNum << endl;
+	if(elementNum >= K::MAX_ELEMENTS)	//more elments than the atom array accepts! //XXX will be outdated when move to vector.
+	{
+		cerr << "Too many Elements in datafile!" << endl;
+		return 0;
+	}
+	cout << "ELEMENT NUM: " << elementNum << endl;
+	//read in atom count for each element
 	for(unsigned int a=0; a<elementNum; a++)
 		infile >> elementCount[a];
 	infile >> tag;
 
 	//read atom data
-	for(unsigned int e=0; e<elementNum; e++)			//element
-		for(unsigned int i=0; i<elementCount[e]; i++)	//index
+	for(unsigned int e=0; e<elementNum; ++e)			//element
+	{
+		for(eIndex=0; eIndex<K::NUM_ELEMENTS; ++eIndex)	//find the index of the element in K.h
+			if(Uppercase(element[e]) == Uppercase(K::SYM[eIndex]))	break;
+		if(eIndex >= K::NUM_ELEMENTS)
 		{
-			atom[e][i].element = e;
+			cerr << "Unable to find the \"" << element[e] << "\" you are looking for..." << endl;
+			return 0;
+		}
+		elementIndex[e] = eIndex;	//record element index for sim
+		for(unsigned int i=0; i<elementCount[e]; ++i)	//index
+		{
+			atom[e][i].element = eIndex;	//element set as index of sym - lets the atom know its symbol, covalent radius, and mass
 			for(int c=0; c<3; c++)			//read coord
 				infile >> atom[e][i].co.ord[c];
 			for(int c=0; c<3; c++)			//read freedom
 			{
 				infile >> freedomChar;
-				atom[e][i].freedom[c] = (freedomChar=='T' || freedomChar=='t');
+				atom[e][i].freedom[c] = (Uppercase(freedomChar)=='T');
 			}
 		}
+	}
 	infile.close();
 
 	//send lattice data
@@ -139,7 +161,7 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 					atomP[1] = &atom[e[1]][i[1]];	//create temporary pointer to atom
 					if(!atomP[1]->exists) continue;	//make sure atom[] exists	
 					distance = ModDistance(atomP[0], atomP[1]);
-					bondLength = K::BOND_LENGTH[atomP[0]->element][atomP[1]->element];
+					bondLength = K::COV_RAD[atomP[0]->element]+K::COV_RAD[atomP[1]->element];
 					if( distance <= bondLength*(1+K::BOND_TOLERANCE))	//if not too far away
 					{
 						if(distance >= bondLength*(1-K::BOND_TOLERANCE))	//if not too close
@@ -194,24 +216,41 @@ int simulation::Hole(coordinate h, double r)
 			} else i++;
 	return atomCount;
 }
-void simulation::Passivate(atom_cls* removed, atom_cls* passivated)	//assume to passivate with Hydrogen
+void simulation::Passivate(atom_cls* removed, atom_cls* passivated, string pe)
 {
 	atom_cls* H;	//Hydrogen atom pointer
 	coordinate r,p;	//coordinates of atoms
-	double ratio;	//ratio of length
+	double ratio;	//ratio of bondlength
+	//const string pe = "H";	//passivating element
+	unsigned int peIndex;	//index of passivating element in K.h (atomic #-1)
+	unsigned int peAN;		//atomic number of passivating element
 
 	//initializers
 	r=removed->co;
 	p=passivated->co;
-	ratio = K::BOND_LENGTH[2][passivated->element] / ModDistance(r, p);
-	//XXX assume third element is Hydrogen. O.o MUST rewrite later, but looking for better way than searching for elements each time... use enum?
-	if(elementNum<3)
+	for(peIndex=0; peIndex<K::MAX_ELEMENTS; ++peIndex)	//search for pe in current elements
+		if(Uppercase(element[peIndex]) == Uppercase(pe)) break;
+	if(peIndex >= K::MAX_ELEMENTS)		//if passivating element is not alreay in simulation
 	{
-		elementNum++;
-		elementCount[2] = 0;
-		element[2] = "H";
+		// cout << "looking for: \"" << pe << "\"" << endl;
+		for(peAN=0; peAN<K::NUM_ELEMENTS; ++peAN)	//search for passivating element in K.h
+			if(Uppercase(K::SYM[peAN]) == Uppercase(pe)) break;
+		if(peAN >= K::NUM_ELEMENTS)
+		{
+			cerr << "Passivating element \"" << pe << "\" not recognized (simulation::Passivate)" << endl;
+			return;	//XXX need better error-catching
+		}
+		elementCount[elementNum] = 0;
+		elementIndex[elementNum] = peAN;
+		element[elementNum] = pe;
+		peIndex = elementNum;
+		++elementNum;
 	}
-	H = &atom[2][elementCount[2]];
+	else	//already in sim
+		peAN = elementIndex[peIndex];
+	ratio = (K::COV_RAD[peAN] + K::COV_RAD[passivated->element]) / ModDistance(r, p);
+
+	H = &atom[peIndex][elementCount[peIndex]];
 	H->ClearData();
 	H->exists=1;
 	// H->co = (((r-p)*ratio)+p);	//XXX this is wrong because the distance is not r-p!
@@ -221,12 +260,12 @@ void simulation::Passivate(atom_cls* removed, atom_cls* passivated)	//assume to 
 	H->co *= ratio;		//fit to new length
 	H->co += p;			//center around p
 	H->co.Mod();		//Modulus 1
-	H->bond[0] = passivated;
+	H->bond[0] = passivated;	//bond to passivated atom
 	//XXX should check to make sure doesnt exceed max bonds: alternatively replace old bond...
 	//bond passivated to Hydrogen
 	passivated->bond[passivated->bondNum] = H;
 	passivated->bondNum++;
-	elementCount[2]++;
+	elementCount[peIndex]++;
 	return;
 }
 bool simulation::WriteData(const string filename)
@@ -429,7 +468,7 @@ void simulation::RemoveAtom(unsigned int e, unsigned int i)
 	elementCount[e]--;
 	return;
 }
-int simulation::PassivatedPore(double radius, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, coordinate* center, string pe)	//makes a passivated hole by recursion.
 {
 	coordinate c =.5;
 	if(!center)
@@ -437,9 +476,9 @@ int simulation::PassivatedPore(double radius, coordinate* center)	//makes a pass
 	atom_cls* centerAtom = Closest(*center);			//find atom closest to the coordinates
 	if(ModDistance(centerAtom->co, *center) > radius)	//if the atom is too far away
 		return 0;
-	return PassivatedPore(radius, centerAtom, center);	//else make passivated hole about this coordinate starting with centerAtom
+	return PassivatedPore(radius, centerAtom, pe, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
-int simulation::PassivatedPore(double radius, atom_cls* subject, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, atom_cls* subject, string pe, coordinate* center)	//makes a passivated hole by recursion.
 {
 	if(!center)	//null pointer
 		center = &(subject->co);
@@ -449,9 +488,9 @@ int simulation::PassivatedPore(double radius, atom_cls* subject, coordinate* cen
 		if(subject->bond[a]->exists)	//if not already marked.
 		{
 			if(ModDistance(subject->bond[a]->co, *center) < radius)	//if bonded atom is within radius
-				count+=PassivatedPore(radius,subject->bond[a],center);
-			else 	//passivate here
-				Passivate(subject, subject->bond[a]);
+				count+=PassivatedPore(radius,subject->bond[a], pe, center);
+			else if(!pe.empty()) 	//passivate here
+				Passivate(subject, subject->bond[a], pe);
 		}
 	return count;
 }
@@ -459,40 +498,57 @@ int simulation::PassivatedPore(double radius, atom_cls* subject, coordinate* cen
 // {
 // 	return count;
 // }
-atom_cls* simulation::Closest(coordinate c, unsigned int E)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
+atom_cls* simulation::Closest(coordinate c, string e, int extant)	//extant:-1=everything, 0=non-extant, 1=extant
+{
+	unsigned int a;										//indexing
+	for(a=0; a < K::MAX_ELEMENTS; ++a)						//find elemetn in sim
+		if(Uppercase(e)==Uppercase(element[a])) break;	//if in array
+	if(a < K::MAX_ELEMENTS)								//Exists in sim
+		return Closest(c,a);
+	cerr << "The element: \"" << e << "\" does not seem to exist in the simulation. (simulation::Closest)" << endl;
+	return 0;
+}
+atom_cls* simulation::Closest(coordinate c, unsigned int E, int extant)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
 {
 	double testDist;
-	double minDist;
-	atom_cls* minP=0;	//pointer to closest atom
-	atom_cls* testP=0;	//pointer to test atom
-	unsigned int e,i;	//indexing
+	double minDist=0;		//will be set on the first iteration
+	atom_cls* minP=0;		//pointer to closest atom
+	atom_cls* testP=0;		//pointer to test atom
+	unsigned int e,i,t(0);	//indexing
 
-	if(E == (unsigned int)-1){						//no element selected
-		for(e=0; e<elementNum; e++)	//for all elements
+	if(E == (unsigned int)-1){		//no element selected
+		for(e=0; e<elementNum; ++e)	//for all elements
 		{
 			testP = Closest(c,e);
+			if(!testP) continue;	//if a null pointer was returned
 			testDist = ModDistance(testP->co, c);	// XXX will contributs slightly to the time... but how many elements does one have?
-			if(testDist < minDist || e==0)
+			if(testDist < minDist || t==0)
 			{
 				minDist = testDist;
 				minP = testP;
 			}
+			++t;
 		}
-	}else if(E>=0 && E<elementNum){	//element has been selected
-		for(i=0; i<elementCount[E]; i++)
+	}
+	else if(elementCount[E]==0)	//no elements to search 
+		cerr << "There are no \"" << element[E] << "\" atoms in the simulation (simulation::Closest)" << endl;
+	else if(E>=0 && E<elementNum){	//element has been selected
+		for(i=0; i<elementCount[E]; ++i)
 		{
 			testP = &atom[E][i];
+			if(extant!=-1)							//if we are extant-specific
+				if(testP->exists != (bool)extant)	//if not the type of extant we are looking for...
+					continue;
 			testDist = ModDistance(testP->co, c);
-			if( testDist < minDist || i==0)
+			if( testDist < minDist || t==0)
 			{
 				minDist = testDist;
 				minP = &atom[E][i];
 			}
+			++t;
 		}
-	}else{							//out of bounds
-		cerr << "element select of: " << E << "Is out of bounds\n";	//returns null pointer
-	}
-	return minP;
+	}else cerr << "element select of: " << E << "Is out of bounds (simulation::Closest)" << endl;	//out of bounds //returns null pointer
+	return minP;	//XXX no error catching!
 }
 atom_cls* simulation::Center(int E)	//default = -1
 {

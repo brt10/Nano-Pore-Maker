@@ -70,7 +70,7 @@
 				}
 				//read file
 				ifstream header;
-				string headerLine;				//a witty remix of headline
+				string headerLine;			//a witty remix of headline
 				header.open(line.c_str());	//allready checked if could be opened.
 				while(getline(header,headerLine) && scaleNum < MAX_SCALES)
 				{
@@ -122,7 +122,7 @@
 				coordFile.open(line.c_str());
 				if(coordFile.fail())
 				{
-					cerr << "Coordinate File \"" << line << "\" Does not exist!\n";
+					cerr << "Coordinate File \"" << line << "\" Does not exist! (testbench::PoreCoordinate)" << endl;
 					return "";	//XXX need error catching
 				}
 				while(getline(coordFile,coordLine) && poreNum < MAX_PORES)
@@ -158,7 +158,7 @@
 				}
 				else	//default
 				{
-					cerr << "No number of pores selected to distribute, defaults to 0\n";
+					cerr << "No number of pores selected to distribute, defaults to 0 (testbench::PoreCoordinate)" << endl;
 					poreDistribute = 0;
 				}
 			}
@@ -176,7 +176,7 @@
 		string testbench::Pore_Center(string line)
 		{
 			if(line=="") return "CENTER";	//default
-			center = line;
+			elementCenter = line;
 			//XXX add error-checking for center
 			return "";
 		}
@@ -223,7 +223,8 @@
 		string testbench::Pore_Passivation(string line)
 		{
 			if(line=="") return "PASSIVATION";	//default
-			
+			if(Uppercase(line)=="NONE") passivation = "";	//either "none" or "" (case insensitive will set no passivation)
+			else passivation = line;
 			return "";
 		}
 	//OUTPUT
@@ -248,17 +249,11 @@
 		string testbench::Output_Delimiter(string line)
 		{
 			if(line=="") return "DELIMITER";	//default
-			switch(line[0])
-			{
-				case 't':
-					delimiter += "\t";
-					break;
-				case 's':
-					delimiter += " ";
-					break;
-				default:
-					delimiter += line;
-			}
+			
+			delimiter = Uppercase(line);
+			if(delimiter == "TAB") delimiter = '\t';
+			else if(delimiter == "TAB") delimiter = ' ';
+			else delimiter = line;
 			
 			return "";
 		}
@@ -381,7 +376,12 @@ coordinate testbench::RandCoordFrom(coordinate center, double min, double max)	/
 }
 double testbench::RealRadius(coordinate center)
 {
-	return sim.ModDistance(sim.Closest(center,2)->co, center);
+	atom_cls* close = sim.Closest(center);
+	cout << "CLOSE: " << close << endl;
+	if(close)
+		return sim.ModDistance(close->co, center);
+	cerr << "There were no atoms to return the distance to! (testbench::RealRadius)" << endl;
+	return 0;
 }
 //---------------------------------------------------------------------------------------------
 //constructor
@@ -517,10 +517,11 @@ int testbench::Read(string inputName)
 int testbench::Test(void)
 {
 	//variables
-	unsigned int f,s,p;		//indexing
-	unsigned int removed;	//# atoms removed by pore
-	unsigned int lastRem;	//last # atoms removed
-	int poisson;			//takes care of cuting proper number of pores
+	unsigned int f,s,p,a;		//indexing
+	unsigned int removed;		//# atoms removed by pore
+	unsigned int lastRem;		//last # atoms removed
+	unsigned int intScale[3];	//scale as an int
+	int poisson;				//takes care of cuting proper number of pores
 
 	if(dataTag!="")			//if outputing to a datafile
 	{
@@ -540,10 +541,18 @@ int testbench::Test(void)
 			lastRem = 0;				//initialize # removed
 			for(double r=poreRadMin; r<=poreRadMax; r+=poreRadStep)	//for each pore size
 			{
-				sim << inputFilename[f];		//read in file
+				sim << inputFilename[f];	//read in file
 				sim.Standardize();			//standardize input
 				sim.Scale(fileScale[f]);	//file-specific scale
-				sim.Scale(scale[s]);		//scale
+				//Scale
+				for(a=0; a<3; ++a)
+				{
+					intScale[a] = (unsigned int)scale[s][a];
+					if(intScale[a]<1)
+						break;
+				}
+				if(a<3)	sim.Scale(scale[s]);//down
+				else sim.Scale(intScale);	//up
 				sim.Associate();			//create bonds
 				removed = 0;				//reset count
 				
@@ -553,20 +562,20 @@ int testbench::Test(void)
 				else
 					for(p=0; p<(unsigned)poisson; p++)
 					{
-						removed += sim.PassivatedPore(r, &poreDistCoord[p]);
+						removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
 						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
 					}
 
+
 				for(p=0; p<poreNum; p++)	//for each pore
 				{
-					removed += sim.PassivatedPore(r, &poreCoord[p]);	//XXX may have probs with multiple pores if any overlap!
+					removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
 					cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
 				}
-
 				
 				if(removed > lastRem)		//ifunique: output file
 				{
-					cout << removed << endl;
+					cout << "Removed " << removed << " atoms making the pores" << endl;
 					outFilename = CreateFilename();
 					sim >>(path+outFilename+extension);
 					outFileCount++;
@@ -579,7 +588,15 @@ int testbench::Test(void)
 				sim << inputFilename[f];		//read in file
 				sim.Standardize();			//standardize input
 				sim.Scale(fileScale[f]);	//file-specific scale
-				sim.Scale(scale[s]);		//scale
+				//Scale
+				for(a=0; a<3; ++a)
+				{
+					intScale[a] = (unsigned int)scale[s][a];
+					if(intScale[a]<1)
+						break;
+				}
+				if(a<3)	sim.Scale(scale[s]);//down
+				else sim.Scale(intScale);	//up
 				sim.Associate();			//create bonds
 				outFilename = CreateFilename();
 				sim >> (path+outFilename+extension);//output
@@ -726,6 +743,7 @@ void testbench::Default(void)
 	dataFilename = "DATA.tsv";
 	dataTag = "";		//default to no datafile
 	poreDistribute = 0;	//default to no added pores to reach total
+	passivation = "H";
 
 
 	unsigned int a;	//indexing

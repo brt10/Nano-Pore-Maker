@@ -10,6 +10,7 @@ using namespace std;	//for now... easier
 
 int main(int argc, char *argv[])
 {
+	cout << "TEST" << endl;
 	/*double scale[] = {.25,.5,.5};
 	simulation sim;
 	sim << "data/2H.vasp";

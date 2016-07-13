@@ -33,7 +33,7 @@ class simulation
 		bool Bond(atom_cls*, atom_cls*);//bond, Covalent Bond
 		bool Bond(atom_cls*[2]);
 		int Hole(coordinate,double);	//creates hole in atoms of radius
-		void Passivate(atom_cls*, atom_cls*);	//passivates hole
+		void Passivate(atom_cls*, atom_cls*, string="H");	//passivates hole
 		bool WriteData(const string);	//outputs current state to datafile
 		bool operator>>(const string);
 		// int UnitCell(double[3]);		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
@@ -41,13 +41,14 @@ class simulation
 		bool Scale(unsigned int[3]);
 		bool Scale(unsigned int);
 		bool Scale(double[3]);			//scales the model to a certain size, retaining structure, and bond lengths
-		bool Scale(string,string);				//scales model to values in file.
+		bool Scale(string,string);		//scales model to values in file.
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
-		int PassivatedPore(double, coordinate* center=0);	//makes a passivated hole by recursion.
-		int PassivatedPore(double, atom_cls*, coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
+		int PassivatedPore(double, coordinate* center=0, string="H");	//makes a passivated hole by recursion.
+		int PassivatedPore(double, atom_cls*, string="H", coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
-		atom_cls* Closest(coordinate c, unsigned int E=-1);	//returns the atom closest to the coordinate of given element
+		atom_cls* Closest(coordinate, string, int=1);	//closest element to the specified coordinate
+		atom_cls* Closest(coordinate, unsigned int=-1, int=1);	//returns the atom closest to the coordinate of given element
 		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
 		//data
 		double Volume(void);				//volume of lattice in cm^3
@@ -68,7 +69,8 @@ class simulation
 		string title;								//title of the file :P
 		double multiplier;							//multiplier for system... unused so far...
 		unsigned int elementCount[K::MAX_ELEMENTS];	//count of atoms for each element
-		string element[K::MAX_ELEMENTS];			//element name
+		string element[K::MAX_ELEMENTS];			//element name	//XXX removeing soon
+		unsigned int elementIndex[K::MAX_ELEMENTS];	//index of the element used in atom array in K.h
 		unsigned int elementNum;					//number of elements
 		string tag;									//unknown tag... (direct)
 		atom_cls atom[K::MAX_ELEMENTS][K::MAX_ATOMS];	//atoms in system

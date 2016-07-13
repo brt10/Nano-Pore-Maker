@@ -11,7 +11,8 @@ OBJS =	$(O)/main.o\
 		$(O)/atom.o\
 		$(O)/simulation.o\
 		$(O)/testbench.o\
-		$(O)/strops.o
+		$(O)/strops.o\
+		$(O)/K.o
 RM = rm
 MKDIR = mkdir
 #OBJS = $(SRCS:%.cpp=%.o)
@@ -55,6 +56,10 @@ $(O)/testbench.o:	$(S)/testbench.cpp\
 $(O)/strops.o:	$(S)/strops.cpp\
 				$(S)/strops.h
 	$(CXX) $(CFLAGS) $(S)/strops.cpp
+$(O)/K.o:	$(S)/K.cpp\
+			$(S)/K.h\
+			$(O)/strops.o
+	$(CXX) $(CFLAGS) $(S)/K.cpp
 
 clean:
 	$(RM) -f $(O)/* $(TARGET)
