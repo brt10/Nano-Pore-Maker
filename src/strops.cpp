@@ -45,10 +45,11 @@ string Trim(string line)
 		}
 	return line;
 }
-string I_Str(int a)
+/*//conversions	//depreciated! this already exists in the string library dummy.
+string Convert(int a)
 {
 	if(a==0)	return "0";
-	
+
 	string s;	//output
 	bool n=0;	//is negative
 	
@@ -65,4 +66,21 @@ string I_Str(int a)
 	if(n) s='-'+s;	//if was negative
 	return s;
 }
+string Convert(double a)
+{
+	string s = "";
+	return s;
+}
+int Convert(string s)
+{
+	return stoi(s);	//well this exists...
+}
+double Convert(string s)
+{
+	return stod(s);	//well this exists...
+}
+string I_Str(int a)
+{
+	return Convert<string>(a);
+}*/
 

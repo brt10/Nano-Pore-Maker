@@ -12,7 +12,13 @@ char Lowercase(char);
 string Uppercase(string);
 string Lowercase(string);
 string Trim(string);
-//conversions
-string I_Str(int);
+//conversions	//use string definitions! had to compile as c++ 11...
+/*template<typename To, typename From> To Convert(From);
+string Convert(int);
+string Convert(double);
+int Convert(string);
+double Convert(string);
+
+string I_Str(int);	//will be old news soon.. :)*/
 
 #endif

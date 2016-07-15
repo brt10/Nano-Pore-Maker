@@ -49,7 +49,7 @@ class testbench
 		string elementCenter;					//element for center
 		coordinate poreCoord[MAX_PORES];		//coordinate of pores
 		coordinate poreDistCoord[MAX_PORES];	//additional pores to bring up pore density
-		double poreDistribute;					//at least this number of pores in sample (distribute untill reached)
+		unsigned int poreDistribute;			//at least this number of pores in sample (distribute untill reached)
 		double poreRadMin;						//min radius of pore
 		double poreRadMax;						//max pore size
 		double poreRadStep;						//step size of pore radius

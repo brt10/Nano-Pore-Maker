@@ -30,6 +30,7 @@ for FRIDAY
 	# of H associated with each pore
 	variabel pore radii
 	R - proper pore radii
+	bug? radius without anything else makes it not write any files... need to redo this system anyway, (copied code)
 
 for wed
 	add default to output filename... kinda trivial :P

@@ -34,16 +34,36 @@ OUTPUT
 	extension		[(extension name)]
 #-------------------------------------
 DATA
-	tag				[O|P|E|%|N|D|R|S|I]
+	tag				[O|P|E|%<elementSymbol>%|N|D|R|S|I]
+		A
+		B
+		C
+		D	density
+		E	extension
+		F
+		G
+		H
+		I	inputfile
+		J
+		K
+		L
+		M
+		N	all numbers
 		O	outfilename
 		P	path
-		E	extension
-		%	all percentages
-		N	all numbers
-		D	density
-		R	radius
+		Q
+		r	radius	(used)
+		R	radius	(calculated)
 		S	fullscale
-		I	inputfile
+		T
+		U
+		V
+		W
+		X
+		Y
+		Z
+		%	percentage of element
+
 		#EXAMPLE:	tag	I%RO
 	filename		[(string)]
 #------------------------------------

@@ -333,7 +333,7 @@ string testbench::CreateFilename(void)
 				fn += "p";
 				break;
 			case 'N':
-				fn += I_Str(outFileCount);
+				fn += to_string(outFileCount);
 				break;
 			default:
 				cerr << "Convention \'" << convention[c] << "\' was not recognized\n"; 
@@ -377,7 +377,6 @@ coordinate testbench::RandCoordFrom(coordinate center, double min, double max)	/
 double testbench::RealRadius(coordinate center)
 {
 	atom_cls* close = sim.Closest(center);
-	cout << "CLOSE: " << close << endl;
 	if(close)
 		return sim.ModDistance(close->co, center);
 	cerr << "There were no atoms to return the distance to! (testbench::RealRadius)" << endl;
@@ -597,7 +596,7 @@ int testbench::Test(void)
 				}
 				if(a<3)	sim.Scale(scale[s]);//down
 				else sim.Scale(intScale);	//up
-				sim.Associate();			//create bonds
+				//sim.Associate();			//create bonds
 				outFilename = CreateFilename();
 				sim >> (path+outFilename+extension);//output
 				outFileCount++;				//count output
@@ -626,7 +625,7 @@ int testbench::DataHeader(void)
 	for(unsigned int a=0; a<dataTag.length(); a++)
 	{
 		if(a>0) data << '\t';
-		switch(Uppercase(dataTag[a]))
+		switch(dataTag[a])
 		{
 			case 'O':
 				data << "OutFilename";
@@ -638,13 +637,25 @@ int testbench::DataHeader(void)
 				data << "Extension";
 				break;
 			case '%':
-				data << '%';	//in case no elements are initialized... XXX ugly bug. :(
-				for(unsigned int e=0; e<sim.elementNum; e++)
+			{
+				unsigned int split = dataTag.find('%',a+1);
+				if(split == string::npos)	//if no terminal %
 				{
-					if(e>0) data << "\t%";
-					data << sim.element[e];
+					cerr << "Unable to find terminal \'%\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
 				}
+				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
+				a = split; 									//move the iterator along
+				data << '%' << sym;								//write to line
 				break;
+			}
+				// data << '%';	//in case no elements are initialized... XXX ugly bug. :(
+				// for(unsigned int e=0; e<sim.elementNum; e++)
+				// {
+				// 	if(e>0) data << "\t%";
+				// 	data << sim.element[e];
+				// }
+				// break;
 			case 'N':
 				data << '#';	//XXX fixes ugly bug
 				for(unsigned int e=0; e<sim.elementNum; e++)
@@ -656,8 +667,15 @@ int testbench::DataHeader(void)
 			case 'D':
 				data << "Density";
 				break;
-			case 'R':
-				data << "Radius";
+			case 'r':
+				data << "Radius Used";
+				break;
+			case 'R':	//radii calculated
+				for(unsigned int p=0; p<poreNum+poreDistribute; ++p)
+				{
+					if(p>0) data << '\t';
+					data << "Radius " << p;
+				}
 				break;
 			case 'S':
 				data << "FullScale_X\tFullScale_Y\tFullScale_Z";
@@ -666,7 +684,7 @@ int testbench::DataHeader(void)
 				data << "InputFilename";
 				break;
 			default:
-				cerr << "unrecognized tag: \'" << dataTag[a] << '\'' << endl;
+				cerr << "unrecognized tag: \'" << dataTag[a] << "\' (testbench::HeaderLine)" << endl;
 		}
 	}
 	data << endl;
@@ -696,29 +714,70 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 			case 'E':	//extension
 				data << extension;
 				break;
-			case '%':	//all percentages
-				for(unsigned int e=0; e<sim.elementNum; e++)
-					data << sim%e << '\t';
+			case '%':	//percentage
+			{
+				unsigned int split = dataTag.find('%',a+1);
+				if(split == string::npos)	//if no terminal %
+				{
+					cerr << "Unable to find terminal \'%\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
+				}
+				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
+				a = split; 									//move the iterator along
+				//search for element in sim
+				unsigned int e;
+				for(e=0; e<sim.elementNum; ++e)
+					if(sym == sim.element[e]) break;
+				if(e<sim.elementNum)	//found the element
+					data << sim%e;
+				else
+				{
+					cerr << "Found no \"" << sym << "\" in simulation, outputing 0 (testbench::DataLine)" << endl;
+					data << 0;
+				}
 				break;
+			}
 			case 'N':	//all numbers
 				for(unsigned int e=0; e<sim.elementNum; e++)
-					data << sim.Extant(e) << '\t';
+				{
+					if(e>0) data << '\t';
+					data << sim.Extant(e);
+				}
 				break;
 			case 'D':	//density
 				data << sim.Density();
 				break;
-			case 'R':	//radius
+			case 'r':	//radius used
 				data << r;
 				break;
+			case 'R':	//radii calculated
+			{
+				unsigned int p;
+				for(p=0; p<poreNum; ++p)
+				{
+					if(p>0) data << '\t';
+					data << RealRadius(poreCoord[p]);
+				}
+				if(p>0)	data << '\t';	//if anything was written write a tab
+				for(p=0; p<poreDistribute; ++p)
+				{
+					if(p>0) data << '\t';
+					data << RealRadius(poreDistCoord[p]);
+				}
+				break;
+			}
 			case 'S':	//fullscale
 				for(int b=0; b<3; b++)
-					data << (fileScale[f][b]*scale[s][b]) << '\t';
+				{
+					if(b>0) data << '\t';
+					data << (fileScale[f][b]*scale[s][b]);
+				}
 				break;
 			case 'I':	//inputfile
 				data << inputFilename[f];
 				break;
 			default:
-				cerr << "unrecognized tag: \'" << dataTag[a] << '\'' << endl;
+				cerr << "unrecognized tag: \'" << dataTag[a] << "\' (testbench::DataLine)" << endl;
 		}
 	}
 	data << endl;
