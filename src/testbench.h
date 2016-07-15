@@ -29,6 +29,7 @@ class testbench
 		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
 		static const unsigned int MAX_SCALES = 10;			//max # of scales to make
 		static const unsigned int MAX_PORES = 100;			//max # of pores
+		const string DELIMITERS;	//XXX dang this name is a little to close to delimiter...
 
 		unsigned int sectionNum;				//#of sections
 		unsigned int settingNum[MAX_SETTINGS];	//#of settings per section
@@ -66,7 +67,6 @@ class testbench
 		string dataFilename;		//fn of the data output file
 		string dataTag;				//string of characters that represent the data to be written to tsv
 		//CONDITIONS
-
 
 		//INPUT
 		string Input_Filename(string line = "");

@@ -25,20 +25,30 @@ BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
 
+FOR ???
+	distribute pores at runtime?
+	make distributions into their own functions! enough of this mischeif
+	increase stack size
+	impliment vectors and algorithms
+	data options:
+		no-header
+		overwrite/append
+	real radius
+	#h per pore
 
 for FRIDAY
 	# of H associated with each pore
 	variabel pore radii
-	R - proper pore radii
+x	R - proper pore radii
 	bug? radius without anything else makes it not write any files... need to redo this system anyway, (copied code)
 
 for wed
-	add default to output filename... kinda trivial :P
-	sense whitespace not tabs...
+X	add default to output filename... kinda trivial :P
+X	sense whitespace not tabs...
 	fix readData() so that it's ooutput is standard! >:(
 X	the string center needs to be renamed in testbench! perhaps elementCenter?
 	element center needs to be implimented... waiting on bonding and element recognizing!
-	alwasy have column for H% 0 is okay!
+X	alwasy have column for H% 0 is okay!
 	look over all referances to elements, and make double sure all are updated
 
 Thursday

@@ -11,7 +11,7 @@ char Lowercase(char);
 //strings
 string Uppercase(string);
 string Lowercase(string);
-string Trim(string);
+string Trim(string, string=" \a\b\t\n\v\f\r");
 //conversions	//use string definitions! had to compile as c++ 11...
 /*template<typename To, typename From> To Convert(From);
 string Convert(int);

@@ -1,11 +1,12 @@
 INPUT
 	filename	data/3C.vasp	6	6	6
-#	filename	data/2H_UNIT.vasp	3	2	2
+@	filename	data/2H_UNIT.vasp	3	2	2
 PORE
 	coordinate	.5	.5	.5
-#	coordinate	.2	.2	.3
-	coordinate	distribute	2
-	radius		3
+@	coordinate	.2	.2	.3
+@	coordinate	distribute	2
+	radius		4
+	coordinate	RandomNoOverlap 9
 	passivation	H
 OUTPUT
 	path		focus/
@@ -13,4 +14,4 @@ OUTPUT
 	filename 	pore
 DATA
 	filename	focus/data.tsv
-	tag			ID%H%%C%SRO
+	tag			ID%H%%C%#C#SRO

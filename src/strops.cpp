@@ -27,22 +27,12 @@ string Lowercase(string s)
 		s[a] = Lowercase(s[a]);
 	return s;
 }
-string Trim(string line)
+string Trim(string line, string whitespace)
 {
-	static const char whitespace[] = {'\0', ' ', '\a', '\b', '\t', '\n', '\v', '\f', '\r'};
-	static const unsigned int whiteNum = sizeof(whitespace)/sizeof(char);
-	
-	for(int a=0; a<2; ++a)	//check front and back
-		for(unsigned int b=0; b<whiteNum; ++b)	//recurse through array of possible whitespace
-		{
-			if(line.empty())	//if empty, return before breaking!
-				return line;
-			if( line[a==0 ? 0:line.length()-1] == whitespace[b])
-			{
-				line.erase(a==0 ? 0:line.length()-1,1);
-				line = Trim(line);
-			}
-		}
+	while(whitespace.find(line.front()) != string::npos && !line.empty())
+		line.erase(line.begin());
+	while(whitespace.find(line.back()) != string::npos && !line.empty())
+		line.pop_back();
 	return line;
 }
 /*//conversions	//depreciated! this already exists in the string library dummy.

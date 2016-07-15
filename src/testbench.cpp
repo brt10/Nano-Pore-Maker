@@ -11,7 +11,7 @@
 		string testbench::Input_Filename(string line)
 		{
 			if(line=="") return "FILENAME";	//default
-			unsigned int split = line.find('\t');
+			unsigned int split = line.find_first_of(DELIMITERS);
 			string scaleText;
 			string filename;
 			stringstream ss;
@@ -60,7 +60,7 @@
 		{
 			if(line=="") return "SCALE";	//default
 			
-			if(line.find('\t') == string::npos)//if no tabs	-> file of scales
+			if(line.find_first_of(DELIMITERS) == string::npos)//if no tabs	-> file of scales
 			{
 				//check for existance of file
 				if(!FileExists(line))
@@ -114,8 +114,10 @@
 			string coordLine;			//line in coordfile
 			unsigned int randCoordNum;	//number of random coords to generate
 			unsigned int mark;					//marks place in tag
-			const string randomTag = "RANDOM";
-			const string distributeTag = "DISTRIBUTE";
+			const string TAG_RANDOM = "RANDOM";
+			const string TAG_DISTRIBUTE = "DISTRIBUTE";
+			const string TAG_RANDOM_NO = "RANDOMNOOVERLAP";
+			const unsigned int RAND_ATTEMPTS = 10;	//# of attempts at finding a suitable pore placement
 
 			if(Extension(line) == "tsv")	//if arg is file
 			{
@@ -132,9 +134,9 @@
 				}
 				coordFile.close();
 			}
-			else if(Uppercase(line.substr(0,randomTag.length())) == randomTag)	//if random coord
+			else if(Uppercase(line.substr(0,TAG_RANDOM.length())) == TAG_RANDOM)			//if random coord
 			{
-				mark = line.find('\t');
+				mark = line.find_first_of(DELIMITERS);
 				if(mark != unsigned(string::npos))	//if tab found
 				{
 					line = Trim(line.substr(mark));	//cut off tag and trim
@@ -146,10 +148,10 @@
 				for(unsigned int a=0; a<randCoordNum; a++, poreNum++)
 					poreCoord[poreNum] = RandCoord();
 			}
-			else if(Uppercase(line.substr(0,distributeTag.length())) == distributeTag)	//if evenly distributed:
+			else if(Uppercase(line.substr(0,TAG_DISTRIBUTE.length())) == TAG_DISTRIBUTE)	//if evenly distributed:
 			{
 				//get number of pores desired
-				mark = line.find('\t');
+				mark = line.find_first_of(DELIMITERS);
 				if(mark != unsigned(string::npos))	//if tab found
 				{
 					line = Trim(line.substr(mark));	//cut off tag and trim
@@ -160,6 +162,32 @@
 				{
 					cerr << "No number of pores selected to distribute, defaults to 0 (testbench::PoreCoordinate)" << endl;
 					poreDistribute = 0;
+				}
+			}
+			else if(Uppercase(line.substr(0,TAG_RANDOM_NO.length())) == TAG_RANDOM_NO)		// no overlap
+			{
+				unsigned int a,p, attempt;	//indexing and counting respectively
+				mark = line.find_first_of(DELIMITERS);
+				if(mark != unsigned(string::npos))	//if tab found
+				{
+					line = Trim(line.substr(mark));	//cut off tag and trim
+					ss << line;
+					ss >> randCoordNum;	//read as number of coords
+				}
+				else	//default
+					randCoordNum = 1;
+				for(a=0; a<randCoordNum; a++, poreNum++)
+				{
+					attempt = 0;
+					do{
+						poreCoord[poreNum] = RandCoord();
+						++attempt;
+						for(p=0; p<poreNum; p++)
+							if(sim.ModDistance(poreCoord[p], poreCoord[poreNum]) < poreRadMin*2)	//XXX change later to be distributed at runtime?
+								break;
+					}
+					while( p<poreNum && attempt<RAND_ATTEMPTS);
+					if(p==poreNum) ++poreNum;	//if not too close to other pores, add as a pore
 				}
 			}
 			else	//if coordinate
@@ -382,9 +410,10 @@ double testbench::RealRadius(coordinate center)
 	cerr << "There were no atoms to return the distance to! (testbench::RealRadius)" << endl;
 	return 0;
 }
+
 //---------------------------------------------------------------------------------------------
 //constructor
-testbench::testbench(void)
+testbench::testbench(void) : DELIMITERS("\t ")
 {
 	//used to count functions
 	unsigned int i = 0;
@@ -440,7 +469,7 @@ int testbench::Read(string inputName)
 	int split;		//index of split in text
 	unsigned int sectionIndex = MAX_SECTIONS;	//index of section
 	unsigned int settingIndex = MAX_SETTINGS;	//index of setting
-	const char comment = '#';
+	const char comment = '@';
 
 	input.open(inputName.c_str());
 	if(input.fail())
@@ -452,23 +481,23 @@ int testbench::Read(string inputName)
 	while(getline(input,line,'\n'))
 	{
 		line = line.substr(0,line.find(comment));	//cut off any trailing comments
-		if(Trim(line) == "")	//empty	(check after trailing comments trimmed)
+		if(Trim(line).empty())	//empty	(check after trailing comments trimmed)
 			continue;
 		if(line[0]==comment)	//comment
 			continue;
-		if(line[0]!='\t')	//if heading text, set section
+		if(DELIMITERS.find(line[0]) == string::npos)	//if heading text, set section (no whitespace in front)
 		{
 			tag = Uppercase(Trim(line));	//cut off trailing whitespace and make uppercase
-			for(sectionIndex=0; sectionIndex < sectionNum; sectionIndex++)	//find tag
+			for(sectionIndex=0; sectionIndex < sectionNum; ++sectionIndex)	//find tag
 				if(tag == section[sectionIndex])
 					break;
 			if(sectionIndex >= sectionNum)				//if not a section
 				cerr << "\"" << tag  << "\"" << " Not recognized as a section" << endl;	//careful! there is no line-feed on the end of the lines!
 		}
-		else if(sectionIndex < sectionNum)	//line[0]=='\t' && the section is recognized
+		else if(sectionIndex < sectionNum)	//line[0]==whitespace && the section is recognized
 		{
 			line = Trim(line);						//remove tab and any leading/trailing whitespace
-			split = line.find('\t');				//find split
+			split = line.find_first_of(DELIMITERS);	//find split
 			if(split == (int)string::npos)			//if no settings, abort
 			{
 				cerr << "No settings associated with \"" << line << "\"\n";
@@ -520,6 +549,7 @@ int testbench::Test(void)
 	unsigned int removed;		//# atoms removed by pore
 	unsigned int lastRem;		//last # atoms removed
 	unsigned int intScale[3];	//scale as an int
+	unsigned int passNum;		//passivation number
 	int poisson;				//takes care of cuting proper number of pores
 
 	if(dataTag!="")			//if outputing to a datafile
@@ -561,14 +591,20 @@ int testbench::Test(void)
 				else
 					for(p=0; p<(unsigned)poisson; p++)
 					{
+						passNum = sim.Extant(passivation);
 						removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
+						passNum = sim.Extant(passivation) - passNum;
+						cout << "delta#H: " << passNum << endl;
 						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
 					}
 
 
 				for(p=0; p<poreNum; p++)	//for each pore
 				{
+					passNum = sim.Extant(passivation);
 					removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
+					passNum = sim.Extant(passivation) - passNum;
+					cout << "delta#H: " << passNum << endl;
 					cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
 				}
 				
@@ -649,21 +685,19 @@ int testbench::DataHeader(void)
 				data << '%' << sym;								//write to line
 				break;
 			}
-				// data << '%';	//in case no elements are initialized... XXX ugly bug. :(
-				// for(unsigned int e=0; e<sim.elementNum; e++)
-				// {
-				// 	if(e>0) data << "\t%";
-				// 	data << sim.element[e];
-				// }
-				// break;
-			case 'N':
-				data << '#';	//XXX fixes ugly bug
-				for(unsigned int e=0; e<sim.elementNum; e++)
+			case '#':
+			{
+				unsigned int split = dataTag.find('#',a+1);
+				if(split == string::npos)	//if no terminal %
 				{
-					if(e>0) data << "\t#";
-					data << sim.element[e];
+					cerr << "Unable to find terminal \'#\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
 				}
+				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
+				a = split; 									//move the iterator along
+				data << '#' << sym;								//write to line
 				break;
+			}
 			case 'D':
 				data << "Density";
 				break;
@@ -737,13 +771,29 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 				}
 				break;
 			}
-			case 'N':	//all numbers
-				for(unsigned int e=0; e<sim.elementNum; e++)
+			case '#':	//number
+			{
+				unsigned int split = dataTag.find('#',a+1);
+				if(split == string::npos)	//if no terminal %
 				{
-					if(e>0) data << '\t';
+					cerr << "Unable to find terminal \'#\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
+				}
+				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
+				a = split; 									//move the iterator along
+				//search for element in sim
+				unsigned int e;
+				for(e=0; e<sim.elementNum; ++e)
+					if(sym == sim.element[e]) break;
+				if(e<sim.elementNum)	//found the element
 					data << sim.Extant(e);
+				else
+				{
+					cerr << "Found no \"" << sym << "\" in simulation, outputing 0 (testbench::DataLine)" << endl;
+					data << 0;
 				}
 				break;
+			}
 			case 'D':	//density
 				data << sim.Density();
 				break;
@@ -803,6 +853,7 @@ void testbench::Default(void)
 	dataTag = "";		//default to no datafile
 	poreDistribute = 0;	//default to no added pores to reach total
 	passivation = "H";
+	outFilename = "OUT";	//default outfilename
 
 
 	unsigned int a;	//indexing

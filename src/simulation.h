@@ -53,6 +53,7 @@ class simulation
 		//data
 		double Volume(void);				//volume of lattice in cm^3
 		double Mass(void);					//mass of extant atoms
+		unsigned int Extant(string);		//#atoms of type in sim
 		unsigned int Extant(unsigned int);	//#extant atoms of element
 		unsigned int Atoms(void);			//total # of extant atoms
 		double Density(void);				//density of system g/cm^3

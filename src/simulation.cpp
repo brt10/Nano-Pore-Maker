@@ -568,8 +568,22 @@ double simulation::Mass(void)				//mass of extant atom in g	//XXX NEEDS A LOT OF
 		sum+=Extant(e)*K::MASS[e];
 	return sum;
 }
+unsigned int simulation::Extant(string e)
+{
+	unsigned int i = (unsigned int)ElementIndex(e);
+	if(i == (unsigned int)-1)	//not found
+	{
+		cerr << "Found no \"" << e << "\" in the simulation! (simulation::Extant)" << endl;
+		return 0;
+	}
+	return Extant(i);
+}
 unsigned int simulation::Extant(unsigned int e)
 {
+	if(e>=elementNum)
+	{
+		cerr << "The index of \"" << "\" is too large! (simulation::Extant)" << endl;
+	}
 	unsigned int sum=0;
 	for(unsigned int i=0; i<elementCount[e]; i++)
 		sum+=atom[e][i].exists;
