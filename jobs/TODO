@@ -25,7 +25,8 @@ BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
 
-FOR ???
+FOR TUES
+	.gitignore
 	distribute pores at runtime?
 	make distributions into their own functions! enough of this mischeif
 	increase stack size

@@ -27,7 +27,7 @@ string Lowercase(string s)
 		s[a] = Lowercase(s[a]);
 	return s;
 }
-string Trim(string line, string whitespace)
+string Trim(string line, string whitespace)	//C++11 version
 {
 	while(whitespace.find(line.front()) != string::npos && !line.empty())
 		line.erase(line.begin());
@@ -35,6 +35,14 @@ string Trim(string line, string whitespace)
 		line.pop_back();
 	return line;
 }
+/*string Trim(string line, string whitespace) //c++OLD HAT version
+{
+	while(!line.empty() && whitespace.find(line[0] != string::npos)
+		line.erase(0,1);
+	while(!line.empty() && whitespace.find(line[line.length()-1] != string::npos)
+		line.erase(line.length()-1,1);
+	return line;
+}*/
 /*//conversions	//depreciated! this already exists in the string library dummy.
 string Convert(int a)
 {

@@ -3,8 +3,9 @@ B = bin
 O = build
 TARGET = $(B)/pore
 DEBUG = -g
-CFLAGS = -std=c++0x -Wall -c $(DEBUG) -o $@
-LFLAGS = -std=c++0x -Wall $(DEBUG)
+VERSION = -std=c++11
+CFLAGS = $(VERSION) -Wall -c $(DEBUG) -o $@
+LFLAGS = $(VERSION) -Wall $(DEBUG)
 CXX = g++
 OBJS =	$(O)/main.o\
 		$(O)/coordinate.o\
