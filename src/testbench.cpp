@@ -117,7 +117,6 @@
 			const string TAG_RANDOM = "RANDOM";
 			const string TAG_DISTRIBUTE = "DISTRIBUTE";
 			const string TAG_RANDOM_NO = "RANDOMNOOVERLAP";
-			const unsigned int RAND_ATTEMPTS = 10;	//# of attempts at finding a suitable pore placement
 
 			if(Extension(line) == "tsv")	//if arg is file
 			{
@@ -157,38 +156,40 @@
 					line = Trim(line.substr(mark));	//cut off tag and trim
 					ss << line;
 					ss >> poreDistribute;	//read as number of pores to add
+					if(poreDistribute > MAX_PORES)
+					{
+						cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
+						poreDistribute = MAX_PORES;
+					}
 				}
 				else	//default
 				{
-					cerr << "No number of pores selected to distribute, defaults to 0 (testbench::PoreCoordinate)" << endl;
-					poreDistribute = 0;
+					cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
+					poreDistribute = 1;
 				}
+				DistF = &testbench::Poisson;
 			}
 			else if(Uppercase(line.substr(0,TAG_RANDOM_NO.length())) == TAG_RANDOM_NO)		// no overlap
 			{
-				unsigned int a,p, attempt;	//indexing and counting respectively
+				//get number of pores desired
 				mark = line.find_first_of(DELIMITERS);
 				if(mark != unsigned(string::npos))	//if tab found
 				{
 					line = Trim(line.substr(mark));	//cut off tag and trim
 					ss << line;
-					ss >> randCoordNum;	//read as number of coords
+					ss >> poreDistribute;	//read as number of pores to add
+					if(poreDistribute > MAX_PORES)
+					{
+						cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
+						poreDistribute = MAX_PORES;
+					}
 				}
 				else	//default
-					randCoordNum = 1;
-				for(a=0; a<randCoordNum; a++, poreNum++)
 				{
-					attempt = 0;
-					do{
-						poreCoord[poreNum] = RandCoord();
-						++attempt;
-						for(p=0; p<poreNum; p++)
-							if(sim.ModDistance(poreCoord[p], poreCoord[poreNum]) < poreRadMin*2)	//XXX change later to be distributed at runtime?
-								break;
-					}
-					while( p<poreNum && attempt<RAND_ATTEMPTS);
-					if(p==poreNum) ++poreNum;	//if not too close to other pores, add as a pore
+					cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
+					poreDistribute = 1;
 				}
+				DistF = &testbench::RandomNoOverlap;
 			}
 			else	//if coordinate
 			{
@@ -280,7 +281,7 @@
 			
 			delimiter = Uppercase(line);
 			if(delimiter == "TAB") delimiter = '\t';
-			else if(delimiter == "TAB") delimiter = ' ';
+			else if(delimiter == "SPACE") delimiter = ' ';
 			else delimiter = line;
 			
 			return "";
@@ -549,8 +550,8 @@ int testbench::Test(void)
 	unsigned int removed;		//# atoms removed by pore
 	unsigned int lastRem;		//last # atoms removed
 	unsigned int intScale[3];	//scale as an int
-	unsigned int passNum;		//passivation number
-	int poisson;				//takes care of cuting proper number of pores
+	int passNum;		//passivation number
+	unsigned int distNum;		//takes care of cuting proper number of pores
 
 	if(dataTag!="")			//if outputing to a datafile
 	{
@@ -585,20 +586,22 @@ int testbench::Test(void)
 				sim.Associate();			//create bonds
 				removed = 0;				//reset count
 				
-				poisson = PoissonDistribution(r);		//distribute pores to min number
-				cout << poisson << "pores added" << endl;
-				if(poisson == -1) cerr << "Error distributing pores!\n";
-				else
-					for(p=0; p<(unsigned)poisson; p++)
-					{
-						passNum = sim.Extant(passivation);
-						removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
-						passNum = sim.Extant(passivation) - passNum;
-						cout << "delta#H: " << passNum << endl;
-						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
-					}
-
-
+				if(DistF)	//if initialized
+				{
+					distNum = (this->*DistF)(r);		//distribute pores to min number
+					cout << distNum << "pores added" << endl;
+					if(distNum == (unsigned)-1) cerr << "Error distributing pores!\n";
+					else
+						for(p=0; p<distNum; p++)
+						{
+							passNum = sim.Extant(passivation);
+							removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
+							passNum = sim.Extant(passivation) - passNum;
+							cout << "delta#H: " << passNum << endl;
+							cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
+						}
+				}
+				
 				for(p=0; p<poreNum; p++)	//for each pore
 				{
 					passNum = sim.Extant(passivation);
@@ -734,7 +737,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 		cerr << "Failed to open datafile for writing." << endl;
 		return 1;
 	}
-	for(unsigned int a=0; a<dataTag.length(); a++)
+	for(unsigned int a=0; a<dataTag.length(); ++a)
 	{
 		if(a>0) data << '\t';
 		switch(Uppercase(dataTag[a]))
@@ -808,7 +811,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 					if(p>0) data << '\t';
 					data << RealRadius(poreCoord[p]);
 				}
-				if(p>0)	data << '\t';	//if anything was written write a tab
+				if(p>0 && poreDistribute)	data << '\t';	//if anything was written and anyhting to be write a tab
 				for(p=0; p<poreDistribute; ++p)
 				{
 					if(p>0) data << '\t';
@@ -854,6 +857,8 @@ void testbench::Default(void)
 	poreDistribute = 0;	//default to no added pores to reach total
 	passivation = "H";
 	outFilename = "OUT";	//default outfilename
+	randAttempts = 10;	//#of attempts at random matching
+	DistF = 0;			//default to null poiner
 
 
 	unsigned int a;	//indexing
@@ -871,15 +876,15 @@ void testbench::Default(void)
 	srand(time(NULL));
 	return;
 }
-//--------------------------------------------------------------------------------------
-int testbench::PoissonDistribution(double r)
+//--------------------------DISTRIBUTIONS------------------------------------------------------------
+unsigned int testbench::Poisson(double r)
 {
 	if(poreDistribute == 0)	
 		return 0;	//not to add any pores
 	//constants
 	const double FILL = M_PI/6;	//% of cube filled by a sphere
 	const double RADIUS = cbrt(sim.Volume()*1E24/(poreNum+poreDistribute)*3/4/M_PI*(FILL))*2*2/3;	//maximum radius of the distance between pores, accounting for emptyness to bring to average
-	const unsigned int MAX_ATTEMPTS = 10;	//max number of attempts at finding a suitible location for pore
+	//const unsigned int MAX_ATTEMPTS = 10;	//max number of attempts at finding a suitible location for pore
 	// int grid[MAX_PORES][MAX_PORES][MAX_PORES];		//XXX unsure how to impliment well...
 	//pointers
 	coordinate*	p[MAX_PORES*2];					//pointer to all pores
@@ -930,7 +935,7 @@ int testbench::PoissonDistribution(double r)
 	{
 		activeIndex = rand()%activePoreNum;	//select random pore
 		
-		for(a = 0; a<MAX_ATTEMPTS; a++)	//try set number of times to find fit
+		for(a = 0; a<randAttempts; a++)	//try set number of times to find fit
 		{
 			poreDistCoord[poreAdded] = RandCoordFrom(*activePore[activeIndex], RADIUS, RADIUS*2);	//make random coordinate
 			for(i=0; i<pn; i++)	//check distance to all pores
@@ -939,7 +944,7 @@ int testbench::PoissonDistribution(double r)
 			if(i==pn)	//if passed all tests, stop searching
 				break;
 		}
-		if(a==MAX_ATTEMPTS)	//unableto find any spots-> deactivate
+		if(a>=randAttempts)	//unableto find any spots-> deactivate
 		{
 			for(i=activeIndex; i < (activePoreNum-1); i++)	//remove from active array
 				activePore[i] = activePore[i+1];	//move others to fill spot
@@ -955,4 +960,35 @@ int testbench::PoissonDistribution(double r)
 		}
 	}
 	return poreAdded;
+}
+unsigned int testbench::RandomNoOverlap(double r)
+{
+	if(poreDistribute == 0)	
+		return 0;	//not to add any pores
+	unsigned int a,n,p, attempt;	//indexing and counting
+	coordinate *allPore[MAX_PORES*2];
+
+	//initialize pore pointer array
+	for(p=0; p<poreNum; ++p)
+		allPore[p] = &poreCoord[p];
+	//make new pores
+	n=0;
+	for(a=0; a<poreDistribute; ++a)
+	{
+		attempt = 0;
+		do{
+			poreDistCoord[n] = RandCoord();
+			++attempt;
+			for(p=0; p<poreNum+n; ++p)
+				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2)
+					break;
+		}
+		while( p<poreNum+n && attempt<randAttempts);
+		if(p==n)	//if not too close to other pores, add as a pore
+		{
+			allPore[poreNum+n] = &poreDistCoord[n];
+			++n;
+		}
+	}
+	return n;	//return how many pores were established
 }

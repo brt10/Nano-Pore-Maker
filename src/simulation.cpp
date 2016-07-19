@@ -82,7 +82,6 @@ bool simulation::ReadData(const string filename)
 		cerr << "Too many Elements in datafile!" << endl;
 		return 0;
 	}
-	cout << "ELEMENT NUM: " << elementNum << endl;
 	//read in atom count for each element
 	for(unsigned int a=0; a<elementNum; a++)
 		infile >> elementCount[a];

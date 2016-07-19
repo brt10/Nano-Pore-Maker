@@ -1,12 +1,13 @@
 INPUT
-	filename	data/3C.vasp	6	6	6
+	filename	data/3C.vasp	3	3	3
 @	filename	data/2H_UNIT.vasp	3	2	2
 PORE
 	coordinate	.5	.5	.5
 @	coordinate	.2	.2	.3
-@	coordinate	distribute	2
-	radius		4
-	coordinate	RandomNoOverlap 9
+@	coordinate	distribute	9
+@	radius		from 2 to 5 by .1
+	radius		3
+	coordinate	RandomNoOverlap	6
 	passivation	H
 OUTPUT
 	path		focus/

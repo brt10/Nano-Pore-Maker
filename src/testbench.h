@@ -55,6 +55,13 @@ class testbench
 		double poreRadMax;						//max pore size
 		double poreRadStep;						//step size of pore radius
 		string passivation;						//element that will passivate the pores
+		//distribution
+		typedef unsigned int (testbench::*DistributeFP)(double);
+		DistributeFP DistF;
+		unsigned int Poisson(double);	//distributes temporary coordinates untill a density is reached
+		unsigned int RandomNoOverlap(double);
+		unsigned int randAttempts;	//# of attempts at a match
+
 		//OUTPUT
 		string path;
 		string customName;
@@ -80,7 +87,6 @@ class testbench
 		string Pore_Coordinate(string line = "");
 		string Pore_Center(string line = "");
 		string Pore_Radius(string line = "");
-		//string Pore_Iterations(string line = "");
 		string Pore_Passivation(string line = "");
 		//OUTPUT
 		string Output_Path(string line = "");
@@ -110,7 +116,7 @@ class testbench
 		coordinate RandCoord(void);		//returns a random coordinate
 		coordinate RandCoordFrom(coordinate, double, double);
 		double RealRadius(coordinate);
-		int PoissonDistribution(double r);	//distributes temporary coordinates untill a density is reached
+		
 
 		//main functions
 		int Read(string);		//reads settings from file
