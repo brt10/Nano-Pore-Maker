@@ -811,10 +811,9 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 					if(p>0) data << '\t';
 					data << RealRadius(poreCoord[p]);
 				}
-				if(p>0 && poreDistribute)	data << '\t';	//if anything was written and anyhting to be write a tab
 				for(p=0; p<poreDistribute; ++p)
 				{
-					if(p>0) data << '\t';
+					if(poreNum || p>0) data << '\t';	//if anything was written or not the first, write a tab
 					data << RealRadius(poreDistCoord[p]);
 				}
 				break;
