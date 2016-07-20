@@ -1,5 +1,6 @@
 pore - Passivating Objective Radial Eliminator
 =============================================
+This code creates a nanometer hole or pore in a periodic atomic model.
 
 Quickstart
 -----------
@@ -18,7 +19,9 @@ PORE
 OUTPUT
 	filename	pore
 ```
-This makes a single pore of radius 2 Angstroms in the center of the `unitcell.vasp`, and outputs the resulting file to `pore.vasp`
+This makes a single pore of radius 2 Angstroms in the center of the file named`unitcell.vasp`, and outputs the results to a file named `pore.vasp`.  
+
+Both input and output fles use the format of VASP POSCAR files (see http://cms.mpi.univie.ac.at/vasp/vasp/POSCAR_file.html  for more info ).
 
 Makefile
 --------
@@ -33,7 +36,7 @@ make [options]
 File Syntax
 -----------
 
-**sections** are referred to as the capitalized names that are not indented.   
+**sections** are referred to as the names that are not indented.   
 Their **settings** are referanced through them and must be indented, either by spaces or tabs.
 
 Notes:
