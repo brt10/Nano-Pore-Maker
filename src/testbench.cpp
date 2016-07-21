@@ -10,7 +10,7 @@
 	//INPUT
 		string testbench::Input_Filename(string line)
 		{
-			if(line=="") return "FILENAME";	//default
+			if(line=="") return "IN.FILENAME";	//default
 			unsigned int split = line.find_first_of(DELIMITERS);
 			string scaleText;
 			string filename;
@@ -73,7 +73,7 @@
 	//PORE
 		string testbench::Pore_Coordinate(string line)
 		{
-			if(line=="") return "COORDINATE";	//default
+			if(line=="") return "CENTER";	//default
 			stringstream ss;			//for conversion between strings and numbers
 			ifstream coordFile;			//ifile obj for reading recursively
 			string coordLine;			//line in coordfile
@@ -167,13 +167,6 @@
 			}
 			return "";
 		}
-		string testbench::Pore_Center(string line)
-		{
-			if(line=="") return "CENTER";	//default
-			elementCenter = line;
-			//XXX add error-checking for center
-			return "";
-		}
 		string testbench::Pore_Radius(string line)
 		{
 			if(line=="") return "RADIUS";	//default
@@ -224,25 +217,25 @@
 	//OUTPUT
 		string testbench::Output_Path(string line)
 		{
-			if(line=="") return "PATH";	//default
+			if(line=="") return "OUT.PATH";	//default
 			path = line;
 			return "";
 		}
 		string testbench::Output_Filename(string line)
 		{
-			if(line=="") return "FILENAME";	//default
+			if(line=="") return "OUT.FILENAME";	//default
 			customName = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Convention(string line)
 		{
-			if(line=="") return "CONVENTION";	//default
+			if(line=="") return "OUT.CONVENTION";	//default
 			convention = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Delimiter(string line)
 		{
-			if(line=="") return "DELIMITER";	//default
+			if(line=="") return "OUT.DELIMITER";	//default
 			
 			delimiter = Uppercase(line);
 			if(delimiter == "TAB") delimiter = '\t';
@@ -253,20 +246,20 @@
 		}
 		string testbench::Output_Extension(string line)
 		{
-			if(line=="") return "EXTENSION";	//default
+			if(line=="") return "OUT.EXTENSION";	//default
 			extension = line;
 			return "";
 		}
 	//DATA
 		string testbench::Data_Tag(string line)
 		{
-			if(line=="") return "TAG";	//default
+			if(line=="") return "DATA.TAG";	//default
 			dataTag = line;
 			return "";
 		}
 		string testbench::Data_Filename(string line)
 		{
-			if(line=="") return "FILENAME";	//default
+			if(line=="") return "DATA.FILENAME";	//default
 			dataFilename = line;
 			return "";
 		}
@@ -381,45 +374,23 @@ double testbench::RealRadius(coordinate center)
 //constructor
 testbench::testbench(void) : DELIMITERS("\t ")
 {
-	//used to count functions
-	unsigned int i = 0;
-	unsigned int n[MAX_SECTIONS] = {0};
 	//initialize function pointers and counts
-	section[i] = "INPUT";
-		setting[i][n[i]] = &testbench::Input_Filename;		n[i]++;
-		i++;
-	section[i] = "BONDING";
-		setting[i][n[i]] = &testbench::Bonding_Tolerance;	n[i]++;
-		setting[i][n[i]] = &testbench::Bonding_Lengths;		n[i]++;
-		i++;
-	section[i] = "PORE";
-		// setting[i][n[i]] = &testbench::Pore_Number;			n[i]++;
-		setting[i][n[i]] = &testbench::Pore_Coordinate;		n[i]++;
-		setting[i][n[i]] = &testbench::Pore_Center;			n[i]++;
-		setting[i][n[i]] = &testbench::Pore_Radius;			n[i]++;
-		// setting[i][n[i]] = &testbench::Pore_Iterations;		n[i]++;
-		setting[i][n[i]] = &testbench::Pore_Passivation;	n[i]++;
-		i++;
-	section[i] = "OUTPUT";
-		setting[i][n[i]] = &testbench::Output_Path;			n[i]++;
-		setting[i][n[i]] = &testbench::Output_Filename;		n[i]++;
-		setting[i][n[i]] = &testbench::Output_Convention;	n[i]++;
-		setting[i][n[i]] = &testbench::Output_Delimiter;	n[i]++;
-		setting[i][n[i]] = &testbench::Output_Extension;	n[i]++;
-		i++;
-	section[i] = "DATA";
-		setting[i][n[i]] = &testbench::Data_Tag;			n[i]++;
-		setting[i][n[i]] = &testbench::Data_Filename;		n[i]++;
-		i++;
-	section[i] = "CONDITIONS";
-		setting[i][n[i]] = &testbench::Conditions_Density;	n[i]++;
-		setting[i][n[i]] = &testbench::Conditions_Percent;	n[i]++;
-		setting[i][n[i]] = &testbench::Conditions_Number;	n[i]++;
-		i++;
-	//initialize the numbers of functions
-	sectionNum = i;
-	for(unsigned int a=0; a<i; a++)
-		settingNum[a] = n[a];
+	setting[settingNum] = &testbench::Input_Filename;		++settingNum;
+	setting[settingNum] = &testbench::Bonding_Tolerance;	++settingNum;
+	setting[settingNum] = &testbench::Bonding_Lengths;		++settingNum;
+	setting[settingNum] = &testbench::Pore_Coordinate;		++settingNum;
+	setting[settingNum] = &testbench::Pore_Radius;			++settingNum;
+	setting[settingNum] = &testbench::Pore_Passivation;		++settingNum;
+	setting[settingNum] = &testbench::Output_Path;			++settingNum;
+	setting[settingNum] = &testbench::Output_Filename;		++settingNum;
+	setting[settingNum] = &testbench::Output_Convention;	++settingNum;
+	setting[settingNum] = &testbench::Output_Delimiter;		++settingNum;
+	setting[settingNum] = &testbench::Output_Extension;		++settingNum;
+	setting[settingNum] = &testbench::Data_Tag;				++settingNum;
+	setting[settingNum] = &testbench::Data_Filename;		++settingNum;
+	setting[settingNum] = &testbench::Conditions_Density;	++settingNum;
+	setting[settingNum] = &testbench::Conditions_Percent;	++settingNum;
+	setting[settingNum] = &testbench::Conditions_Number;	++settingNum;
 }
 //-------------------------------------------------------------------------------------------
 int testbench::Read(string inputName)
@@ -430,7 +401,6 @@ int testbench::Read(string inputName)
 	string tag;		//tag to compare
 	stringstream ss;
 	int split;		//index of split in text
-	unsigned int sectionIndex = MAX_SECTIONS;	//index of section
 	unsigned int settingIndex = MAX_SETTINGS;	//index of setting
 	const char comment = '@';
 
@@ -444,65 +414,30 @@ int testbench::Read(string inputName)
 	while(getline(input,line,'\n'))
 	{
 		line = line.substr(0,line.find(comment));	//cut off any trailing comments
-		if(Trim(line).empty())	//empty	(check after trailing comments trimmed)
-			continue;
-		if(line[0]==comment)	//comment
-			continue;
-		if(DELIMITERS.find(line[0]) == string::npos)	//if heading text, set section (no whitespace in front)
-		{
-			tag = Uppercase(Trim(line));	//cut off trailing whitespace and make uppercase
-			for(sectionIndex=0; sectionIndex < sectionNum; ++sectionIndex)	//find tag
-				if(tag == section[sectionIndex])
-					break;
-			if(sectionIndex >= sectionNum)				//if not a section
-				cerr << "\"" << tag  << "\"" << " Not recognized as a section" << endl;	//careful! there is no line-feed on the end of the lines!
-		}
-		else if(sectionIndex < sectionNum)	//line[0]==whitespace && the section is recognized
-		{
-			line = Trim(line);						//remove tab and any leading/trailing whitespace
-			split = line.find_first_of(DELIMITERS);	//find split
-			if(split == (int)string::npos)			//if no settings, abort
+		line = Trim(line);			//trim line
+		if(line.empty()) continue;	//if nothing to do
+		
+		for(settingIndex = 0; settingIndex < settingNum; ++settingIndex)	//find tag
+			tag = (this->*setting[settingIndex])("");//XXX ugh, default values for function pointers are a pain...
+			split = tag.length();
+			if(line.substr(0,tag.length()) == tag)	//search for function matches	
 			{
-				cerr << "No settings associated with \"" << line << "\"\n";
-				continue;
+				line = Trim(line.substr(split))
+				(this->*setting[settingIndex])(line);	//pass line over to be used as a setting
+				break;										//discontinue search
 			}
-			tag = line.substr(0,line.find('\t'));	//retreive tag
-			tag = Uppercase(Trim(tag));				//trim any whitespace from tag and make uppercase
-			line = line.substr(tag.length());		//cut off tag
-			line = Trim(line);						//remove any whitespace
-			if(line[0]==comment)	//comment
-				continue;
-			for(settingIndex = 0; settingIndex < settingNum[sectionIndex]; settingIndex++)	//find tag
-				if(tag == (this->*setting[sectionIndex][settingIndex])(""))	//search for function matches	//XXX ugh, default values for function pointers are a pain...
-				{
-					(this->*setting[sectionIndex][settingIndex])(line);	//pass line over to be used as a setting
-					break;										//discontinue search
-				}
-			if(settingIndex >= settingNum[sectionIndex])	//unrecognized
-			{
-				cerr << "\"" << tag << "\"" << " Not recognized as a setting under " << section[sectionIndex] << endl;
-				continue;
-			}				
-		}
+		if(settingIndex >= settingNum)	//unrecognized
+		{
+			cerr << "\"" << tag << "\"" << " Not recognized as a setting" << endl;
+			continue;
+		}				
 	}
 	if(!input.eof())
 	{
 		cerr << "there was trouble reading the entirity of: \"" << inputName << "\"\n";
 		return -1;
 	}
-
 	input.close();
-	// //output data
-	// input.open(inputName.c_str());
-	// copy.open( (path+CreateFilename()+"-settings.tsv").c_str() );
-	// while(getline(input,line))
-	// 	copy << line << '\n';
-	// copy.close();
-	// input.close();
-	//make scale models
-	//make 
-
-
 	return 0;
 }
 int testbench::Test(void)

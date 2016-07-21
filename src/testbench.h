@@ -24,14 +24,12 @@ using namespace std;	//easier for now....
 class testbench
 {
 	private:
-		static const unsigned int MAX_SECTIONS = 10;		//max # of sections
-		static const unsigned int MAX_SETTINGS = 10;		//max # of settings per section
+		static const unsigned int MAX_SETTINGS = 20;		//max # of settings per section
 		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
 		static const unsigned int MAX_PORES = 100;			//max # of pores
 		const string DELIMITERS;	//XXX dang this name is a little too close to delimiter...
 
-		unsigned int sectionNum;				//#of sections
-		unsigned int settingNum[MAX_SETTINGS];	//#of settings per section
+		unsigned int settingNum;	//#of settings per section
 		
 
 		//simulation	//XXX should we have multiple for faster data-transfer?
@@ -97,9 +95,8 @@ class testbench
 		string Conditions_Number(string line = "");
 
 		//settings
-		string section[MAX_SECTIONS];
 		typedef string (testbench::*FunctionP)(string);
-		FunctionP setting[MAX_SECTIONS][MAX_SETTINGS];
+		FunctionP setting[MAX_SETTINGS];
 
 		void Default(void);				//seta all values to default
 		//file operations

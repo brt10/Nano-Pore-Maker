@@ -1,6 +1,5 @@
-INPUT
-	filename	data/3C.vasp	7 7 7
-@	filename	data/2H_UNIT.vasp	3	2	2
+InFilename	data/3C.vasp	7 7 7
+InFilename	data/2H_UNIT.vasp	3	2	2
 PORE
 	coordinate	.5	.5	.5
 @	coordinate	.2	.2	.3

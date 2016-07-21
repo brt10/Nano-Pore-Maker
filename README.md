@@ -48,27 +48,20 @@ Notes:
 ###Comments
 `@` act as comments, and pore will ignore anything after that character.
 
-Settings by Section - ([Docopt syntax](http://docopt.org/))
+Settings - ([Docopt syntax](http://docopt.org/))
 -------------------------------------------------------
-###Input
 ```
-filename <filename> [<X Y Z>]   
-filename <file.tsv>
+in.filename <filename> [<X Y Z>]
 Options:
 	<filename>	file in POSCAR format (.vasp)
-	<file.tsv>	File containing filenames [Format for each line: (<file.tsv> | <X Y Z>)]
 	<X Y Z>		Scale file amount in direction [default: 1	1	1]
 note:
 	multiple "filename" lines may be included!
 
-```
-###Pore
-```
-coordinate <x y z>
-coordinate <file.tsv>
-coordinate random <number>
-coordinate distribute <number>
-coordinate randomNoOverlap <number>
+center <x y z>
+center random <number>
+center distribute <number>
+center randomNoOverlap <number>
 	Options:
 		<number>	Number of pores to attempt to create [Default: 1]
 		<x y z>		coordinates of the pore [Default:1]
@@ -76,26 +69,22 @@ Radius <angstroms>
 Radius from <begin> to <end> by <step>
 
 Passivation <elementSymbol>
-```
-###Output
-```
-path <dir>
+
+out.path <dir>
 	Note: can use "path" to append a prefix to filenames
-filename <filename>
-convention [options]
+out.filename <filename>
+out.convention [options]
 	Options:
 		N	number of the model
 	Default: "N"
 	Note: case-insensitive
-delimeter (space | tab | <string>)
-extension <extension>
+out.delimeter (space | tab | <string>)
+out.extension <extension>
 	Options:
 		<extension>	Extension appended to the file with a leading '.'
 	Note:	can use "extension" to place a suffix on filenames
-```
-###Data
-```
-tag [options] %<elementSymbol>% #<elementSymbol>#
+
+data.tag [options] %<elementSymbol>% #<elementSymbol>#
 	Options:
 		c,C Center of pores
 		D	Density of the model in g/cm^3
@@ -111,7 +100,7 @@ tag [options] %<elementSymbol>% #<elementSymbol>#
 		#<elementSymbol>#	The number of the element in model
 	Note: these weill be written as headers to the datafile in the order selected
 	Example: tag I%Si%RO
-filename <file.tsv>
+data.filename <file.tsv>
 ```
 
 Contribute
