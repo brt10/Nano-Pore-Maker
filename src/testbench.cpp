@@ -34,7 +34,7 @@
 				return "";	//XXX NEED TO ADD ERROR CATCHING!
 			}
 			//check if file is list of files
-			if(Extension(filename) == "tsv")	//read recursively from this file.
+			/*if(Extension(filename) == "tsv")	//read recursively from this file.
 			{
 				ifstream header;
 				string headerLine;				//a witty remix of headline
@@ -47,12 +47,12 @@
 				}
 					// inputFileNum++;	//keep track of number of files
 				header.close();	
-			}
-			else	//assume vasp format
-			{
+			}*/
+			/*else	//assume vasp format
+			{*/
 				inputFilename[inputFileNum] =  filename;
 				inputFileNum++;
-			}
+			// }
 			return "";
 		}
 	//BONDING
@@ -83,7 +83,7 @@
 			const string TAG_DISTRIBUTE = "DISTRIBUTE";
 			const string TAG_RANDOM_NO = "RANDOMNOOVERLAP";
 
-			if(Extension(line) == "tsv")	//if arg is file
+			/*if(Extension(line) == "tsv")	//if arg is file
 			{
 				coordFile.open(line.c_str());
 				if(coordFile.fail())
@@ -98,7 +98,7 @@
 				}
 				coordFile.close();
 			}
-			else if(Uppercase(line.substr(0,TAG_RANDOM.length())) == TAG_RANDOM)			//if random coord
+			else */if(Uppercase(line.substr(0,TAG_RANDOM.length())) == TAG_RANDOM)			//if random coord
 			{
 				mark = line.find_first_of(DELIMITERS);
 				if(mark != unsigned(string::npos))	//if tab found
