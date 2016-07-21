@@ -1,1 +1,125 @@
 
+pore - Passivating Objective Radial Eliminator
+
+This code creates a nanometer hole or pore in a periodic atomic model.
+
+Table of Contents:
+
+I. Introduction
+II. Build
+III. Run Files
+IV. INPUT PARAMETERS
+
+I. Introduction: The goal of this code is to create atomic models for systems that include pores or holes.  A simple example would be a hydrogenated silicon vacancy inside bulk crystalline silicon. The vacancy can be hydrogenated or not and is an example of a small pore inside a bulk material. New materials grown by various methods include numerous pores distrubuted throughout the structure.  This code allows us to model such complex situations starting from a bulk periodic atomic model.
+
+II. Build:  The code is written in c++ and can be built using the Makefile included in the distribution.
+
+make [options]
+    Options:
+        a,all       Compile the project
+        r,remake    Recompile from scratch
+        c,clean     Remove generated files (binary and object files)
+File Syntax
+
+The executable is written into the subdirectory as ./bin/pore
+
+III.  Run Files:  
+
+To run the code you simple need the executable and the input file.
+
+> pore input
+
+a. Input files
+
+The input file can have any name.
+
+
+Notes:
+
+Neither the sections or settings are case-sensitive.
+The file can be delimited by either spaces or tabs
+POSCAR format (format of .vasp files used througout)
+Comments
+
+@ act as comments, and pore will ignore anything after that character.
+
+Settings by Section - (Docopt syntax)
+
+Input
+
+filename <filename> [<X Y Z>]   
+filename <file.tsv>
+Options:
+    <filename>  file in POSCAR format (.vasp)
+    <file.tsv>  File containing filenames [Format for each line: (<file.tsv> | <X Y Z>)]
+    <X Y Z>     Scale file amount in direction [default: 1  1   1]
+note:
+    multiple "filename" lines may be included!
+
+Scaling
+
+Scale <X Y Z>
+Scale <file.tsv>
+Options:
+    <file.tsv>  File containing scales [Format for each line: (<file.tsv> | <X Y Z>)]
+    <X Y Z>     Scale file amount in direction [default: 1  1   1]
+note:
+    multiple "scale" lines may be included!
+Pore
+
+coordinate <x> <y> <z>
+Coordinate <file.tsv>
+coordinate random <number>
+coordinate distribute <number>
+coordinate randomNoOverlap <number>
+    Options:
+        <number>    Number of pores to attempt to create [Default: 1]
+Radius <angstroms>
+Radius from <begin> to <end> by <step>
+
+Passivation <elementSymbol>
+Output
+
+path <dir>
+    Note: can use "path" to append a prefix to filenames
+filename <filename>
+convention [options]
+    Options:
+        N   number of the model
+    Default: "N"
+    Note: case-insensitive
+delimeter (space | tab | <string>)
+extension <extension>
+    Options:
+        <extension> Extension appended to the file with a leading '.'
+    Note:   can use "extension" to place a suffix on filenames
+Data
+
+tag [options] %<elementSymbol>% #<elementSymbol>#
+    Options:
+        c,C Center of pores
+        D   Density of the model in g/cm^3
+        E   Extension of the file
+        I   Input filename
+        O   Output filename
+        P   Passivation number (Delta#H)
+        p   path to output file
+        R   Radius caluclated from average distance to passivation (Angstroms)
+        r   radius used for making pores (Angstroms)
+        S   The Full scale of the model (filescale*scale)
+        %<elementSymbol>%   The percent of the element in model by number
+        #<elementSymbol>#   The number of the element in model
+    Note: these weill be written as headers to the datafile in the order selected
+    Example: tag I%Si%RO
+filename <file.tsv>
+Contribute
+
+Issue Tracker: https://github.com/Pyrogue/Pore/issues
+Source Code: https://github.com/Pyrogue/Pore/
+Support
+
+If you are having issues, please let us know. We have a mailing list located at: poreproject@googlegroups.com
+
+License
+
+xxx
