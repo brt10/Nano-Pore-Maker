@@ -3,14 +3,24 @@ pore - Passivating Objective Radial Eliminator
 
 This code creates a nanometer hole or pore in a periodic atomic model.
 
+==========================================
 Table of Contents:
 
 I. Introduction
 II. Build
 III. Run Files
-IV. INPUT PARAMETERS
+    a. Executable
+    b. Periodic Atomic Model
+    c. Input
+    d. Output
+IV. Input File Parameters
+    1. in.file
+    2. center
+    3. radius
+    4. 
+===========================================
 
-I. Introduction: The goal of this code is to create atomic models for systems that include pores or holes.  A simple example would be a hydrogenated silicon vacancy inside bulk crystalline silicon. The vacancy can be hydrogenated or not and is an example of a small pore inside a bulk material. New materials grown by various methods include numerous pores distrubuted throughout the structure.  This code allows us to model such complex situations starting from a bulk periodic atomic model.
+I. Introduction: The goal of this code is to create atomic models for systems that include pores or holes.  A simple example would be a hydrogenated silicon vacancy inside bulk crystalline silicon. The vacancy is an example of a small pore inside a bulk material. New materials grown by various methods include numerous nano-pores distrubuted throughout the structure.  This code allows us to model such complex situations starting from a bulk periodic atomic model.
 
 II. Build:  The code is written in c++ and can be built using the Makefile included in the distribution.
 
@@ -19,66 +29,84 @@ make [options]
         a,all       Compile the project
         r,remake    Recompile from scratch
         c,clean     Remove generated files (binary and object files)
-File Syntax
+
 
 The executable is written into the subdirectory as ./bin/pore
 
 III.  Run Files:  
 
-To run the code you simple need the executable and the input file.
+a. Executable
+
+To run the code you need the executable, the input file and the initial periodic atomic model.   The executable pore is run with the following command:
 
 > pore input
 
-a. Input files
+b. Periodic Atomic Model
 
-The input file can have any name.
+An initial periodic atomic model is required to successfully run the pore executable.  The format for the atomic model follows the VASP POSCAR Direct coordinates format.  See VASP Manual for more details.  After executing the pore code a final periodic model will be created with the same lattice vectors but a new list of atoms due to the construction of pores.
+
+c. Input 
+
+The input file can have any name.  The file includes all the parameters which controls the generation of the ouput.
+
+d. Output
+
+The code generates an atomic model or set of atomic models in the VASP format which is named according to a convention listed in the input file.  The code can also generate a data file with details regarding the properteis of the pore model(s) generated.
 
 
-Notes:
+IV. Input Parameters
 
-Neither the sections or settings are case-sensitive.
-The file can be delimited by either spaces or tabs
-POSCAR format (format of .vasp files used througout)
-Comments
+There are numerous input parameters to control the execution of the pore code.  The parameters are organized by section.  Below we discuss each section in detail. None of the parameters are case-sensitive.  Free format is used with one parameter per line. For each line, one must list the parameter, one or more spaces or tabs, and then the value.  Most parameters have default values and so do not need to be included explicitely.  The parameters are discussed below in a specific order.  However, the parameters are read using the free format style and can be listed in any order.
 
-@ act as comments, and pore will ignore anything after that character.
 
-Settings by Section - (Docopt syntax)
+@ act as comments, and the pore executable will ignore anything after that character.
 
-Input
+@Input File parameter
 
-filename <filename> [<X Y Z>]   
-filename <file.tsv>
-Options:
-    <filename>  file in POSCAR format (.vasp)
-    <file.tsv>  File containing filenames [Format for each line: (<file.tsv> | <X Y Z>)]
-    <X Y Z>     Scale file amount in direction [default: 1  1   1]
-note:
-    multiple "filename" lines may be included!
+1. in.file: This is the parameter for the name of the initial atomic periodic model. 
 
-Scaling
+in.file <filename> [<NX NY NZ>]
 
-Scale <X Y Z>
-Scale <file.tsv>
-Options:
-    <file.tsv>  File containing scales [Format for each line: (<file.tsv> | <X Y Z>)]
-    <X Y Z>     Scale file amount in direction [default: 1  1   1]
-note:
-    multiple "scale" lines may be included!
-Pore
+<filename> can be any set of character with no spaces between characters.  (Default value: None)
+<filename> must refer to a file that is in the POSCAR Direct coordinate format.  
 
-coordinate <x> <y> <z>
-Coordinate <file.tsv>
-coordinate random <number>
-coordinate distribute <number>
-coordinate randomNoOverlap <number>
+Optional: NX, NY and NZ must be integers greater than or equal to 1.  (Default value: 1 1 1)
+
+The code uses the NX, NY and NZ integers to create a supercell of the initial input coodinate file.  The final result is a bulk input model with lattice constant lengths multiplied by the factors NX,NY and NZ with the atomic coodinates repeated as well.
+
+Examples:
+
+in.file bulkSilicon.vasp
+in.file bulkSilicon.vasp 1 1 1
+
+The above two examples produce the same result.
+
+in.file bulkSilicon.vasp 1 1     4
+in.file model_directory/bulkSiC 2 4 5
+
+The above two will create supercells of the initial models.  While the  POSCAR Direct format is required, the file name does not need to include .vasp.  The last one above looks in a subdirectory for the input file.
+
+Multiple Input Files: To create pore models for several initial coordinate files, write the various "filename" values on seperate lines. For instance, the examples above could be run at the same time if desired.
+
+
+@Pore Generation Parameters
+
+2. center:  This parameter determines where the center(s) of the pore(s) will be located.
+
+center <x> <y> <z>
+center random <number>
+center distribute <number>
+center randomNoOverlap <number>
     Options:
         <number>    Number of pores to attempt to create [Default: 1]
+
+
 Radius <angstroms>
 Radius from <begin> to <end> by <step>
 
 Passivation <elementSymbol>
-Output
+
+@Output
 
 path <dir>
     Note: can use "path" to append a prefix to filenames
@@ -93,7 +121,8 @@ extension <extension>
     Options:
         <extension> Extension appended to the file with a leading '.'
     Note:   can use "extension" to place a suffix on filenames
-Data
+
+@Data
 
 tag [options] %<elementSymbol>% #<elementSymbol>#
     Options:
