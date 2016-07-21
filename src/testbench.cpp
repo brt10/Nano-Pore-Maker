@@ -740,7 +740,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 	for(unsigned int a=0; a<dataTag.length(); ++a)
 	{
 		if(a>0) data << '\t';
-		switch(Uppercase(dataTag[a]))
+		switch(dataTag[a])
 		{
 			case 'O':	//outfilename
 				data << outFilename;
