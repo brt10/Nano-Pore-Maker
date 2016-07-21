@@ -514,6 +514,7 @@ int testbench::Test(void)
 	unsigned int intScale[3];	//scale as an int
 	int passNum;		//passivation number
 	unsigned int distNum;		//takes care of cuting proper number of pores
+	bool first;					//always output the first model
 
 	if(dataTag!="")			//if outputing to a datafile
 	{
@@ -545,7 +546,8 @@ int testbench::Test(void)
 			DataLine(f,-1);
 			++outFileCount;
 		}
-		lastRem = 0;				//initialize # removed
+		lastRem = 0;	//initialize # removed
+		first =1;		//this will be first
 		for(double r=poreRadMin; r<=poreRadMax; r+=poreRadStep)	//for each pore size
 		{
 			if(poreNum+poreDistribute == 0)	//if no pores, but radius has ben selelected
@@ -589,7 +591,7 @@ int testbench::Test(void)
 				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
 			}
 			
-			if(removed > lastRem)		//ifunique: output file
+			if(removed > lastRem || first)		//ifunique or first: output file
 			{
 				cout << "Removed " << removed << " atoms making the pores" << endl;
 				outFilename = CreateFilename();
@@ -597,6 +599,7 @@ int testbench::Test(void)
 				DataLine(f,r);					//writes data to line in file
 				outFileCount++;
 				lastRem = removed;				//remember how many were removed
+				first=0;
 			}
 		}
 	}
