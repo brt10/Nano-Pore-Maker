@@ -94,9 +94,7 @@ filename <filename>
 convention [options]
 	Options:
 		N	number of the model
-		F	Filename of input
-		S	Scale of model
-		P	Polytype/ pore
+	Default: "N"
 	Note: case-insensitive
 delimeter (space | tab | <string>)
 extension <extension>
@@ -108,6 +106,7 @@ extension <extension>
 ```
 tag [options] %<elementSymbol>% #<elementSymbol>#
 	Options:
+		c,C Center of pores
 		D	Density of the model in g/cm^3
 		E	Extension of the file
 		I	Input filename

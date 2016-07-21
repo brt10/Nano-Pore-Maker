@@ -666,6 +666,14 @@ int testbench::DataHeader(void)
 		if(a>0) data << '\t';
 		switch(dataTag[a])
 		{
+			case 'C':
+			case 'c':
+				for(unsigned int p=0; p<poreNum+poreDistribute; ++p)
+				{
+					if(p>0) data << '\t';
+					data << "Coordinate " << p;
+				}
+				break;
 			case 'O':
 				data << "OutFilename";
 				break;
@@ -742,6 +750,31 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 		if(a>0) data << '\t';
 		switch(dataTag[a])
 		{
+			case 'C':
+			case 'c':	//center of pore
+			{
+				unsigned int p;
+				unsigned int c;
+				for(p=0; p<poreNum; ++p)
+				{
+					if(p>0) data << '\t';
+					for(c=0; c<3; ++c)	//write coordinates
+					{
+						if(c>0) data << ',';
+						data << poreCoord[c];
+					}
+				}
+				for(p=0; p<poreDistribute; ++p)
+				{
+					if(poreNum || p>0) data << '\t';	//if anything was written or not the first, write a tab
+					for(c=0; c<3; ++c)	//write coordinates
+					{
+						if(c>0) data << ',';
+						data << poreDistCoord[c];
+					}
+				}
+				break;
+			}
 			case 'O':	//outfilename
 				data << outFilename;
 				break;
@@ -844,7 +877,7 @@ void testbench::Default(void)
 	poreNum = 0;		//no pores
 	path = "";
 	customName = "";
-	convention = "";	//default output defiined after filename
+	convention = "N";	//default output definned after filename
 	delimiter = "";		//no delimiter by default
 	extension = ".vasp";
 	outFileCount = 0;	//number of files outputed so far
