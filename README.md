@@ -62,25 +62,16 @@ note:
 	multiple "filename" lines may be included!
 
 ```
-###Scaling
-```
-Scale <X Y Z>
-Scale <file.tsv>
-Options:
-	<file.tsv>	File containing scales [Format for each line: (<file.tsv> | <X Y Z>)]
-	<X Y Z>		Scale file amount in direction [default: 1	1	1]
-note:
-	multiple "scale" lines may be included!
-```
 ###Pore
 ```
-coordinate <x> <y> <z>
-Coordinate <file.tsv>
+coordinate <x y z>
+coordinate <file.tsv>
 coordinate random <number>
 coordinate distribute <number>
 coordinate randomNoOverlap <number>
 	Options:
 		<number>	Number of pores to attempt to create [Default: 1]
+		<x y z>		coordinates of the pore [Default:1]
 Radius <angstroms>
 Radius from <begin> to <end> by <step>
 

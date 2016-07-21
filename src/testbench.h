@@ -27,7 +27,6 @@ class testbench
 		static const unsigned int MAX_SECTIONS = 10;		//max # of sections
 		static const unsigned int MAX_SETTINGS = 10;		//max # of settings per section
 		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
-		static const unsigned int MAX_SCALES = 10;			//max # of scales to make
 		static const unsigned int MAX_PORES = 100;			//max # of pores
 		const string DELIMITERS;	//XXX dang this name is a little too close to delimiter...
 
@@ -42,9 +41,6 @@ class testbench
 		unsigned int inputFileNum;				//#of inputfiles to read from
 		string inputFilename[MAX_FILES];		//names of datafiles
 		unsigned int fileScale[MAX_FILES][3];	//scale associated with file; default = {1,1,1}
-		//SCALING
-		unsigned int scaleNum;					//#scales to make
-		double scale[MAX_SCALES][3];		//scales to apply to each file
 		//PORE
 		unsigned int poreNum;					//#of pores to make
 		string elementCenter;					//element for center
@@ -77,8 +73,6 @@ class testbench
 
 		//INPUT
 		string Input_Filename(string line = "");
-		//SCALING
-		string Scaling_Scale(string line = "");
 		//BONDING
 		string Bonding_Tolerance(string line = "");
 		string Bonding_Lengths(string line = "");
@@ -121,7 +115,7 @@ class testbench
 		//main functions
 		int Read(string);		//reads settings from file
 		int Test(void);			//runs test with settings
-		int DataLine(unsigned int, unsigned int, double);	//outputs a line of data to file
+		int DataLine(unsigned int, double);	//outputs a line of data to file
 		int DataHeader(void);	//outputs a header to the file
 		// bool Conditions(void);	//returns true if meets conditions
 		// bool Output(void);		//output for counting files outputed..

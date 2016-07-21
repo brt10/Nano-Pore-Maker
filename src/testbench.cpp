@@ -55,41 +55,6 @@
 			}
 			return "";
 		}
-	//SCALING
-		string testbench::Scaling_Scale(string line)
-		{
-			if(line=="") return "SCALE";	//default
-			
-			if(line.find_first_of(DELIMITERS) == string::npos)//if no tabs	-> file of scales
-			{
-				//check for existance of file
-				if(!FileExists(line))
-				{
-					cerr << '\"' << line << "\" does not exist or cannot be opened as a scale file!\n";
-					return "";	//XXX NEED TO ADD ERROR CATCHING!
-				}
-				//read file
-				ifstream header;
-				string headerLine;			//a witty remix of headline
-				header.open(line.c_str());	//allready checked if could be opened.
-				while(getline(header,headerLine) && scaleNum < MAX_SCALES)
-				{
-					headerLine = Trim(headerLine);
-					Scaling_Scale(headerLine);
-				}
-				header.close();	
-			}
-			else//if tab seperation -> single addition to scale
-			{
-				stringstream ss;
-				ss << line;
-				for(unsigned int a=0; a<3; a++)
-					ss >> scale[scaleNum][a];
-				scaleNum++;
-			}
-
-			return "";
-		}
 	//BONDING
 		string testbench::Bonding_Tolerance(string line)
 		{
@@ -423,9 +388,6 @@ testbench::testbench(void) : DELIMITERS("\t ")
 	section[i] = "INPUT";
 		setting[i][n[i]] = &testbench::Input_Filename;		n[i]++;
 		i++;
-	section[i] = "SCALING";
-		setting[i][n[i]] = &testbench::Scaling_Scale;		n[i]++;
-		i++;
 	section[i] = "BONDING";
 		setting[i][n[i]] = &testbench::Bonding_Tolerance;	n[i]++;
 		setting[i][n[i]] = &testbench::Bonding_Lengths;		n[i]++;
@@ -546,7 +508,7 @@ int testbench::Read(string inputName)
 int testbench::Test(void)
 {
 	//variables
-	unsigned int f,s,p,a;		//indexing
+	unsigned int f,p,a;		//indexing
 	unsigned int removed;		//# atoms removed by pore
 	unsigned int lastRem;		//last # atoms removed
 	unsigned int intScale[3];	//scale as an int
@@ -562,86 +524,82 @@ int testbench::Test(void)
 			return 0;
 		}
 	}
-	if(scaleNum == 0)	//if no scales were set, default to identity (already filled);
-		scaleNum++;
 	//routine
+
 	for(f=0; f<inputFileNum; f++)//for each inputfile
-		for(s=0; s<scaleNum; s++)//for each scale
+	{
+		if(poreRadMax == -1) //no pores
 		{
-			lastRem = 0;				//initialize # removed
-			for(double r=poreRadMin; r<=poreRadMax; r+=poreRadStep)	//for each pore size
-			{
-				sim << inputFilename[f];	//read in file
-				sim.Standardize();			//standardize input
-				sim.Scale(fileScale[f]);	//file-specific scale
-				//Scale
+			sim << inputFilename[f];	//read in file
+			sim.Standardize();			//standardize input
+			//Scale
 				for(a=0; a<3; ++a)
 				{
-					intScale[a] = (unsigned int)scale[s][a];
+					intScale[a] = (unsigned int)fileScale[f][a];
 					if(intScale[a]<1)
 						break;
 				}
-				if(a<3)	sim.Scale(scale[s]);//down
+				if(a<3)	sim.Scale(fileScale[f]);//down
 				else sim.Scale(intScale);	//up
-				sim.Associate();			//create bonds
-				removed = 0;				//reset count
-				
-				if(DistF)	//if initialized
+			sim >> (path+CreateFilename()+extension);
+			DataLine(f,-1);
+			++outFileCount;
+		}
+		lastRem = 0;				//initialize # removed
+		for(double r=poreRadMin; r<=poreRadMax; r+=poreRadStep)	//for each pore size
+		{
+			if(poreNum+poreDistribute == 0)	//if no pores, but radius has ben selelected
+				++poreNum;
+			sim << inputFilename[f];	//read in file
+			sim.Standardize();			//standardize input
+			//Scale
+				for(a=0; a<3; ++a)
 				{
-					distNum = (this->*DistF)(r);		//distribute pores to min number
-					cout << distNum << "pores added" << endl;
-					if(distNum == (unsigned)-1) cerr << "Error distributing pores!\n";
-					else
-						for(p=0; p<distNum; p++)
-						{
-							passNum = sim.Extant(passivation);
-							removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
-							passNum = sim.Extant(passivation) - passNum;
-							cout << "delta#H: " << passNum << endl;
-							cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
-						}
+					intScale[a] = (unsigned int)fileScale[f][a];
+					if(intScale[a]<1)
+						break;
 				}
-				
-				for(p=0; p<poreNum; p++)	//for each pore
-				{
-					passNum = sim.Extant(passivation);
-					removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
-					passNum = sim.Extant(passivation) - passNum;
-					cout << "delta#H: " << passNum << endl;
-					cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
-				}
-				
-				if(removed > lastRem)		//ifunique: output file
-				{
-					cout << "Removed " << removed << " atoms making the pores" << endl;
-					outFilename = CreateFilename();
-					sim >>(path+outFilename+extension);
-					outFileCount++;
-					lastRem = removed;				//remember how many were removed
-					DataLine(f,s,r);		//writes data to line in file
-				}
+				if(a<3)	sim.Scale(fileScale[f]);//down
+				else sim.Scale(intScale);	//up
+			sim.Associate();			//create bonds
+			removed = 0;				//reset count
+			
+			if(DistF)	//if initialized
+			{
+				distNum = (this->*DistF)(r);		//distribute pores to min number
+				cout << distNum << "pores added" << endl;
+				if(distNum == (unsigned)-1) cerr << "Error distributing pores!\n";
+				else
+					for(p=0; p<distNum; p++)
+					{
+						passNum = sim.Extant(passivation);
+						removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
+						passNum = sim.Extant(passivation) - passNum;
+						cout << "delta#H: " << passNum << endl;
+						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
+					}
 			}
-			if(poreRadMax == -1)	//no pores initialized, output as normal
+			
+			for(p=0; p<poreNum; p++)	//for each pore
 			{
-				sim << inputFilename[f];		//read in file
-				sim.Standardize();			//standardize input
-				sim.Scale(fileScale[f]);	//file-specific scale
-				//Scale
-				for(a=0; a<3; ++a)
-				{
-					intScale[a] = (unsigned int)scale[s][a];
-					if(intScale[a]<1)
-						break;
-				}
-				if(a<3)	sim.Scale(scale[s]);//down
-				else sim.Scale(intScale);	//up
-				//sim.Associate();			//create bonds
+				passNum = sim.Extant(passivation);
+				removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
+				passNum = sim.Extant(passivation) - passNum;
+				cout << "delta#H: " << passNum << endl;
+				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
+			}
+			
+			if(removed > lastRem)		//ifunique: output file
+			{
+				cout << "Removed " << removed << " atoms making the pores" << endl;
 				outFilename = CreateFilename();
-				sim >> (path+outFilename+extension);//output
-				outFileCount++;				//count output
-				DataLine(f,s,-1);			//write line to datafile
+				sim >>(path+outFilename+extension);
+				DataLine(f,r);					//writes data to line in file
+				outFileCount++;
+				lastRem = removed;				//remember how many were removed
 			}
 		}
+	}
 	return 0;
 }
 int testbench::Run(string inputName)
@@ -736,7 +694,7 @@ int testbench::DataHeader(void)
 	data.close();
 	return 0;
 }
-int testbench::DataLine(unsigned int f, unsigned int s, double r)
+int testbench::DataLine(unsigned int f, double r)
 {
 	ofstream data;
 	data.open(dataFilename.c_str(),ofstream::app);
@@ -761,7 +719,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 					for(c=0; c<3; ++c)	//write coordinates
 					{
 						if(c>0) data << ',';
-						data << poreCoord[c];
+						data << poreCoord[p][c];
 					}
 				}
 				for(p=0; p<poreDistribute; ++p)
@@ -770,7 +728,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 					for(c=0; c<3; ++c)	//write coordinates
 					{
 						if(c>0) data << ',';
-						data << poreDistCoord[c];
+						data << poreDistCoord[p][c];
 					}
 				}
 				break;
@@ -855,7 +813,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 				for(int b=0; b<3; b++)
 				{
 					if(b>0) data << '\t';
-					data << (fileScale[f][b]*scale[s][b]);
+					data << fileScale[f][b];
 				}
 				break;
 			case 'I':	//inputfile
@@ -873,7 +831,7 @@ int testbench::DataLine(unsigned int f, unsigned int s, double r)
 void testbench::Default(void)
 {
 	inputFileNum = 0;	//no inputfiles... incremented as read from.
-	scaleNum = 0;		//will check for # of scales at runtime, and default to 1
+
 	poreNum = 0;		//no pores
 	path = "";
 	customName = "";
@@ -898,9 +856,6 @@ void testbench::Default(void)
 	for(a=0; a<MAX_FILES; a++)
 		for(int b=0; b<3; b++)
 			fileScale[a][b] = 1;
-	for(a=0; a<MAX_SCALES; a++)
-		for(int b=0; b<3; b++)
-			scale[a][b] = 1;
 	for(a=0; a<MAX_PORES; a++)
 		poreCoord[a]=.5;
 
