@@ -5,8 +5,8 @@ PORE
 	coordinate	.5	.5	.5
 @	coordinate	.2	.2	.3
 	coordinate	distribute	9
-	radius		from 2 to 7 by .1
-@	radius		3
+@	radius		from 2 to 7 by .1
+	radius		3
 @	coordinate	RandomNoOverlap	6
 	passivation	H
 OUTPUT
@@ -14,4 +14,4 @@ OUTPUT
 	filename 	pore
 DATA
 	filename	focus/data.tsv
-	tag			ID%H%%C%%Si%#H##C##Si#SrRO
+	tag			ID%H%%C%%Si%#H##C##Si#SrRCO
