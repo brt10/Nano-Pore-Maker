@@ -7,47 +7,32 @@ This code creates a nanometer hole or pore in a periodic atomic model.
 Table of Contents:
 
 I. Introduction
-II. Build
-III. Run Files
-    a. Executable
-    b. Inputs
-    c. Outputs
-IV. Input File Parameters
+II. Run Files
+    A. Executable
+    B. Input Files
+    C. Output Files
+III. Input File Parameters
     1. in.file
     2. center
     3. radius
     4. passivation
     5. out.file
-    6. data.file
+    6. extension
+    7. data.file
+    8. tag
 ===========================================
 
 I. Introduction: The goal of this code is to create atomic models for systems that include pores or holes.  A simple example would be a hydrogenated vacancy inside bulk crystalline silicon.  In this example, one silicon atom is removed from a bulk model and four hydrogens passivate the silicon dangling bonds. The vacancy is an example of a small pore inside a bulk material. New materials grown by various methods include numerous nano-pores distrubuted throughout the structure.  This code allows us to model such complex situations starting from a bulk periodic atomic model.
 
-II. Build:  The code is written in c++ and can be built using the Makefile included in the distribution.
 
-make [options]
-    Options:
-        a,all       Compile the project
-        r,remake    Recompile from scratch
-        c,clean     Remove generated files (binary and object files)
+II.  Run Files:  
+
+A. Executable
+
+To run the code, you need the executable, the input file and the initial periodic atomic model.   The executable "pore" is run with a script file included in the code distribution.  The script makes the executable if needed & then runs it.  The script may be edited to suite your needs.  Commonly, you may wish to rename in the file which includes the input parameters.  
 
 
-The executable is written into the subdirectory: ./bin/pore
-
-III.  Run Files:  
-
-a. Executable
-
-To run the code, you need the executable, the input file and the initial periodic atomic model.   The executable "pore" is run with the following command:
-
-Examples:
-
-> pore control.file
-> ../pore infiles/control.file
-
-The control.file can be linked as indicated in the example and is discussed below.
-
-b. Inputs
+B. Input files
 
 Two input files are needed to run the pore executable successfully (i) a periodic atomic model and (ii) a parameter input control file.
 
@@ -59,19 +44,19 @@ ii. parameter input control file
 
 The input file with the control parameters can have any name.  The file includes all the parameters which controls the execution fo the code and the generation of the ouput.
 
-d. Output
+C. Output Files
 
-The code generates an atomic model or set of atomic models in the VASP format. These files are named according to a convention as determined by the input control.file.  The code can also generate a tab seperated data file with details regarding the properties of the pore model(s) generated.
+The code generates two output files.  One is an atomic model or set of atomic models in the VASP format. These files are named according to a convention as determined by the input control.file.  The code can also generate a tab seperated data file with details regarding the properties of the pore model(s) generated.
 
 
 IV. Input Parameters
 
-There are numerous input parameters to control the execution of the pore code.  The parameters are organized by section.  However, the parameters are read by the code using the free format style and can be listed in any order.  Below we discuss each section of parameters in detail. None of the parameters are case-sensitive.  Free format is used with one parameter per line. For each line, one must list the parameter, one or more spaces or tabs, and then the value.  Most parameters have default values and so do not need to be included explicitely.   
+There are numerous input parameters to control the execution of the pore code.  The parameters are organized by section.  However, the parameters are read by the code using the free format style and can be listed in any order.  Below we discuss each section of parameters in detail. None of the parameters are case-sensitive.  Free format is used with one parameter per line. For each line, one must list the parameter first, one or more spaces or tabs, and then the value.  Most parameters have default values and so do not need to be included explicitely.   
 
 
 @ act as comments, and the pore executable will ignore anything after that character.
 
-@Input File parameter
+@Input file parameter
 
 1. in.file: This is the parameter for the name of the initial atomic periodic model. 
 
@@ -178,25 +163,51 @@ The bond length between the passivator and the pore surface atom is determined b
 
 @Output
 
-path <dir>
-    Note: can use "path" to append a prefix to filenames
-out.file <filename>
-convention [options]
-    Options:
-        N   number of the model
-    Default: "N"
-    Note: case-insensitive
-delimeter (space | tab | <string>)
-extension <extension>
-    Options:
-        <extension> Extension appended to the file with a leading '.'
-    Note:   can use "extension" to place a suffix on filenames
+5. out.file:  This parameter designates the name of the output coordinate file.
+
+>out.file <filename>
+
+<filename> = any set of characters with no spaces.  (Default value: integer N = number for model generated)
+
+The coordinate name output file will have .vasp appended to it.
+
+Examples:
+
+Ex 1:
+
+> out.file 
+
+This results in a coordinate file named: 1.vasp
+
+Ex 2:
+
+>out.file ../3C
+
+This results in a coordinate file named: 3C.vasp placed in the directory above the run directory.
+
+6. extension:  This parameter allows the user to change the out.file extension from .vasp to any character string.
+
+>extension <extension>
+
+<extension> = extension appended to the file with a leading '.'
+    
 
 @Data
 
+7. data.file:  This parameter determines the name of the name of the data file generated by the executable.
+
+data.file <filename>
+
+<filename> = any set of characters without spaces (Default value: N.data where)
+
+The default integer N is the integer associated with the number of
+
+
+8. tag: This parameter controls the data written in to the data.file.
+
+
 tag [options] %<elementSymbol>% #<elementSymbol>#
     Options:
-        c,C Center of pores
         D   Density of the model in g/cm^3
         E   Extension of the file
         I   Input filename
@@ -210,15 +221,16 @@ tag [options] %<elementSymbol>% #<elementSymbol>#
         #<elementSymbol>#   The number of the element in model
     Note: these weill be written as headers to the datafile in the order selected
     Example: tag I%Si%RO
-filename <file.tsv>
-Contribute
+
+========================================================================================
+
+To contribute to this project, please follow the links below:
 
 Issue Tracker: https://github.com/Pyrogue/Pore/issues
 Source Code: https://github.com/Pyrogue/Pore/
-Support
 
-If you are having issues, please let us know. We have a mailing list located at: poreproject@googlegroups.com
+Support: If you are having issues, please let us know. We have a mailing list located at: poreproject@googlegroups.com
 
-License
+Funding:  This project is funded in part by a grant from the National Science Foundation.
 
-xxx
+License: xxx
