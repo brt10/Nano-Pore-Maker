@@ -10,14 +10,15 @@ I. Introduction
 II. Build
 III. Run Files
     a. Executable
-    b. Periodic Atomic Model
-    c. Input
-    d. Output
+    b. Inputs
+    c. Outputs
 IV. Input File Parameters
     1. in.file
     2. center
     3. radius
-    4. 
+    4. passivation
+    5. out.file
+    6. data.file
 ===========================================
 
 I. Introduction: The goal of this code is to create atomic models for systems that include pores or holes.  A simple example would be a hydrogenated vacancy inside bulk crystalline silicon.  In this example, one silicon atom is removed from a bulk model and four hydrogens passivate the silicon dangling bonds. The vacancy is an example of a small pore inside a bulk material. New materials grown by various methods include numerous nano-pores distrubuted throughout the structure.  This code allows us to model such complex situations starting from a bulk periodic atomic model.
@@ -39,19 +40,28 @@ a. Executable
 
 To run the code, you need the executable, the input file and the initial periodic atomic model.   The executable "pore" is run with the following command:
 
-> pore input
+Examples:
 
-b. Periodic Atomic Model
+> pore control.file
+> ../pore infiles/control.file
+
+The control.file can be linked as indicated in the example and is discussed below.
+
+b. Inputs
+
+Two input files are needed to run the pore executable successfully (i) a periodic atomic model and (ii) a parameter input control file.
+
+i. periodic atomic model
 
 An initial periodic atomic model is required to successfully run the pore executable.  The format for the atomic model follows the VASP POSCAR Direct coordinates format.  See VASP Manual for more details.  After executing the pore code a final periodic model will be created with the same lattice vectors but a new list of atoms due to the construction of pores within the initial structure.
 
-c. Input 
+ii. parameter input control file
 
-The input file can have any name.  The file includes all the parameters which controls the generation of the ouput.
+The input file with the control parameters can have any name.  The file includes all the parameters which controls the execution fo the code and the generation of the ouput.
 
 d. Output
 
-The code generates an atomic model or set of atomic models in the VASP format. These files are named according to a convention as determined by the input file.  The code can also generate a data file with details regarding the properties of the pore model(s) generated.
+The code generates an atomic model or set of atomic models in the VASP format. These files are named according to a convention as determined by the input control.file.  The code can also generate a tab seperated data file with details regarding the properties of the pore model(s) generated.
 
 
 IV. Input Parameters
@@ -115,11 +125,20 @@ The centers are distributed evenly through out the initial unit cell.
 
 Option 4:
 
->center randomNoOverlap <number>
+>center random.no.overlap <number>
     
 The centers are distributed randomly through out the unit cell with a test to ensure no overlapp between roughly sphrical pores.
 
 These options can be combined by listing them in the input file on seperate lines.  The code will notify you if your pores overlapp, which is often unphysical.
+
+Examples:
+
+>center 0.3 0.4 0.55
+>center distribute 4
+>center random 4
+>center random.no.overlap 3
+
+Including all four lines in one input file would result in each function being called (which may lead to problems)
 
 3. radius: This parameter determines the length of the radius for the sphere of atoms to be removed. 
 
@@ -136,16 +155,32 @@ Option 2:
 Creates a series of a single pore models with the pores having varying radii.
 
 <begin> = initial radius value 
-<end> = last radius value
-<step> = 
+<end> = final radius value
+<step> = step size for radius attempted between initial and final radii.
 
-Passivation <elementSymbol>
+The code checks the final model for each radii and only produces output for unique models.
+
+4. passivation: This parameter allows one to choose an element other than hydrogen to passivate dangling bonds at the surface of pores.
+
+>passivation <elementSymbol>
+
+<elementSymbol> = one or two character names from the periodic table. ( Default value: H )
+
+Examples:
+
+>passivation H
+>passivation F
+>passivation He
+
+The first is the same as the default value of hydrogen, the second line invokes florine and the third line inserts helium (although being a noble gas this may not be sensible).
+
+The bond length between the passivator and the pore surface atom is determined by the effective covalent radii of the two elements.
 
 @Output
 
 path <dir>
     Note: can use "path" to append a prefix to filenames
-filename <filename>
+out.file <filename>
 convention [options]
     Options:
         N   number of the model
