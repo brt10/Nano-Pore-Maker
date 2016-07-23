@@ -10,7 +10,7 @@
 	//INPUT
 		string testbench::Input_Filename(string line)
 		{
-			if(line=="") return "IN.FILENAME";	//default
+			if(line=="") return "IN.FILE";	//default
 			unsigned int split = line.find_first_of(DELIMITERS);
 			string scaleText;
 			string filename;
@@ -223,7 +223,7 @@
 		}
 		string testbench::Output_Filename(string line)
 		{
-			if(line=="") return "OUT.FILENAME";	//default
+			if(line=="") return "OUT.FILE";	//default
 			customName = line;	//strait up copy it over.
 			return "";
 		}
@@ -259,7 +259,7 @@
 		}
 		string testbench::Data_Filename(string line)
 		{
-			if(line=="") return "DATA.FILENAME";	//default
+			if(line=="") return "DATA.FILE";	//default
 			dataFilename = line;
 			return "";
 		}

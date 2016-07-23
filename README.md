@@ -11,10 +11,10 @@ Run:
 `$ ./bin/pore <filename>`   
 `<filename>` is a .tsv laid out simularly to the following example:
 ```
-in.filename		unitcell.vasp
+in.file		unitcell.vasp
 center			.5	.5	.5
 radius			2
-out.filename	pore
+out.file	pore
 ```
 This makes a single pore of radius 2 Angstroms in the center of the file named`unitcell.vasp`, and outputs the results to a file named `pore.vasp`.  
 
@@ -45,12 +45,12 @@ Notes:
 Settings - ([Docopt syntax](http://docopt.org/))
 -------------------------------------------------------
 ```
-in.filename <filename> [<X Y Z>]
+in.file <filename> [<X Y Z>]
 Options:
 	<filename>	file in POSCAR format (.vasp)
 	<X Y Z>		Scale file amount in direction [default: 1	1	1]
 note:
-	multiple "filename" lines may be included!
+	multiple "in.file" lines may be included!
 
 center <x y z>
 center random <number>
@@ -66,7 +66,7 @@ Passivation <elementSymbol>
 
 out.path <dir>
 	Note: can use "path" to append a prefix to filenames
-out.filename <filename>
+out.file <filename>
 out.convention [options]
 	Options:
 		N	number of the model
@@ -94,7 +94,7 @@ data.tag [options] %<elementSymbol>% #<elementSymbol>#
 		#<elementSymbol>#	The number of the element in model
 	Note: these weill be written as headers to the datafile in the order selected
 	Example: tag I%Si%RO
-data.filename <file.tsv>
+data.file <file.tsv>
 ```
 
 Contribute
