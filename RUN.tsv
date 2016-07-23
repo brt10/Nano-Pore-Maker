@@ -1,9 +1,9 @@
 In.File		data/3C.vasp	7 7 7
 center		.5	.5	.5
-@center		distribute	9
+distribute	4
 radius		3
 passivation	H
 out.path	focus/
 out.file 	pore
 data.file	focus/data.tsv
-data.tag	ID%H%%C%%Si%#H##C##Si#SrRCO
+data.tag	ID%H%rRCO

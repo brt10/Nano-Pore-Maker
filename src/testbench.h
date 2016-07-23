@@ -24,10 +24,11 @@ using namespace std;	//easier for now....
 class testbench
 {
 	private:
-		static const unsigned int MAX_SETTINGS = 20;		//max # of settings per section
+		static const unsigned int MAX_SETTINGS = 32;		//max # of settings per section
 		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
 		static const unsigned int MAX_PORES = 100;			//max # of pores
 		const string DELIMITERS;	//XXX dang this name is a little too close to delimiter...
+		const string COMMENT;
 
 		unsigned int settingNum;	//#of settings per section
 		
@@ -76,8 +77,11 @@ class testbench
 		string Bonding_Lengths(string line = "");
 		//PORE
 		// string Pore_Number(string line = "");
-		string Pore_Coordinate(string line = "");
 		string Pore_Center(string line = "");
+		//string Pore_Center(string line = "");
+		string Pore_Random(string="");
+		string Pore_Distribute(string="");
+		string Pore_RandomNoOverlap(string="");
 		string Pore_Radius(string line = "");
 		string Pore_Passivation(string line = "");
 		//OUTPUT

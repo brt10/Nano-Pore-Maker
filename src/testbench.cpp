@@ -10,7 +10,7 @@
 	//INPUT
 		string testbench::Input_Filename(string line)
 		{
-			if(line=="") return "IN.FILE";	//default
+			if(line==COMMENT) return "IN.FILE";	//default
 			unsigned int split = line.find_first_of(DELIMITERS);
 			string scaleText;
 			string filename;
@@ -58,7 +58,7 @@
 	//BONDING
 		string testbench::Bonding_Tolerance(string line)
 		{
-			if(line=="") return "TOLERANCE";	//default
+			if(line==COMMENT) return "TOLERANCE";	//default
 			stringstream ss;
 			ss << line;
 			// ss >> K::BOND_TOLERANCE;
@@ -66,110 +66,97 @@
 		}
 		string testbench::Bonding_Lengths(string line)
 		{
-			if(line=="") return "LENGTHS";	//default
+			if(line==COMMENT) return "LENGTHS";	//default
 			
 			return "";
 		}
 	//PORE
-		string testbench::Pore_Coordinate(string line)
+		string testbench::Pore_Center(string line)
 		{
-			if(line=="") return "CENTER";	//default
+			if(line==COMMENT) return "CENTER";	//default
 			stringstream ss;			//for conversion between strings and numbers
-			ifstream coordFile;			//ifile obj for reading recursively
-			string coordLine;			//line in coordfile
-			unsigned int randCoordNum;	//number of random coords to generate
-			unsigned int mark;					//marks place in tag
-			const string TAG_RANDOM = "RANDOM";
-			const string TAG_DISTRIBUTE = "DISTRIBUTE";
-			const string TAG_RANDOM_NO = "RANDOMNOOVERLAP";
 
-			/*if(Extension(line) == "tsv")	//if arg is file
+			ss << line;
+			for(int a=0; a<3; a++)
 			{
-				coordFile.open(line.c_str());
-				if(coordFile.fail())
-				{
-					cerr << "Coordinate File \"" << line << "\" Does not exist! (testbench::PoreCoordinate)" << endl;
-					return "";	//XXX need error catching
-				}
-				while(getline(coordFile,coordLine) && poreNum < MAX_PORES)
-				{
-					coordLine = Trim(coordLine);	//trim whitespace
-					Pore_Coordinate(coordLine);		//recurse
-				}
-				coordFile.close();
+				ss >> poreCoord[poreNum].ord[a];	//XXX will have to change when dynamic
 			}
-			else */if(Uppercase(line.substr(0,TAG_RANDOM.length())) == TAG_RANDOM)			//if random coord
-			{
-				mark = line.find_first_of(DELIMITERS);
-				if(mark != unsigned(string::npos))	//if tab found
-				{
-					line = Trim(line.substr(mark));	//cut off tag and trim
-					ss << line;
-					ss >> randCoordNum;	//read as number of coords
-				}
-				else	//default
-					randCoordNum = 1;
-				for(unsigned int a=0; a<randCoordNum; a++, poreNum++)
-					poreCoord[poreNum] = RandCoord();
-			}
-			else if(Uppercase(line.substr(0,TAG_DISTRIBUTE.length())) == TAG_DISTRIBUTE)	//if evenly distributed:
-			{
-				//get number of pores desired
-				mark = line.find_first_of(DELIMITERS);
-				if(mark != unsigned(string::npos))	//if tab found
-				{
-					line = Trim(line.substr(mark));	//cut off tag and trim
-					ss << line;
-					ss >> poreDistribute;	//read as number of pores to add
-					if(poreDistribute > MAX_PORES)
-					{
-						cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
-						poreDistribute = MAX_PORES;
-					}
-				}
-				else	//default
-				{
-					cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
-					poreDistribute = 1;
-				}
-				DistF = &testbench::Poisson;
-			}
-			else if(Uppercase(line.substr(0,TAG_RANDOM_NO.length())) == TAG_RANDOM_NO)		// no overlap
-			{
-				//get number of pores desired
-				mark = line.find_first_of(DELIMITERS);
-				if(mark != unsigned(string::npos))	//if tab found
-				{
-					line = Trim(line.substr(mark));	//cut off tag and trim
-					ss << line;
-					ss >> poreDistribute;	//read as number of pores to add
-					if(poreDistribute > MAX_PORES)
-					{
-						cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
-						poreDistribute = MAX_PORES;
-					}
-				}
-				else	//default
-				{
-					cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
-					poreDistribute = 1;
-				}
-				DistF = &testbench::RandomNoOverlap;
-			}
-			else	//if coordinate
+			poreNum++;	//increment # of pores
+			
+			return "";
+		}
+		string testbench::Pore_Random(string line)
+		{
+			if(line==COMMENT) return "RANDOM";	//default
+			stringstream ss;			//for conversion between strings and numbers
+			unsigned int randCoordNum;	//number of random coords to generate
+			
+			if(!line.empty())	//if tab found
 			{
 				ss << line;
-				for(int a=0; a<3; a++)
-				{
-					ss >> poreCoord[poreNum].ord[a];	//XXX will have to change when dynamic
-				}
-				poreNum++;	//increment # of pores
+				ss >> randCoordNum;	//read as number of coords
 			}
+			else	//default
+				randCoordNum = 1;
+			for(unsigned int a=0; a<randCoordNum; a++, poreNum++)
+				poreCoord[poreNum] = RandCoord();
+			
+			return "";
+		}
+		string testbench::Pore_Distribute(string line)
+		{
+			if(line==COMMENT) return "DISTRIBUTE";	//default
+			stringstream ss;			//for conversion between strings and numbers
+
+			
+			//get number of pores desired
+			if(!line.empty())	//if number
+			{
+				ss << line;
+				ss >> poreDistribute;	//read as number of pores to add
+				if(poreDistribute > MAX_PORES)
+				{
+					cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
+					poreDistribute = MAX_PORES;
+				}
+			}
+			else	//default
+			{
+				cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
+				poreDistribute = 1;
+			}
+			DistF = &testbench::Poisson;
+			
+			return "";
+		}
+		string testbench::Pore_RandomNoOverlap(string line)
+		{
+			if(line==COMMENT) return "RANDOMNOOVERLAP";	//default
+			stringstream ss;			//for conversion between strings and numbers
+			
+			//get number of pores desired
+			if(!line.empty())	//if tab found
+			{
+				ss << line;
+				ss >> poreDistribute;	//read as number of pores to add
+				if(poreDistribute > MAX_PORES)
+				{
+					cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
+					poreDistribute = MAX_PORES;
+				}
+			}
+			else	//default
+			{
+				cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
+				poreDistribute = 1;
+			}
+			DistF = &testbench::RandomNoOverlap;
+			
 			return "";
 		}
 		string testbench::Pore_Radius(string line)
 		{
-			if(line=="") return "RADIUS";	//default
+			if(line==COMMENT) return "RADIUS";	//default
 			stringstream ss;
 			const string tag = "from";	//for comparison to tag
 			// char trash;
@@ -209,7 +196,7 @@
 		}
 		string testbench::Pore_Passivation(string line)
 		{
-			if(line=="") return "PASSIVATION";	//default
+			if(line==COMMENT) return "PASSIVATION";	//default
 			if(Uppercase(line)=="NONE") passivation = "";	//either "none" or "" (case insensitive will set no passivation)
 			else passivation = line;
 			return "";
@@ -217,25 +204,25 @@
 	//OUTPUT
 		string testbench::Output_Path(string line)
 		{
-			if(line=="") return "OUT.PATH";	//default
+			if(line==COMMENT) return "OUT.PATH";	//default
 			path = line;
 			return "";
 		}
 		string testbench::Output_Filename(string line)
 		{
-			if(line=="") return "OUT.FILE";	//default
+			if(line==COMMENT) return "OUT.FILE";	//default
 			customName = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Convention(string line)
 		{
-			if(line=="") return "OUT.CONVENTION";	//default
+			if(line==COMMENT) return "OUT.CONVENTION";	//default
 			convention = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Delimiter(string line)
 		{
-			if(line=="") return "OUT.DELIMITER";	//default
+			if(line==COMMENT) return "OUT.DELIMITER";	//default
 			
 			delimiter = Uppercase(line);
 			if(delimiter == "TAB") delimiter = '\t';
@@ -246,39 +233,39 @@
 		}
 		string testbench::Output_Extension(string line)
 		{
-			if(line=="") return "OUT.EXTENSION";	//default
+			if(line==COMMENT) return "OUT.EXTENSION";	//default
 			extension = line;
 			return "";
 		}
 	//DATA
 		string testbench::Data_Tag(string line)
 		{
-			if(line=="") return "DATA.TAG";	//default
+			if(line==COMMENT) return "DATA.TAG";	//default
 			dataTag = line;
 			return "";
 		}
 		string testbench::Data_Filename(string line)
 		{
-			if(line=="") return "DATA.FILE";	//default
+			if(line==COMMENT) return "DATA.FILE";	//default
 			dataFilename = line;
 			return "";
 		}
 	//CONDITIONS
 		string testbench::Conditions_Density(string line)
 		{
-			if(line=="") return "DENSITY";	//default
+			if(line==COMMENT) return "DENSITY";	//default
 			
 			return "";
 		}
 		string testbench::Conditions_Percent(string line)
 		{
-			if(line=="") return "PERCENT";	//default
+			if(line==COMMENT) return "PERCENT";	//default
 			
 			return "";
 		}
 		string testbench::Conditions_Number(string line)
 		{
-			if(line=="") return "NUMBER";	//default
+			if(line==COMMENT) return "NUMBER";	//default
 			
 			return "";
 		}
@@ -372,25 +359,28 @@ double testbench::RealRadius(coordinate center)
 
 //---------------------------------------------------------------------------------------------
 //constructor
-testbench::testbench(void) : DELIMITERS("\t ")
+testbench::testbench(void) : DELIMITERS("\t "), COMMENT("@")
 {
-	//initialize function pointers and counts
-	setting[settingNum] = &testbench::Input_Filename;		++settingNum;
-	setting[settingNum] = &testbench::Bonding_Tolerance;	++settingNum;
-	setting[settingNum] = &testbench::Bonding_Lengths;		++settingNum;
-	setting[settingNum] = &testbench::Pore_Coordinate;		++settingNum;
-	setting[settingNum] = &testbench::Pore_Radius;			++settingNum;
-	setting[settingNum] = &testbench::Pore_Passivation;		++settingNum;
-	setting[settingNum] = &testbench::Output_Path;			++settingNum;
-	setting[settingNum] = &testbench::Output_Filename;		++settingNum;
-	setting[settingNum] = &testbench::Output_Convention;	++settingNum;
-	setting[settingNum] = &testbench::Output_Delimiter;		++settingNum;
-	setting[settingNum] = &testbench::Output_Extension;		++settingNum;
-	setting[settingNum] = &testbench::Data_Tag;				++settingNum;
-	setting[settingNum] = &testbench::Data_Filename;		++settingNum;
-	setting[settingNum] = &testbench::Conditions_Density;	++settingNum;
-	setting[settingNum] = &testbench::Conditions_Percent;	++settingNum;
-	setting[settingNum] = &testbench::Conditions_Number;	++settingNum;
+	//initialize function pointers and count
+	setting[settingNum++] = &testbench::Input_Filename;
+	setting[settingNum++] = &testbench::Bonding_Tolerance;
+	setting[settingNum++] = &testbench::Bonding_Lengths;
+	setting[settingNum++] = &testbench::Pore_Center;
+	setting[settingNum++] = &testbench::Pore_Random;
+	setting[settingNum++] = &testbench::Pore_Distribute;
+	setting[settingNum++] = &testbench::Pore_RandomNoOverlap;
+	setting[settingNum++] = &testbench::Pore_Radius;
+	setting[settingNum++] = &testbench::Pore_Passivation;
+	setting[settingNum++] = &testbench::Output_Path;
+	setting[settingNum++] = &testbench::Output_Filename;
+	setting[settingNum++] = &testbench::Output_Convention;
+	setting[settingNum++] = &testbench::Output_Delimiter;
+	setting[settingNum++] = &testbench::Output_Extension;
+	setting[settingNum++] = &testbench::Data_Tag;
+	setting[settingNum++] = &testbench::Data_Filename;
+	setting[settingNum++] = &testbench::Conditions_Density;
+	setting[settingNum++] = &testbench::Conditions_Percent;
+	setting[settingNum++] = &testbench::Conditions_Number;
 }
 //-------------------------------------------------------------------------------------------
 int testbench::Read(string inputName)
@@ -402,7 +392,6 @@ int testbench::Read(string inputName)
 	stringstream ss;
 	int split;		//index of split in text
 	unsigned int settingIndex = MAX_SETTINGS;	//index of setting
-	const char comment = '@';
 
 	input.open(inputName.c_str());
 	if(input.fail())
@@ -413,15 +402,16 @@ int testbench::Read(string inputName)
 	//read file line by line
 	while(getline(input,line,'\n'))
 	{
-		line = line.substr(0,line.find(comment));	//cut off any comments
+		line = line.substr(0,line.find(COMMENT));	//cut off any comments
 		line = Trim(line);							//trim line
 		if(line.empty()) continue;					//if nothing to do
+
+		split = line.find_first_of(DELIMITERS);		//find where the tag ends
+		tag = Uppercase(line.substr(0,split));		//get the section tag
 		
 		for(settingIndex = 0; settingIndex < settingNum; ++settingIndex)	//find tag
 		{
-			tag = (this->*setting[settingIndex])("");//XXX ugh, default values for function pointers are a pain...
-			split = tag.length();
-			if(Uppercase(line.substr(0,split)) == tag)	//search for function matches
+			if(tag == (this->*setting[settingIndex])(COMMENT))	//search for function matches //XXX ugh, default values for function pointers are a pain...
 			{
 				line = Trim(line.substr(split));		//cut off tag
 				(this->*setting[settingIndex])(line);	//pass line over to be used as a setting
@@ -430,7 +420,7 @@ int testbench::Read(string inputName)
 		}
 		if(settingIndex >= settingNum)	//unrecognized
 		{
-			cerr << "\"" << line << "\"" << " Not recognized as a setting" << endl;
+			cerr << "\"" << tag << "\"" << " Not recognized as a setting" << endl;
 			continue;
 		}				
 	}

@@ -53,12 +53,14 @@ note:
 	multiple "in.file" lines may be included!
 
 center <x y z>
-center random <number>
-center distribute <number>
-center randomNoOverlap <number>
+	Options:
+		<x y z>		coordinates of the pore [Default:1]
+random <number>
+distribute <number>
+randomNoOverlap <number>
 	Options:
 		<number>	Number of pores to attempt to create [Default: 1]
-		<x y z>		coordinates of the pore [Default:1]
+		
 Radius <angstroms>
 Radius from <begin> to <end> by <step>
 
