@@ -413,22 +413,24 @@ int testbench::Read(string inputName)
 	//read file line by line
 	while(getline(input,line,'\n'))
 	{
-		line = line.substr(0,line.find(comment));	//cut off any trailing comments
-		line = Trim(line);			//trim line
-		if(line.empty()) continue;	//if nothing to do
+		line = line.substr(0,line.find(comment));	//cut off any comments
+		line = Trim(line);							//trim line
+		if(line.empty()) continue;					//if nothing to do
 		
 		for(settingIndex = 0; settingIndex < settingNum; ++settingIndex)	//find tag
+		{
 			tag = (this->*setting[settingIndex])("");//XXX ugh, default values for function pointers are a pain...
 			split = tag.length();
-			if(line.substr(0,tag.length()) == tag)	//search for function matches	
+			if(Uppercase(line.substr(0,split)) == tag)	//search for function matches
 			{
-				line = Trim(line.substr(split))
+				line = Trim(line.substr(split));		//cut off tag
 				(this->*setting[settingIndex])(line);	//pass line over to be used as a setting
-				break;										//discontinue search
+				break;									//discontinue search
 			}
+		}
 		if(settingIndex >= settingNum)	//unrecognized
 		{
-			cerr << "\"" << tag << "\"" << " Not recognized as a setting" << endl;
+			cerr << "\"" << line << "\"" << " Not recognized as a setting" << endl;
 			continue;
 		}				
 	}
