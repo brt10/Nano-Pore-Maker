@@ -11,13 +11,10 @@ Run:
 `$ ./bin/pore <filename>`   
 `<filename>` is a .tsv laid out simularly to the following example:
 ```
-INPUT
-	filename	unitcell.vasp
-PORE
-	coordinate	.5	.5	.5
-	radius		2
-OUTPUT
-	filename	pore
+in.filename		unitcell.vasp
+center			.5	.5	.5
+radius			2
+out.filename	pore
 ```
 This makes a single pore of radius 2 Angstroms in the center of the file named`unitcell.vasp`, and outputs the results to a file named `pore.vasp`.  
 
@@ -36,11 +33,8 @@ make [options]
 File Syntax
 -----------
 
-**sections** are referred to as the names that are not indented.   
-Their **settings** are referanced through them and must be indented, either by spaces or tabs.
-
 Notes:
-* Neither the sections or settings are case-sensitive.
+* setting names are not case-sensitive.
 * The file can be delimited by either spaces or tabs
 * [POSCAR format](http://cms.mpi.univie.ac.at/vasp/guide/node59.html) (format of .vasp files used througout)
 
@@ -106,8 +100,8 @@ data.filename <file.tsv>
 Contribute
 ----------
 
-- Issue Tracker: <https://github.com/Pyrogue/Pore/issues>
-- Source Code: <https://github.com/Pyrogue/Pore/>
+- Issue Tracker: <https://github.com/brt10/Nano-Pore-Maker/issues>
+- Source Code: <https://github.com/brt10/Nano-Pore-Maker/>
 
 Support
 -------
