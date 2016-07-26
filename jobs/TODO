@@ -24,6 +24,12 @@ INSANE IDEAS:
 BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
+
+FOR TH 7/28
+
+_	Make default for settings and data files to overwrite not append
+
+
 FOR Thursday
 X	none as an option for passivation or ""
 X	setting file + pore file
