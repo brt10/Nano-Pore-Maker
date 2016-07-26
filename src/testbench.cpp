@@ -935,18 +935,16 @@ unsigned int testbench::RandomNoOverlap(double r)
 
 	for(a=0; a<poreDistribute; ++a)
 	{
-		cout << "RNO was called!!! n: " << n << endl;
 		attempt = 0;
 		do{
 			poreDistCoord[n] = RandCoord();
 			++attempt;
-			cout << "RNO was called!!! att: " << attempt << endl;
-			for(p=0; p<poreNum+n; ++p)
-				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2)
+			for(p=0; p<(poreNum+n); ++p)
+				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2)	//too close
 					break;
 		}
 		while( p<poreNum+n && attempt<randAttempts);
-		if(p==n)	//if not too close to other pores, add as a pore
+		if(p==poreNum+n)	//if not too close to other pores, add as a pore
 		{
 			allPore[poreNum+n] = &poreDistCoord[n];
 			++n;
