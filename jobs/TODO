@@ -26,10 +26,15 @@ BAD IDEAS: //or unpopular. :/
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
 FOR Thursday
 X	none as an option for passivation or ""
-	setting file + pore file
+X	setting file + pore file
 X	shorten names for datafile
 	random_No_overlap makes a mess
-	set global precision? - at least in all output files!
+		RANDOM - hangs program
+		Random_No_Overlap does nothing! >:(
+X	settings not accepting empty strings.
+X	set global precision? - at least in all output files!
+	make random into function pointer
+	revamp settings stuff... setting <filename> [options] :)
 
 FOR Tuesday
 	add radom function like distribute funcstions, and a function to read data into them... kinda reetative. :/

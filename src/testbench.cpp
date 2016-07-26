@@ -98,7 +98,7 @@
 			}
 			else	//default
 				randCoordNum = 1;
-			for(unsigned int a=0; a<randCoordNum; a++, poreNum++)
+			for(unsigned int a=0; a<randCoordNum; ++a, ++poreNum)
 				poreCoord[poreNum] = RandCoord();
 			
 			return "";
@@ -435,7 +435,8 @@ int testbench::Read(string inputName)
 		{
 			if(tag == (this->*setting[settingIndex])(COMMENT))	//search for function matches //XXX ugh, default values for function pointers are a pain...
 			{
-				line = Trim(line.substr(split));		//cut off tag
+				if(split == (int)string::npos) line = "";		//no text
+				else line = Trim(line.substr(split));		//cut off tag
 				(this->*setting[settingIndex])(line);	//pass line over to be used as a setting
 				break;									//discontinue search
 			}
@@ -462,7 +463,7 @@ int testbench::Test(void)
 	unsigned int lastRem;		//last # atoms removed
 	unsigned int intScale[3];	//scale as an int
 	int passNum;		//passivation number
-	unsigned int distNum;		//takes care of cuting proper number of pores
+	unsigned int distNum=0;		//takes care of cuting proper number of pores
 	bool first;					//always output the first model
 
 	if(DataHeader())			//if fail.
@@ -931,12 +932,15 @@ unsigned int testbench::RandomNoOverlap(double r)
 		allPore[p] = &poreCoord[p];
 	//make new pores
 	n=0;
+
 	for(a=0; a<poreDistribute; ++a)
 	{
+		cout << "RNO was called!!! n: " << n << endl;
 		attempt = 0;
 		do{
 			poreDistCoord[n] = RandCoord();
 			++attempt;
+			cout << "RNO was called!!! att: " << attempt << endl;
 			for(p=0; p<poreNum+n; ++p)
 				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2)
 					break;
@@ -1048,6 +1052,8 @@ int testbench::Setting(unsigned int distNum, double r)	//XXX put all singl setti
 		SettingLine(filename, poreCoord[p],r);
 	if(distNum != (unsigned)(-1))
 		for(p=0; p<distNum; ++p)
+		{
 			SettingLine(filename, poreDistCoord[p],r);
+		}
 	return 0;
 }
