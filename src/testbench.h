@@ -68,35 +68,43 @@ class testbench
 		//DATA
 		string dataFilename;		//fn of the data output file
 		string dataTag;				//string of characters that represent the data to be written to tsv
+		//SETTING
+		string settingFilename;	//the name of the settings file (suffixed to outfilename)
+		string settingTag;		//string of charcters that represent settings to be written to an output-specific file
+		string settingPath;		//path to location of setting file
 		//CONDITIONS
 
 		//INPUT
-		string Input_Filename(string line = "");
+		string Input_Filename(string);
 		//BONDING
-		string Bonding_Tolerance(string line = "");
-		string Bonding_Lengths(string line = "");
+		string Bonding_Tolerance(string);
+		string Bonding_Lengths(string);
 		//PORE
 		// string Pore_Number(string line = "");
-		string Pore_Center(string line = "");
+		string Pore_Center(string line);
 		//string Pore_Center(string line = "");
-		string Pore_Random(string="");
-		string Pore_Distribute(string="");
-		string Pore_RandomNoOverlap(string="");
-		string Pore_Radius(string line = "");
-		string Pore_Passivation(string line = "");
+		string Pore_Random(string);
+		string Pore_Distribute(string);
+		string Pore_RandomNoOverlap(string);
+		string Pore_Radius(string);
+		string Pore_Passivation(string);
 		//OUTPUT
-		string Output_Path(string line = "");
-		string Output_Filename(string line = "");
-		string Output_Convention(string line = "");
-		string Output_Delimiter(string line = "");
-		string Output_Extension(string line = "");
+		string Output_Path(string);
+		string Output_Filename(string);
+		string Output_Convention(string);
+		string Output_Delimiter(string);
+		string Output_Extension(string);
 		//DATA
-		string Data_Tag(string line = "");
-		string Data_Filename(string line = "");
+		string Data_Tag(string);
+		string Data_Filename(string);
+		//SETTING
+		string Setting_Tag(string);
+		string Setting_Filename(string);
+		string Setting_Path(string);
 		//CONDITIONS
-		string Conditions_Density(string line = "");
-		string Conditions_Percent(string line = "");
-		string Conditions_Number(string line = "");
+		string Conditions_Density(string);
+		string Conditions_Percent(string);
+		string Conditions_Number(string);
 
 		//settings
 		typedef string (testbench::*FunctionP)(string);
@@ -116,8 +124,14 @@ class testbench
 		//main functions
 		int Read(string);		//reads settings from file
 		int Test(void);			//runs test with settings
+		//datafile
 		int DataLine(unsigned int, double);	//outputs a line of data to file
-		int DataHeader(void);	//outputs a header to the file
+		int DataHeader(void);				//outputs a header to the file
+		//porefile
+		int SettingLine(string, coordinate, double);	//line of the setting file
+		int SettingHeader(string);				//header to the setting file
+		int Setting(unsigned, double);
+
 		// bool Conditions(void);	//returns true if meets conditions
 		// bool Output(void);		//output for counting files outputed..
 

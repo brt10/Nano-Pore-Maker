@@ -12,14 +12,20 @@ II. Run Files
     B. Input Files
     C. Output Files
 III. Input File Parameters
-    1. in.file
-    2. center
-    3. radius
-    4. passivation
-    5. out.file
-    6. extension
-    7. data.file
-    8. tag
+    1.  in_file
+    2.  center
+    3.  random
+    4.  distribute
+    5.  random_no_overlap
+    6.  radius
+    7.  passivation
+    8.  out_file
+    9.  extension
+    10. data_file
+    11. data_tag
+    12. setting_file
+    13. setting_tag
+    14. setting_path
 ===========================================
 
 I. Introduction: The goal of this code is to create atomic models for systems that include pores or holes.  A simple example would be a hydrogenated vacancy inside bulk crystalline silicon.  In this example, one silicon atom is removed from a bulk model and four hydrogens passivate the silicon dangling bonds. The vacancy is an example of a small pore inside a bulk material. New materials grown by various methods include numerous nano-pores distrubuted throughout the structure.  This code allows us to model such complex situations starting from a bulk periodic atomic model.
@@ -203,10 +209,10 @@ data.file <filename>
 The default integer N is the integer associated with the number of
 
 
-8. tag: This parameter controls the data written in to the data.file.
+8. data_tag: This parameter controls the data written in to the data.file.
 
 
-tag [options] %<elementSymbol>% #<elementSymbol>#
+data_tag [options] %<elementSymbol>% #<elementSymbol>#
     Options:
         D   Density of the model in g/cm^3
         E   Extension of the file
@@ -222,6 +228,20 @@ tag [options] %<elementSymbol>% #<elementSymbol>#
     Note: these weill be written as headers to the datafile in the order selected
     Example: tag I%Si%RO
 
+setting_tag [options]
+    Options:
+        c,C Center of pores
+        R   radius of pore
+        P   Passivation number of pores
+    Note: these will be written as headers to the settingfile in the order selected
+
+setting_file <filename>
+    Options:
+        <filename>  added as a suffix to the filename that is output.
+        
+setting_path <path>
+    Options:
+        <path>  added as a prefix to the filename
 ========================================================================================
 
 To contribute to this project, please follow the links below:

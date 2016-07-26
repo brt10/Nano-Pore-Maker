@@ -1,0 +1,262 @@
+KEY:
+X	DONE!
+O	IMPORTANT, but not done! (will put O after they have been forgotten for a while... ;)
+
+ATOM eye (MIT)
+visualization software
+
+X	check bonding nubers
+
+IDEAS:
+	use vasp to evenly distribute pores as a particle
+		or use simple relaxation for that matter.
+	use hilbert curve/other space filling curve to evenly distibute nodes (http://arxiv.org/pdf/1406.4549.pdf)
+
+INSANE IDEAS:
+	use hilbert curve to encode coordinates with a single number...
+		would be plausible with hilbert-arithmatic
+		would control resolution of simulation easily
+		less memory, possibly more computing
+		possibly giving up fast matrix operations (depends on hilbert-maths)
+	use a backwards-hilbert curve to STORE NODES in a space-filling way
+		one dimensional array to search within bounds for nearest nodes...
+	use a wave model to distribute pores probabilisticly
+BAD IDEAS: //or unpopular. :/
+	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
+	poisson distributions... better to be random and wrong than accurate and unnarural.s
+FOR Thursday
+X	none as an option for passivation or ""
+	setting file + pore file
+X	shorten names for datafile
+	random_No_overlap makes a mess
+	set global precision? - at least in all output files!
+
+FOR Tuesday
+	add radom function like distribute funcstions, and a function to read data into them... kinda reetative. :/
+	fix incorrect matching of sections! cut after delimiter, not at the length of the tag!
+	remove error message from make header... none of an element... (extant)
+	document that needs c++11 to run... or remove c++11 code! - new branch coming soon!
+	use radius for each coordinate! default to radius set
+	pore datafile - hydrogens per coordinate, radius, coordinate
+X	remove feature to read file or coordinate lists
+	coordinate -> center
+
+	1. I think the README.md needs more detailed descriptions or we need a pore.manual file with
+	more descriptions.
+X	2. “Make a” needs “module load gcc/4.9.2” or else crash with no sensible message
+	3. Radius 4.0i -> no error just ignored i
+	4. Input // filename 3C.vasp 4 4 i -> segmentation fault no message
+X	5. Making multiple radii models or multiple input should default into the numbering the output
+	vasp files
+X	6. I think the scaling section can be removed.
+X	7. For data section, we should add a line c = center of pore removed but this is not high priority.
+X	8. When i omit coordinate the code runs fine but there is no output .vasp file and the data.output
+	file only has headers. Maybe we need zero as the default.
+	9. Coordinate .5 .5 .i5 -> no error ?
+	10. Passivation flag not recognized
+X	11. Long term issue: change input format to “free format” with out sections.
+
+FOR THURS
+	documentation
+	real radii fix - if pore was never made, do not display the radii! null pointers would be kinda ideal... could add to the class though.
+	
+
+FOR TUES
+	.gitignore
+x	distribute pores at runtime?
+	make distributions into their own functions! enough of this mischeif
+	increase stack size
+	impliment vectors and algorithms
+	data options:
+		no-header
+		overwrite/append
+x	real radius
+x	#h per pore
+	set randAttempts with a setting...
+	label all variables assiciated with a section... bonding_XXX, etc
+		look into seperate classes?
+		namespaces?
+	radius variance setting
+
+for FRIDAY
+	# of H associated with each pore
+	variabel pore radii
+x	R - proper pore radii
+	bug? radius without anything else makes it not write any files... need to redo this system anyway, (copied code)
+
+for wed
+X	add default to output filename... kinda trivial :P
+X	sense whitespace not tabs...
+	fix readData() so that it's ooutput is standard! >:(
+X	the string center needs to be renamed in testbench! perhaps elementCenter?
+	element center needs to be implimented... waiting on bonding and element recognizing!
+X	alwasy have column for H% 0 is okay!
+	look over all referances to elements, and make double sure all are updated
+
+Thursday
+X	no atms removed poreR=0 hung up?
+		-this was actually an error reading file.
+	random distribution more real-world
+		add distribution random 
+		no overlap on random or dist
+	multple sims for convergance...random helps
+	input.tsv readme style
+	make spaces work as delimiters in input.tsv
+	remove floating hydrogens?
+		(clean function that searches for any atoms unattached?)
+	make args for main bin? command line stuffs?
+	revamp how holes are made?
+	radius calcuations
+
+bugs:
+	proper form of header unknowm till execute. :( possibly write header last, or better yet:
+		SELECT SPECIFIC ELEMENT!
+		(perfect b/c need to do bondlengthfile anyway)
+
+for Friday/thurs
+	radius = the larest sphere that can fit inside the 
+		center of mass of hydrogens added (average radii)
+		(teh definition sortof used by expirements)
+	add # of pores distributed rather than density
+
+
+for monday
+	conventions...
+	random coords multiple seeds?
+		error catching on random without number!
+	1.5 to 2 A pores
+	SETTINGS:
+		conditions
+		bonding
+		random with min dist or even distribution (hilbert curve testing!)
+			may look like:	coordinate	distribute	5
+		redo simulation to have dynamic memory of atoms!
+
+
+
+for thursday (jun 23)
+	Please recreate single pore models with %H between 20 and 35 %.  As it turns out models with larger % H also have significant oxygen, which we will worry about later.
+	For the crystalline supercells, please use 3C 3x3x3 and 4x4x4 as well as 2H 4x2x2 and 5x3x3
+	
+for tuesday:
+X	coordiate centers
+X	radius
+X	custom filename
+X	runfile name
+
+	make models in range:
+		30-40% H
+		2.1-2.4 g/cm3
+X	github permissions
+X	organize the code
+	numbering system for files with output tsv with DATA and meaning of numbering system.
+	output:
+		settings used	- copy input.tsv for now...
+X	open file... poremaker INPUT.tsv
+	make directory if dne		//wow this is messy
+	README
+	default.tsv
+X	make all tags uppercase for comparison
+	make multiple pores behave with any overlap
+
+
+
+for Friday:
+O	copy simulations rather than read from files :) faster
+	have functions output what they change to teh screen.
+	FIXED:
+		integers not double in passivated hole! O.o
+		forgot to associate atoms
+
+for monday:
+X	make functions return all UPPECASE or all lowercase for easy checking (pair with UC(), LC() respectively)
+
+for thursday:
+	outout unmodified cell as 0
+	remove #5... zeolite
+	are there any Si-Si or C-C bonds? faster bonding algoyrythm...
+	Volume Relaxation
+	input defaults. on file
+
+
+
+FOR Friday(may3):
+X	make sure that scaled models movement restrictions are removed.
+X	replace tabs with spaces.
+	figure out hole and bond ratios... gathering and analyzing data
+	make  hole models from exact center
+	make filename obj and impliment
+	maybe remake atom array to pointers... dynamic allocation and better bonding
+
+FOR THURSDAY:
+	passivation working at all costs
+
+
+FOR TUESDAY:
+	make slides of progress, etc.
+	get a working simulation and output results.
+
+
+write:
+	bonding numbers and lengths (check jobs dir)
+	sim::Mass() - a rather poor start so far
+	impliment multipliers! not used right now! will come back to bite me!
+reWrite:
+	sim::ReadData()	- need better way to read int 
+dynamic allocation
+test limits of memory on lion xf
+
+XXX there will be problems with removing atoms... (pointers will no longer work!)
+	make sure associate unassocates first.
+	make sure removing atoms accounts for pointers!
+	dynamic memory? aat least replace atom[][] with *atom[][]
+		need to be able to do operations on all atoms efficiently
+		arrays are easy.
+
+rewrite bond lengths... not SUPER important... yet.
+
+
+sorted lists of atoms. faster searching
+
+recursive hole-making algorythm... would not work across boundaries... or for free (unbound atoms)
+but would be extremely efficient!
+
+
+1. make porous models using model which is 4x2x2 of the unit cell ( ~ 12.4 A x 10.6 A x 10.1 A  with 64 si and 64 c ).
+2. Make various crystalline supercells 3x2x2 , 4x2x2, 5x3x3, 6x4x4, 7x4x4, 8x4x4
+3. repeat 1 with pores on edge putting center of pore at edge.si and 64 c
+	HUH? what is edge Si?
+4. coding project start with 8x4x4 model input final density and average pore size.
+5. get onto lion xf and run code there and put models in group file
+
+
+
+WOW
+	I misplaced a negative in the coordinate file... that was a nightmare.
+
+POSTCAR
+1	<comment>
+2	<universal scaling factor>
+3	<lattice vector>
+4	<lattice vector>
+5	<lattice vector>
+6	<#atoms per species>
+7	<selective dynamics switch>
+ 8	deals with selective dynamics
+coord coord coord tag tag tag
+
+POSTCAR file format - courtesy of: http://cms.mpi.univie.ac.at/vasp/guide/node59.html
+1)	is treated as a comment line (you should write down the 'name' of the system). 
+2)	line provides a universal scaling factor ('lattice constant'), which is used to 
+	scale all lattice vectors and all atomic coordinates. (If this value is negative
+	it is interpreted as the total volume of the cell). 
+3,4,5) the three lattice vectors defining the unit cell of the system are given 
+	(first line corresponding to the first lattice vector, second to the second, and third to the third). 
+6)	supplies the number of atoms per atomic species (one number for each atomic species). 
+	The ordering must be consistent with the POTCAR and the INCAR file. 
+7)	switches to 'Selective dynamics' (only the first character is relevant and must be 'S' or 's'). 
+	This mode allows to provide extra flags for each atom signaling whether the respective coordinate(s) of this atom will be allowed to change during the ionic relaxation. This setting is useful if only certain 'shells' around a defect or 'layers' near a surface should relax. Mind: The 'Selective dynamics' input tag is optional: The seventh line supplies the switch between cartesian and direct lattice if the 'Selective dynamics' tag is omitted.
+
+POSCAR format (This is strait to the point)
+http://scent.gist.ac.kr/downloads/tutorial/2012/1/Lecture_Note_VASP_20120705.pdf
+thank you so much!

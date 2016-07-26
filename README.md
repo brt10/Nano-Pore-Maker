@@ -97,6 +97,19 @@ data_tag [options] %<elementSymbol>% #<elementSymbol>#
 	Note: these weill be written as headers to the datafile in the order selected
 	Example: tag I%Si%RO
 data_file <file.tsv>
+
+setting_tag[options]
+	Options:
+		c,C Center of pores
+		R	radius of pore
+		P	Passivation number of pores
+	Note: these will be written as headers to the settingfile in the order selected
+setting_file <filename>
+	Options:
+		<filename>	added as a suffix to the filename that is output.
+setting_path <path>
+	Options:
+		<path>	added as a prefix to the filename
 ```
 
 Contribute

@@ -250,6 +250,25 @@
 			dataFilename = line;
 			return "";
 		}
+	//SETTING
+		string testbench::Setting_Tag(string line)
+		{
+			if(line==COMMENT) return "SETTING_TAG";	//default
+			settingTag = line;
+			return "";
+		}
+		string testbench::Setting_Filename(string line)
+		{
+			if(line==COMMENT) return "SETTING_FILE";	//default
+			settingFilename = line;
+			return "";
+		}
+		string testbench::Setting_Path(string line)
+		{
+			if(line==COMMENT) return "SETTING_PATH";	//default
+			settingPath = line;
+			return "";
+		}
 	//CONDITIONS
 		string testbench::Conditions_Density(string line)
 		{
@@ -378,6 +397,9 @@ testbench::testbench(void) : DELIMITERS("\t "), COMMENT("@")
 	setting[settingNum++] = &testbench::Output_Extension;
 	setting[settingNum++] = &testbench::Data_Tag;
 	setting[settingNum++] = &testbench::Data_Filename;
+	setting[settingNum++] = &testbench::Setting_Tag;
+	setting[settingNum++] = &testbench::Setting_Filename;
+	setting[settingNum++] = &testbench::Setting_Path;
 	setting[settingNum++] = &testbench::Conditions_Density;
 	setting[settingNum++] = &testbench::Conditions_Percent;
 	setting[settingNum++] = &testbench::Conditions_Number;
@@ -443,19 +465,21 @@ int testbench::Test(void)
 	unsigned int distNum;		//takes care of cuting proper number of pores
 	bool first;					//always output the first model
 
-	if(dataTag!="")			//if outputing to a datafile
+	if(DataHeader())			//if fail.
 	{
-		sim << inputFilename[0];		//read in file
-		if(DataHeader())
-		{
-			cerr << "Error writing to the datafile: \"" << dataFilename << "\"" << endl;
-			return 0;
-		}
+		cerr << "Error writing to the datafile: \"" << dataFilename << "\"" << endl;
+		return 0;
 	}
 	//routine
 
 	for(f=0; f<inputFileNum; f++)//for each inputfile
 	{
+		// if(!poreTag.empty()) 
+		// 	if(PoreHeader())			//if fail.
+		// 	{
+		// 		cerr << "Error writing to the porefile: \"" << poreFilename << to_string(outFileCount) "\"" << endl;
+		// 		return 0;
+		// 	} 
 		if(poreRadMax == -1) //no pores
 		{
 			sim << inputFilename[f];	//read in file
@@ -492,7 +516,16 @@ int testbench::Test(void)
 				else sim.Scale(intScale);	//up
 			sim.Associate();			//create bonds
 			removed = 0;				//reset count
-			
+
+			for(p=0; p<poreNum; p++)	//for each pore
+			{
+				passNum = sim.Extant(passivation);
+				removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
+				passNum = sim.Extant(passivation) - passNum;
+				cout << "delta#H: " << passNum << endl;
+				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
+				// if(!poreTag.empty()) PoreLine(poreCoord[p],r);
+			}
 			if(DistF)	//if initialized
 			{
 				distNum = (this->*DistF)(r);		//distribute pores to min number
@@ -506,16 +539,8 @@ int testbench::Test(void)
 						passNum = sim.Extant(passivation) - passNum;
 						cout << "delta#H: " << passNum << endl;
 						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
+						// if(!poreTag.empty()) PoreLine(poreDistCoord[p]);
 					}
-			}
-			
-			for(p=0; p<poreNum; p++)	//for each pore
-			{
-				passNum = sim.Extant(passivation);
-				removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
-				passNum = sim.Extant(passivation) - passNum;
-				cout << "delta#H: " << passNum << endl;
-				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
 			}
 			
 			if(removed > lastRem || first)		//ifunique or first: output file
@@ -523,7 +548,8 @@ int testbench::Test(void)
 				cout << "Removed " << removed << " atoms making the pores" << endl;
 				outFilename = CreateFilename();
 				sim >>(path+outFilename+extension);
-				DataLine(f,r);					//writes data to line in file
+				DataLine(f,r);		//writes data to line in file
+				Setting(distNum,r);	//writes setttings to file-specific setting file
 				outFileCount++;
 				lastRem = removed;				//remember how many were removed
 				first=0;
@@ -542,6 +568,7 @@ int testbench::Run(string inputName)
 }
 int testbench::DataHeader(void)
 {
+	if(dataTag.empty()) return 0;	//nothing to write
 	ofstream data;
 	data.open(dataFilename.c_str(),ofstream::app);
 	if(data.fail())
@@ -549,6 +576,11 @@ int testbench::DataHeader(void)
 		cerr << "Failed to open datafile for writing." << endl;
 		return 1;
 	}
+
+	//set precision
+	data << fixed;
+	data << setprecision(K::PRECISION);
+
 	for(unsigned int a=0; a<dataTag.length(); a++)
 	{
 		if(a>0) data << '\t';
@@ -563,7 +595,7 @@ int testbench::DataHeader(void)
 				}
 				break;
 			case 'O':
-				data << "OutFilename";
+				data << "Out_File";
 				break;
 			case 'P':
 				data << "Path";
@@ -611,10 +643,10 @@ int testbench::DataHeader(void)
 				}
 				break;
 			case 'S':
-				data << "FullScale_X\tFullScale_Y\tFullScale_Z";
+				data << "Scale_X\tScale_Y\tScale_Z";
 				break;
 			case 'I':
-				data << "InputFilename";
+				data << "In_File";
 				break;
 			default:
 				cerr << "unrecognized tag: \'" << dataTag[a] << "\' (testbench::HeaderLine)" << endl;
@@ -626,6 +658,7 @@ int testbench::DataHeader(void)
 }
 int testbench::DataLine(unsigned int f, double r)
 {
+	if(dataTag.empty()) return 0;	//nothing to write
 	ofstream data;
 	data.open(dataFilename.c_str(),ofstream::app);
 	if(data.fail())
@@ -633,6 +666,11 @@ int testbench::DataLine(unsigned int f, double r)
 		cerr << "Failed to open datafile for writing." << endl;
 		return 1;
 	}
+
+	//set precision
+	data << fixed;
+	data << setprecision(K::PRECISION);
+	
 	for(unsigned int a=0; a<dataTag.length(); ++a)
 	{
 		if(a>0) data << '\t';
@@ -773,12 +811,15 @@ void testbench::Default(void)
 	poreRadMax = -1;		//prevent holes from being made (less than Min)
 	poreRadStep = 1;	
 	dataFilename = "DATA.tsv";
+	settingFilename = "SETTING.tsv";
 	dataTag = "";		//default to no datafile
+	settingTag = "";	//default to no settingfile
 	poreDistribute = 0;	//default to no added pores to reach total
 	passivation = "H";
 	outFilename = "OUT";	//default outfilename
 	randAttempts = 10;	//#of attempts at random matching
 	DistF = 0;			//default to null poiner
+	settingPath = "";	//no path
 
 
 	unsigned int a;	//indexing
@@ -908,4 +949,105 @@ unsigned int testbench::RandomNoOverlap(double r)
 		}
 	}
 	return n;	//return how many pores were established
+}
+//porefile
+int testbench::SettingHeader(string filename)
+{
+	ofstream setting;	//file to write to
+	const string DIM = "XYZ";
+
+	setting.open( filename.c_str(), ofstream::app);
+	if(setting.fail())
+	{
+		cerr << "Failed to open settingfile for writing. (testbench::settingHeader)" << endl;
+		return 1;
+	}
+
+	//set precision
+	setting << fixed;
+	setting << setprecision(K::PRECISION);
+
+	for(unsigned int a=0; a<settingTag.length(); a++)
+	{
+		if(a>0) setting << '\t';
+		switch(settingTag[a])
+		{
+			case 'C':
+			case 'c':
+				for(unsigned int c=0; c<3; ++c)
+				{
+					if(c>0) setting << '\t';
+					setting << "Center_" << DIM[c];
+				}
+				break;
+			// case 'r':	//radii used for each //XXX when the radii are unique!
+			case 'R':	//radii calculated
+				setting << "Radius ";
+				break;
+			case 'P':	//passivation of pore
+				setting << "Passivation #";
+				break;
+			default:
+				cerr << "unrecognized tag: \'" << settingTag[a] << "\' (testbench::settingHeader)" << endl;
+		}
+	}
+	setting << endl;
+	setting.close();
+	return 0;
+}
+int testbench::SettingLine(string filename, coordinate center, double r)
+{
+	ofstream setting;
+
+	setting.open( filename.c_str(), ofstream::app);
+	if(setting.fail())
+	{
+		cerr << "Failed to open settingfile for writing. (testbench::settingLine)" << endl;
+		return 1;
+	}
+
+	//set precision
+	setting << fixed;
+	setting << setprecision(K::PRECISION);
+
+	for(unsigned int a=0; a<settingTag.length(); ++a)
+	{
+		if(a>0) setting << '\t';
+		switch(settingTag[a])
+		{
+			case 'C':
+			case 'c':	//center of pore
+				for(unsigned int c=0; c<3; ++c)	//write coordinates
+				{
+					if(c>0) setting << '\t';
+					setting << center[c];
+				}
+				break;
+			case 'r':	//radius used
+				setting << r;
+				break;
+			case 'R':	//radii calculated
+				setting << RealRadius(center);
+				break;
+			default:
+				cerr << "unrecognized tag: \'" << settingTag[a] << "\' (testbench::settingLine)" << endl;
+		}
+	}
+	setting << endl;
+	setting.close();
+	return 0;
+}
+int testbench::Setting(unsigned int distNum, double r)	//XXX put all singl settings in datafile!
+{
+	if(settingTag.empty()) return 0;	//if nothing to write
+	unsigned int p;		//indexing
+	string filename = settingPath + CreateFilename() + settingFilename;	//create setting filename
+
+	SettingHeader(filename);
+	for(p=0; p<poreNum; ++p)
+		SettingLine(filename, poreCoord[p],r);
+	if(distNum != (unsigned)(-1))
+		for(p=0; p<distNum; ++p)
+			SettingLine(filename, poreDistCoord[p],r);
+	return 0;
 }
