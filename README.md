@@ -95,8 +95,9 @@ data_tag [options] %<elementSymbol>% #<elementSymbol>#
 		%<elementSymbol>%	The percent of the element in model by number
 		#<elementSymbol>#	The number of the element in model
 	Note: these weill be written as headers to the datafile in the order selected
-	Example: tag I%Si%RO
-data_file <file.tsv>
+
+Example: 	data_tag I%Si%R
+		data_file <file.tsv>
 
 setting_tag[options]
 	Options:
