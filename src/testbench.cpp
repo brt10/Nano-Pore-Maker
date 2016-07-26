@@ -10,7 +10,7 @@
 	//INPUT
 		string testbench::Input_Filename(string line)
 		{
-			if(line==COMMENT) return "IN.FILE";	//default
+			if(line==COMMENT) return "IN_FILE";	//default
 			unsigned int split = line.find_first_of(DELIMITERS);
 			string scaleText;
 			string filename;
@@ -131,7 +131,7 @@
 		}
 		string testbench::Pore_RandomNoOverlap(string line)
 		{
-			if(line==COMMENT) return "RANDOMNOOVERLAP";	//default
+			if(line==COMMENT) return "RANDOM_NO_OVERLAP";	//default
 			stringstream ss;			//for conversion between strings and numbers
 			
 			//get number of pores desired
@@ -204,25 +204,25 @@
 	//OUTPUT
 		string testbench::Output_Path(string line)
 		{
-			if(line==COMMENT) return "OUT.PATH";	//default
+			if(line==COMMENT) return "OUT_PATH";	//default
 			path = line;
 			return "";
 		}
 		string testbench::Output_Filename(string line)
 		{
-			if(line==COMMENT) return "OUT.FILE";	//default
+			if(line==COMMENT) return "OUT_FILE";	//default
 			customName = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Convention(string line)
 		{
-			if(line==COMMENT) return "OUT.CONVENTION";	//default
+			if(line==COMMENT) return "OUT_CONVENTION";	//default
 			convention = line;	//strait up copy it over.
 			return "";
 		}
 		string testbench::Output_Delimiter(string line)
 		{
-			if(line==COMMENT) return "OUT.DELIMITER";	//default
+			if(line==COMMENT) return "OUT_DELIMITER";	//default
 			
 			delimiter = Uppercase(line);
 			if(delimiter == "TAB") delimiter = '\t';
@@ -233,20 +233,20 @@
 		}
 		string testbench::Output_Extension(string line)
 		{
-			if(line==COMMENT) return "OUT.EXTENSION";	//default
+			if(line==COMMENT) return "OUT_EXTENSION";	//default
 			extension = line;
 			return "";
 		}
 	//DATA
 		string testbench::Data_Tag(string line)
 		{
-			if(line==COMMENT) return "DATA.TAG";	//default
+			if(line==COMMENT) return "DATA_TAG";	//default
 			dataTag = line;
 			return "";
 		}
 		string testbench::Data_Filename(string line)
 		{
-			if(line==COMMENT) return "DATA.FILE";	//default
+			if(line==COMMENT) return "DATA_FILE";	//default
 			dataFilename = line;
 			return "";
 		}

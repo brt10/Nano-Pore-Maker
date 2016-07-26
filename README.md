@@ -45,7 +45,7 @@ Notes:
 Settings - ([Docopt syntax](http://docopt.org/))
 -------------------------------------------------------
 ```
-in.file <filename> [<X Y Z>]
+in_file <filename> [<X Y Z>]
 Options:
 	<filename>	file in POSCAR format (.vasp)
 	<X Y Z>		Scale file amount in direction [default: 1	1	1]
@@ -57,7 +57,7 @@ center <x y z>
 		<x y z>		coordinates of the pore [Default:1]
 random <number>
 distribute <number>
-randomNoOverlap <number>
+random_No_Overlap <number>
 	Options:
 		<number>	Number of pores to attempt to create [Default: 1]
 		
@@ -66,21 +66,21 @@ Radius from <begin> to <end> by <step>
 
 Passivation <elementSymbol>
 
-out.path <dir>
+out_path <dir>
 	Note: can use "path" to append a prefix to filenames
-out.file <filename>
-out.convention [options]
+out_file <filename>
+out_convention [options]
 	Options:
 		N	number of the model
 	Default: "N"
 	Note: case-insensitive
-out.delimeter (space | tab | <string>)
-out.extension <extension>
+out_delimeter (space | tab | <string>)
+out_extension <extension>
 	Options:
 		<extension>	Extension appended to the file with a leading '.'
 	Note:	can use "extension" to place a suffix on filenames
 
-data.tag [options] %<elementSymbol>% #<elementSymbol>#
+data_tag [options] %<elementSymbol>% #<elementSymbol>#
 	Options:
 		c,C Center of pores
 		D	Density of the model in g/cm^3
@@ -96,7 +96,7 @@ data.tag [options] %<elementSymbol>% #<elementSymbol>#
 		#<elementSymbol>#	The number of the element in model
 	Note: these weill be written as headers to the datafile in the order selected
 	Example: tag I%Si%RO
-data.file <file.tsv>
+data_file <file.tsv>
 ```
 
 Contribute
