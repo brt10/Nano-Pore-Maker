@@ -197,7 +197,7 @@
 		string testbench::Pore_Passivation(string line)
 		{
 			if(line==COMMENT) return "PASSIVATION";	//default
-			if(Uppercase(line)=="NONE") passivation = "";	//either "none" or "" (case insensitive will set no passivation)
+			if(Uppercase(line)=="NONE"|| line.empty()) passivation = "";	//either "none" or "" (case insensitive will set no passivation)
 			else passivation = line;
 			return "";
 		}
