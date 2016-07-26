@@ -11,10 +11,10 @@ Run:
 `$ ./bin/pore <filename>`   
 `<filename>` is a .tsv laid out simularly to the following example:
 ```
-in.file		unitcell.vasp
+in_file		unitcell.vasp
 center			.5	.5	.5
 radius			2
-out.file	pore
+out_file	pore
 ```
 This makes a single pore of radius 2 Angstroms in the center of the file named`unitcell.vasp`, and outputs the results to a file named `pore.vasp`.  
 
@@ -50,7 +50,7 @@ Options:
 	<filename>	file in POSCAR format (.vasp)
 	<X Y Z>		Scale file amount in direction [default: 1	1	1]
 note:
-	multiple "in.file" lines may be included!
+	multiple "in_file" lines may be included!
 
 center <x y z>
 	Options:
