@@ -5,6 +5,15 @@ B	Bad Idea so given up on
 L	Low priority
 H	High priority
 
+FOR TH 7/28
+
+L	Make default for settings and data files to overwrite not append
+H	Random_no_overlap breaks down if number of pores is large
+
+
+
+
+
 ATOM eye (MIT)
 visualization software
 
@@ -26,10 +35,6 @@ INSANE IDEAS:
 BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
-
-FOR TH 7/28
-
-L	Make default for settings and data files to overwrite not append
 
 
 FOR Thursday
