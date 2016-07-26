@@ -564,7 +564,7 @@ double simulation::Mass(void)				//mass of extant atom in g	//XXX NEEDS A LOT OF
 {
 	double sum = 0;
 	for(unsigned int e=0; e<elementNum; e++)
-		sum+=Extant(e)*K::MASS[e];
+		sum+=Extant(e)*K::MASS[elementIndex[e]];
 	return sum;
 }
 unsigned int simulation::Extant(string e)
