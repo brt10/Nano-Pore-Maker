@@ -8,6 +8,8 @@ using namespace std;	//for now
 #include <iostream>	//for cerr
 #include <sstream>	//for stringstream	(reading in data)	XXX should be able to replace with reading characters
 #include <iomanip>	//for formatting output to file
+#include <vector>	//for vectors
+#include <algorithm>//for for_each, etc.
 //src
 #include "strops.h"	//string operations
 #include "K.h"		//namespace for constants
@@ -74,7 +76,8 @@ class simulation
 		unsigned int elementIndex[K::MAX_ELEMENTS];	//index of the element used in atom array in K.h
 		unsigned int elementNum;					//number of elements
 		string tag;									//unknown tag... (direct)
-		atom_cls atom[K::MAX_ELEMENTS][K::MAX_ATOMS];	//atoms in system
+		//atom_cls atom[K::MAX_ELEMENTS][K::MAX_ATOMS];//atoms in system
+		vector<atom_cls*> atom;
 		double lattice[3];			//XXX change to vector or coord later!				//lattice axis scale... unit->angstroms?
 		//coordinate lattice;
 

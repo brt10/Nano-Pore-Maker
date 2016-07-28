@@ -26,7 +26,7 @@ class testbench
 	private:
 		static const unsigned int MAX_SETTINGS = 32;		//max # of settings per section
 		static const unsigned int MAX_FILES = 10;			//max # of inputfiles
-		static const unsigned int MAX_PORES = 100;			//max # of pores
+		static const unsigned int MAX_PORES = 1000;			//max # of pores
 		const string DELIMITERS;	//XXX dang this name is a little too close to delimiter...
 		const string COMMENT;
 

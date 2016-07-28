@@ -13,6 +13,17 @@ atom_cls::atom_cls(const atom_cls& atom)	//should not copy bonds
 	for(int a=0; a<3; a++)
 		freedom[a] = atom.freedom[a];
 }
+atom_cls::atom_cls(int AN, coordinate C, vector<bool> & F)
+{
+	atomicN = AN;
+	co = C;
+	for(unsinged int a=0; a<3; ++a)
+		freedom[a] = F;
+}
+atom_cls::~atom_cls()
+{
+	//nothing to delete yet.
+}
 void atom_cls::ClearData(void)
 {
 

@@ -11,6 +11,8 @@ class atom_cls
 		//constructors-------------------
 		atom_cls();
 		atom_cls(const atom_cls&);		//copy an existing atom without bonds
+		atom_cls(int, coordinate, vector<bool> & [3] = {1,1,1})	//initializing atoms quickly
+		~atom_cls();
 		//prototypes----------------------
 		void ClearData(void);
 		atom_cls& operator=(const atom_cls&);	
