@@ -1,6 +1,18 @@
 KEY:
 X	DONE!
 O	IMPORTANT, but not done! (will put O after they have been forgotten for a while... ;)
+B	Bad Idea so given up on
+L	Low priority
+H	High priority
+
+FOR TH 7/28
+
+L	Make default for settings and data files to overwrite not append
+H	Random_no_overlap breaks down if number of pores is large
+
+
+
+
 
 ATOM eye (MIT)
 visualization software
@@ -8,8 +20,7 @@ visualization software
 X	check bonding nubers
 
 IDEAS:
-	use vasp to evenly distribute pores as a particle
-		or use simple relaxation for that matter.
+B	use vasp to evenly distribute pores as a particle or use simple relaxation for that matter.
 	use hilbert curve/other space filling curve to evenly distibute nodes (http://arxiv.org/pdf/1406.4549.pdf)
 
 INSANE IDEAS:
@@ -24,6 +35,8 @@ INSANE IDEAS:
 BAD IDEAS: //or unpopular. :/
 	use random cell sizes to mitigate integer problems (need small cells for quantum stuffs, but big ones for nice averages)
 	poisson distributions... better to be random and wrong than accurate and unnarural.s
+
+
 FOR Thursday
 X	none as an option for passivation or ""
 X	setting file + pore file
