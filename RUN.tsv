@@ -1,7 +1,7 @@
 In_File				data/3C.vasp	7 7 7
 center				.5	.5	.5
-Random_No_Overlap			60
-radius				4
+Random_No_Overlap	60	.5
+radius				7
 passivation			H
 out_path			focus/
 out_file 			pore

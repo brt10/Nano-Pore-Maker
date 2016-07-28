@@ -135,7 +135,13 @@
 			stringstream ss;			//for conversion between strings and numbers
 			
 			//get number of pores desired
-			if(!line.empty())	//if tab found
+			if(line.empty()) //0 args 
+			{
+				cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
+				poreDistribute = 1;
+				
+			}
+			else //1-2 args <number> [<min_distance>]
 			{
 				ss << line;
 				ss >> poreDistribute;	//read as number of pores to add
@@ -144,11 +150,8 @@
 					cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
 					poreDistribute = MAX_PORES;
 				}
-			}
-			else	//default
-			{
-				cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
-				poreDistribute = 1;
+				if(line.find_first_of(DELIMITERS) != string::npos)	//2 args
+					ss >> poreDistance;
 			}
 			DistF = &testbench::RandomNoOverlap;
 			
@@ -821,6 +824,7 @@ void testbench::Default(void)
 	randAttempts = 10;	//#of attempts at random matching
 	DistF = 0;			//default to null poiner
 	settingPath = "";	//no path
+	poreDistance = 0;	//no modification on minimum distance if none selected
 
 
 	unsigned int a;	//indexing
@@ -940,7 +944,7 @@ unsigned int testbench::RandomNoOverlap(double r)
 			poreDistCoord[n] = RandCoord();
 			++attempt;
 			for(p=0; p<(poreNum+n); ++p)
-				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2)	//too close
+				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2 + poreDistance)	//too close
 					break;
 		}
 		while( p<poreNum+n && attempt<randAttempts);

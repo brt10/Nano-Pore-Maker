@@ -9,6 +9,11 @@ FOR TH 7/28
 
 L	Make default for settings and data files to overwrite not append
 H	Random_no_overlap breaks down if number of pores is large
+L	Distances using squ
+L	Voxels
+H	RNO <number> [<min_distance>]
+	mindistance == minimum distance between pores
+	or set as option with random?
 
 
 
@@ -41,7 +46,7 @@ FOR Thursday
 X	none as an option for passivation or ""
 X	setting file + pore file
 X	shorten names for datafile
-	random_No_overlap makes a mess
+X	random_No_overlap makes a mess
 		RANDOM - hangs program
 		Random_No_Overlap does nothing! >:(
 X	settings not accepting empty strings.
