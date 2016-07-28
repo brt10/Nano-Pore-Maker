@@ -1,67 +1,53 @@
 #include "atom.h"
-
-atom_cls::atom_cls()
-{
-	ClearData();
-}
+//----------------------CONSTRUCTORS--------------------------------------
 atom_cls::atom_cls(const atom_cls& atom)	//should not copy bonds
 {
-	ClearData();
-	co = atom.co;
-	exists = atom.exists;
-	element = atom.element;			
-	for(int a=0; a<3; a++)
-		freedom[a] = atom.freedom[a];
+	bond.clear();			//remove bonds
+	coord = atom.coord;		//copy coordinates,
+	exists = atom.exists;	//extant,
+	atomicN = atom.atomicN;	//atomicN,
+	freedom = atom.freedom;	//freedoms
 }
 atom_cls::atom_cls(int AN, coordinate C, vector<bool> & F)
 {
 	atomicN = AN;
-	co = C;
-	for(unsinged int a=0; a<3; ++a)
-		freedom[a] = F;
+	coord = C;
+	if(F.size() == 3) freedom = F;
+	else 
+	{
+		freedom.reserve(3);
+		fill(freedom.begin(), freedom.end(), 1);
+	}
+	exists = 1;
+}
+atom_cls::atom_cls(int AN, coordinate C)
+{
+	atomicN = AN;
+	coord = C;
+	freedom.reserve(3);
+	fill(freedom.begin(), freedom.end(), 1);
+	exists = 1;
 }
 atom_cls::~atom_cls()
 {
 	//nothing to delete yet.
 }
-void atom_cls::ClearData(void)
-{
-
-	for(unsigned int a=0; a<K::MAX_BONDS; a++)
-		bond[a] = 0;	//nulify all pointers
-	bondNum = 0;
-	exists = 1;
-	for(int a=0; a<3; a++)
-		freedom[a] = 1;
-	return;
-}
+//---------------------MEMBER FUNCTIONS-----------------------------------------
 atom_cls& atom_cls::operator=(const atom_cls& atom)
 {
-	ClearData();
-	//do not transfer freedoms
-	co = atom.co;			//coords
+	bond.clear();			//bonds
+	coord = atom.coord;		//coords
 	exists = atom.exists;	//extant
-	element = atom.element;	//element
+	atomicN = atom.atomicN;	//atomicNumber
+	freedom = atom.freedom;	//freedoms
 	return (*this);
 }
 
 void atom_cls::BreakBond(atom_cls* atomP)
 {
-	int index = IsBound(atomP);
-	if(index == -1)
-		return;
-	//move the other pointers down
-	for(unsigned int a=index; a <bondNum-1; a++)	//move all refs
-		bond[a] = bond[a+1];
-	bondNum--;	//decrease the number of bonds
+	vector<atom_cls*>::iterator it = find_if(bond.begin(), bond.end(), [atomP](atom_cls* P){return atomP==P;});
+	if(it == bond.end()) return;	//no bonds to atomP
+	bond.erase(it);					//remove bond
 	return;
-}
-int atom_cls::IsBound(const atom_cls* atomP)
-{
-	unsigned int index;
-	for(index=0; index<bondNum; index++)
-		if(bond[index] == atomP)
-			return index;
-	return -1;	//bond not found
 }
 

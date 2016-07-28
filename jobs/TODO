@@ -17,6 +17,8 @@ H	RNO <number> [<min_distance>]
 H	Test that all C, Si would have neighbors after pormaking
 		reworded more properly (disregard for Si-C "lone pair") as follows:
 		Test that there is only one graph of particles
+L	set freedoms
+L	use multiplier
 
 
 
