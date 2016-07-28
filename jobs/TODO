@@ -12,8 +12,12 @@ H	Random_no_overlap breaks down if number of pores is large
 L	Distances using squ
 L	Voxels
 H	RNO <number> [<min_distance>]
-	mindistance == minimum distance between pores
-	or set as option with random?
+		mindistance == minimum distance between pores
+		or set as option with random?
+H	Test that all C, Si would have neighbors after pormaking
+		reworded more properly (disregard for Si-C "lone pair") as follows:
+		Test that there is only one graph of particles
+
 
 
 
