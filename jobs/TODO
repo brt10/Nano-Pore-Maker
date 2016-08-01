@@ -7,6 +7,9 @@ H	High priority
 
 FOR F 8/5
 -	make functions to return # of element, etc.
+		count_if()
+H	UPDATE K.h maker - use current K file as template?
+H	make certain taht sim::Mass() returns g
 
 FOR TH 7/28
 

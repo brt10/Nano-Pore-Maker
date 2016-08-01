@@ -222,9 +222,11 @@ void simulation::Passivate(atom_cls* removed, atom_cls* passivated, string pe)
 bool simulation::WriteData(const string filename)
 {
 	//variables
-	unsigned int e;	//indexing
+	unsigned int e, E;	//indexing
 	ofstream outfile;
 	outfile.open(filename.c_str());
+	vector<int> AN;
+	vector<atom_cls*>::iterator it;
 
 	//set precision
 	outfile << fixed;
@@ -234,37 +236,50 @@ bool simulation::WriteData(const string filename)
 		cerr << "Failed to open: \"" << filename << "\"\n";
 		return 0;
 	}
-	//write out to file...
+	//title
 	outfile << title << "\n";
+	//multiplier
 	outfile << multiplier << "\n";
-	//outfile << "\n";	//write a newline (do not use endl (forces flush))
+	//lattice
 	for(int a=0; a<3; a++)
 	{
 		for(int b=0; b<3; ++b)
 			outfile << ((a==b) ? lattice[a] : 0) << " ";
 		outfile << "\n";
 	}
-	for(e=0; e<elementNum; ++e)	//element names
-		outfile << element[e] << " ";
+
+	//count elements...
+	for(it=atom.begin(); it!=atom.end(); ++it)
+		if(AN.end() == find(AN.begin(), AN.end(), *it->AtomicN))
+			AN.push_back(*it->atomicN);
+
+	//element names
+	for(e=0; e<AN.size(); ++e)	
+		outfile << K::SYM[AN[e]] << " ";
 	outfile << "\n";
-	for(e=0; e<elementNum; ++e)	//# extant atoms
-		outfile << Extant(e) << ' ';
+
+	//# extant atoms
+	for(e=0; e<AN.size(); ++e)	
+		outfile << Atoms(e) << ' ';
 	outfile << "\n" << tag << "\n";
 
 	//output atom coords and freedom
-	for_each(atom.begin(), atome.end(), [outfile](atom_cls* atomP)
+	for(unsigned int e=0; e<AN.size(); ++e)
 	{
-		if(atomP->exists)//only write out atoms if they exist ;)
+		for_each(atom.begin(), atom.end(), [outfile](atom_cls* atomP)
 		{
-			outfile << ' ';	//preceed with space
-			for(int a=0; a<3; ++a)
-				outfile << atomP->coord[a] << " ";
-			for(int a=0; a<3; ++a)
-				outfile << (atomP->freedom[a] ? "T " : "F ");
-			outfile << "\n";	//write a newline (do not use endl (forces flush))
-		}
-		return;
-	});
+			if(atomP->exists && atomP->atomicN == AN[e])//only write out atoms if they exist ;)
+			{
+				outfile << ' ';	//preceed with space
+				for(int a=0; a<3; ++a)
+					outfile << atomP->coord[a] << " ";
+				for(int a=0; a<3; ++a)
+					outfile << (atomP->freedom[a] ? "T " : "F ");
+				outfile << "\n";	//write a newline (do not use endl (forces flush))
+			}
+			return;
+		});
+	}
 	outfile.close();
 	return 1;
 }
@@ -365,10 +380,17 @@ void simulation::RemoveAtom(vector<atom_cls*>::iterator& it)
 int simulation::PassivatedPore(double radius, coordinate* center, string pe)	//makes a passivated hole by recursion.
 {
 	coordinate c =.5;
-	if(!center)
-		center = &c;
-	atom_cls* centerAtom = Closest(*center);			//find atom closest to the coordinates
-	if(ModDistance(centerAtom->co, *center) > radius)	//if the atom is too far away, stop
+	if(!center) center = &c;
+	vector<atom_cls*>::iterator centerAtom = Closest(*center);		//find atom closest to the coordinates
+	if(centerAtom == atom.end())
+	{
+		cerr << "Found no atoms near coordinate: ";
+		for(unsigned int a=0; a<3; ++a)
+			cerr << center->ord[a] << " ";
+		cerr << "(simulations::PassivatedPore)" << endl;
+		return 0;
+	}
+	if(ModDistance(*centerAtom->co, *center) > radius)				//if the atom is too far away, stop
 		return 0;
 	return PassivatedPore(radius, centerAtom, pe, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
@@ -377,12 +399,9 @@ int simulation::PassivatedPore(double radius, vector<atom_cls*>::iterator& subje
 	if(!center)	//null pointer
 		center = &(*subject->co);
 	int count = 1;
+	vector<atom_cls*>::iterator bonded;	//atoms binded to **subject
 
-	vector<atom_cls*>::iterator bonded;
-
-	//remove atom
-	RemoveAtom()
-
+	//passivate
 	for(bonded=subject->bond.begin(); bonded!=subject->bond.end(); ++bonded)
 	{
 		if(*bonded->exists)	//if not already marked.
@@ -390,66 +409,49 @@ int simulation::PassivatedPore(double radius, vector<atom_cls*>::iterator& subje
 			if(ModDistance(*bonded->co, *center) < radius)	//if bonded atom is within radius
 				count+=PassivatedPore(radius, *bonded, pe, center);
 			else if(!pe.empty()) 	//passivate here
-				Passivate(subject, *bonded, pe);
+				Passivate(*subject, *bonded, pe);
 		}
 	}
+
+	//remove atom
+	RemoveAtom(subject)
+
 	return count;
 }
-// int simulation::Remove(void)
-// {
-// 	return count;
-// }
-atom_cls* simulation::Closest(coordinate c, string e, int extant)	//extant:-1=everything, 0=non-extant, 1=extant
+vector<atom_cls*>::iterator simulation::Closest(coordinate c, string e, int extant)	//extant:-1=everything, 0=non-extant, 1=extant
 {
-	unsigned int a;										//indexing
-	for(a=0; a < K::MAX_ELEMENTS; ++a)						//find elemetn in sim
-		if(Uppercase(e)==Uppercase(element[a])) break;	//if in array
-	if(a < K::MAX_ELEMENTS)								//Exists in sim
-		return Closest(c,a);
-	cerr << "The element: \"" << e << "\" does not seem to exist in the simulation. (simulation::Closest)" << endl;
-	return 0;
+	unsigned int AN = K::AtomicNumber(e);
+	if(AN+1==0)
+	{
+		cerr << "The element: \"" << e << "\" does not seem to exist. (simulation::Closest)" << endl;
+		return atom.end();
+	}
+	else return Closest(c, AN, extant);
 }
-atom_cls* simulation::Closest(coordinate c, unsigned int E, int extant)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
+vector<atom_cls*>::iterator simulation::Closest(coordinate c, unsigned int AN, int extant)	//default E=-1 //XXX should make this more efficient... has to look through all atoms
 {
 	double testDist;
-	double minDist=0;		//will be set on the first iteration
-	atom_cls* minP=0;		//pointer to closest atom
-	atom_cls* testP=0;		//pointer to test atom
-	unsigned int e,i,t(0);	//indexing
+	double minDist=0;								//will be set on the first test
+	vector<atom_cls*>::iterator min =atom.end();	//iterator to closest atom
+	unsigned int t=0;								//number of tests
 
-	if(E == (unsigned int)-1){		//no element selected
-		for(e=0; e<elementNum; ++e)	//for all elements
-		{
-			testP = Closest(c,e);
-			if(!testP) continue;	//if a null pointer was returned
-			testDist = ModDistance(testP->co, c);	// XXX will contributs slightly to the time... but how many elements does one have?
-			if(testDist < minDist || t==0)
-			{
-				minDist = testDist;
-				minP = testP;
-			}
-			++t;
-		}
-	}
-	else if(elementCount[E]==0)	//no elements to search 
+	if(AtomNum(AN)<=0)	//no elements to search 
 		cerr << "There are no \"" << element[E] << "\" atoms in the simulation (simulation::Closest)" << endl;
-	else if(E>=0 && E<elementNum){	//element has been selected
-		for(i=0; i<elementCount[E]; ++i)
+	else
+		for(it=atom.begin(); it!=atom.end(); ++it)
 		{
-			testP = &atom[E][i];
-			if(extant!=-1)							//if we are extant-specific
-				if(testP->exists != (bool)extant)	//if not the type of extant we are looking for...
-					continue;
-			testDist = ModDistance(testP->co, c);
+			if(AN != (unsigned int)-1 && *it->atomicN != AN)	continue;	//not the element we are looking for
+			if(extant!=-1 && *it->exists != (bool)extant)	continue;		//not the extant we are looking for
+
+			testDist = ModDistance(*it->coord, c);
 			if( testDist < minDist || t==0)
 			{
 				minDist = testDist;
-				minP = &atom[E][i];
+				min = it;
 			}
 			++t;
 		}
-	}else cerr << "element select of: " << E << "Is out of bounds (simulation::Closest)" << endl;	//out of bounds //returns null pointer
-	return minP;	//XXX no error catching!
+	return min;	//XXX no error catching!
 }
 atom_cls* simulation::Center(int E)	//default = -1
 {
@@ -462,44 +464,51 @@ double simulation::Volume(void)			//volume of lattice in cm^3
 		product*=lattice[a];
 	return product*(1e-24);		
 }
-double simulation::Mass(void)				//mass of extant atom in g	//XXX NEEDS A LOT OF WORK
+double simulation::Mass(void)			//mass of extant atom in g
 {
 	double sum = 0;
-	for(unsigned int e=0; e<elementNum; e++)
-		sum+=Extant(e)*K::MASS[elementIndex[e]];
+	vector<atom_cls*>::iterator it;
+
+	for(it=atom.begin(); it!=atom.end(); ++it)
+	{
+		if(!*it->extant)	continue;
+		sum+=K::MASS[*it->atomicN];
+	}
 	return sum;
 }
-unsigned int simulation::Extant(string e)
+unsigned int simulation::Atoms(string e)
 {
-	unsigned int i = (unsigned int)ElementIndex(e);
-	if(i == (unsigned int)-1)	//not found
+	unsigned int AN = K::AtomicNumber(e);
+	if(AN+1==0)	//not found
 	{
 		cerr << "Found no \"" << e << "\" in the simulation! (simulation::Extant)" << endl;
 		return 0;
 	}
-	return Extant(i);
+	return Extant(AN);
 }
-unsigned int simulation::Extant(unsigned int e)
+unsigned int simulation::Atoms(unsigned int AN)
 {
-	if(e>=elementNum)
-	{
-		cerr << "The index of \"" << "\" is too large! (simulation::Extant)" << endl;
-	}
 	unsigned int sum=0;
-	for(unsigned int i=0; i<elementCount[e]; i++)
-		sum+=atom[e][i].exists;
+	vector<atom_cls*>::iterator it;
+	for(it=atom.begin(); it!=atom.end(); ++it)
+		sum+=(*it->atomicN==AN && *it->extant);
 	return sum;
 }
 unsigned int simulation::Atoms(void)		//total # extant of atoms
 {
 	unsigned int sum=0;
-	for(unsigned int e=0; e<elementNum; e++)
-		sum+=Extant(e);
+	vector<atom_cls*>::iterator it;
+	for(it=atom.begin(); it!=atom.end(); ++it)
+		sum+=*it->extant;
 	return sum;
 }
 double simulation::Density(void)			//density of system in g/cm^3
 {
 	return Mass()/Volume();
+}
+double simulation::operator%(const string e)	//percent of extant elements
+{
+	return 100 * (double)Extant(e) / (double)Atoms();
 }
 double simulation::operator%(const unsigned int e)	//percent of extant elements
 {
@@ -518,14 +527,14 @@ double simulation::ModDistance(coordinate a, coordinate b)
 }
 double simulation::ModDistance(atom_cls* a, atom_cls* b)
 {
-	return ModDistance(a->co, b->co);
+	return ModDistance(a->coord, b->coord);
 }
-//element control
-int simulation::ElementIndex(string name)
+unsigned int ElementNum(void)	//number of elements
 {
-	name = Uppercase(name);
-	for(unsigned int e=0; e<elementNum; e++)
-		if(name == Uppercase(element[e]))	//if Found match
-			return e;
-	return -1;	//if failed to find match. return -1
+	vector<int> AN;
+	vector<atom_cls*>::iterator it;
+	for(it=atom.begin(); it!=atom.end(); ++it)
+		if(AN.end() == find(AN.begin(), AN.end(), *it->AtomicN))
+			AN.push_back(*it->atomicN);
+	return AN.size();
 }

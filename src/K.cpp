@@ -1,6 +1,6 @@
 #include "K.h"
 
-unsigned int K::ElementIndex(std::string e)
+unsigned int K::AtomicNumber(std::string e)
 {
 	unsigned int a;
 	for(a=0; a<NUM_ELEMENTS; ++a)

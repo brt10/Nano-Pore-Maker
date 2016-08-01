@@ -10,6 +10,7 @@ using namespace std;	//for now
 #include <iomanip>	//for formatting output to file
 #include <vector>	//for vectors
 #include <algorithm>//for for_each, etc.
+// #include <numeric>	//for accumulate
 //src
 #include "strops.h"	//string operations
 #include "K.h"		//namespace for constants
@@ -37,7 +38,6 @@ class simulation
 		void Passivate(atom_cls*, atom_cls*, string="H");	//passivates hole
 		bool WriteData(const string);	//outputs current state to datafile
 		bool operator>>(const string);
-		// int UnitCell(double[3]);		//makes the scale given, and makes the atoms within it into a unit cell (returns #atoms in cell)
 		bool CopyCell(unsigned int, unsigned int);		//makes a mosaic of the current cell to the given scale. (may overload as int... not too important)
 		bool Scale(unsigned int[3]);
 		bool Scale(unsigned int);
@@ -46,17 +46,17 @@ class simulation
 		void RemoveAtom(vector<atom_cls*>::iterator&);	//removes atom from sim.
 		int PassivatedPore(double, coordinate* center=0, string="H");	//makes a passivated hole by recursion.
 		int PassivatedPore(double, atom_cls*, string="H", coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
-		// int Remove(void);		//removes all non-extant atoms
-		atom_cls* Closest(coordinate, string, int=1);	//closest element to the specified coordinate
-		atom_cls* Closest(coordinate, unsigned int=-1, int=1);	//returns the atom closest to the coordinate of given element
-		atom_cls* Center(int E=-1);	//returns the center most atom of specified element;
+		vector<atom_cls*>::iterator Closest(coordinate, string, int=1);	//closest element to the specified coordinate
+		vector<atom_cls*>::iterator Closest(coordinate, unsigned int=-1, int=1);	//returns the atom closest to the coordinate of given element
+		vector<atom_cls*>::iterator Center(int E=-1);	//returns the center most atom of specified element;
 		//data
 		double Volume(void);				//volume of lattice in cm^3
 		double Mass(void);					//mass of extant atoms
-		unsigned int Extant(string);		//#atoms of type in sim
-		unsigned int Extant(unsigned int);	//#extant atoms of element
+		unsigned int Atoms(string);		//#atoms of type in sim
+		unsigned int Atoms(unsigned int);	//#extant atoms of element
 		unsigned int Atoms(void);			//total # of extant atoms
 		double Density(void);				//density of system g/cm^3
+		double operator%(const string);//percent of element
 		double operator%(const unsigned int);//percent of element
 		//distances
 		double RealDistance(coordinate, coordinate);	//the real distance to a coord
@@ -69,18 +69,11 @@ class simulation
 		//variables-----------------
 		string title;								//title of the file :P
 		double multiplier;							//multiplier for system... unused so far...
-		// vector<unsigned int> elementCount;
-		// vector<string> element;
+		
+		unsigned int ElementNum(void);	//number of elements
 
-		unsigned int elementCount[K::NUM_ELEMENTS];	//count of atoms for each element
-		string element[K::NUM_ELEMENTS];			//element name	//XXX removeing soon
-		// unsigned int elementIndex[K::MAX_ELEMENTS];	//index of the element used in atom array in K.h
-		unsigned int elementNum;					//number of elements
 		string tag;									//unknown tag... (direct)
-		//atom_cls atom[K::MAX_ELEMENTS][K::MAX_ATOMS];//atoms in system
 		vector<atom_cls*> atom;
 		double lattice[3];			//XXX change to vector or coord later!				//lattice axis scale... unit->angstroms?
-		//coordinate lattice;
-
 };
 #endif
