@@ -6,13 +6,13 @@ simulation::simulation()
 }
 void simulation::ClearData(void)
 {
-	elementNum=0;
-	for(unsigned int a=0; a< K::MAX_ELEMENTS; a++)
+	//clear atom vector
+	for_each(atom.begin(), atom.end(), [](atom_cls* atomP)
 	{
-		elementIndex[a] = 0;
-		elementCount[a] = 0;
-		element[a] = "";
-	}
+		delete atomP;
+		return;
+	});
+	atom.clear();
 	multiplier=1;
 	return;
 }
@@ -21,18 +21,14 @@ bool simulation::ReadData(const string filename)
 	//variables
 	stringstream ss;
 	string line;
-	char freedomChar;
+	char fChar;
 	ifstream infile;
 	infile.open(filename.c_str());
-	unsigned int eIndex;			//index of element in K.h
+	unsigned int atomicNumber;		//AN of element
 
 	//elementNum = 0;	//from simulation
 	//reset class
 	ClearData();
-	//reset atoms
-	for(unsigned int e=0; e<K::MAX_ELEMENTS; e++)
-		for(unsigned int i=0; i<K::MAX_ATOMS; i++)
-			atom[e][i].ClearData();
 
 	if(infile.fail()){
 		cerr << "Failed to open: \"" << filename << "\"\n";
@@ -42,7 +38,7 @@ bool simulation::ReadData(const string filename)
 	getline(infile, title);
 	infile >> multiplier;
 	for(int a=0; a<3; a++)
-		for(int b=0; b<3; b++)
+		for(int b=0; b<3; ++b)
 		{
 			if(a==b) infile >> lattice[a];
 			else infile >> lattice[2];	//essentially junk... works, just ugly. :P
@@ -76,38 +72,39 @@ bool simulation::ReadData(const string filename)
 
 	//read in names of elements
 	while(ss >> element[elementNum])
-		elementNum++;
-	if(elementNum >= K::MAX_ELEMENTS)	//more elments than the atom array accepts! //XXX will be outdated when move to vector.
-	{
-		cerr << "Too many Elements in datafile!" << endl;
-		return 0;
-	}
+		++elementNum;
+
 	//read in atom count for each element
-	for(unsigned int a=0; a<elementNum; a++)
+	for(unsigned int a=0; a<elementNum; ++a)
 		infile >> elementCount[a];
 	infile >> tag;
 
 	//read atom data
 	for(unsigned int e=0; e<elementNum; ++e)			//element
 	{
-		for(eIndex=0; eIndex<K::NUM_ELEMENTS; ++eIndex)	//find the index of the element in K.h
-			if(Uppercase(element[e]) == Uppercase(K::SYM[eIndex]))	break;
-		if(eIndex >= K::NUM_ELEMENTS)
+		//find AN of element
+		atomicNumber = K::ElementIndex(element[e]);
+		if(atomicNumber+1 == 0)
 		{
 			cerr << "Unable to find the \"" << element[e] << "\" you are looking for..." << endl;
 			return 0;
 		}
-		elementIndex[e] = eIndex;	//record element index for sim
+		//for each atom of that element
 		for(unsigned int i=0; i<elementCount[e]; ++i)	//index
 		{
+			coordinate coord;
+			vector<bool> freedom;
+
 			atom[e][i].element = eIndex;	//element set as index of sym - lets the atom know its symbol, covalent radius, and mass
-			for(int c=0; c<3; c++)			//read coord
-				infile >> atom[e][i].co.ord[c];
-			for(int c=0; c<3; c++)			//read freedom
+			for(int c=0; c<3; ++c)			//read coord
+				infile >> coord[c];
+			for(int c=0; c<3; ++c)			//read freedom
 			{
-				infile >> freedomChar;
-				atom[e][i].freedom[c] = (Uppercase(freedomChar)=='T');
+				infile >> fChar;
+				freedom.pushback( (Uppercase(fChar)=='T') );
 			}
+
+			atom.pushback(new atom_cls(atomicNumber, coord, freedom));
 		}
 	}
 	infile.close();
@@ -121,59 +118,49 @@ bool simulation::operator<<(const string filename)
 }
 void simulation::Standardize(void)
 {
-	for(unsigned int e=0; e<elementNum; e++)
-		for(unsigned int i=0; i<elementCount[e]; i++)
-			atom[e][i].co.Mod(1);	//XXX should probaly check for overlap with others...
+	for_each(atom.begin(), atom.end(), [](atom_cls* atomP)
+	{
+		atomP->coord.Mod(1);	//XXX should probaly check for overlap with other atoms...
+		return;
+	});
 	return;
 }
 //returns how many bonds were made
 void simulation::Disassociate(void)
 {
-	unsigned int e,i,b;	//indexing
-	for(e=0; e < elementNum; e++)			//for every atom
-		for(i=0; i < elementCount[e]; i++)	//
-			for(b=0; b<K::MAX_BONDS; b++)
-			{
-				atom[e][i].bondNum = 0;
-				atom[e][i].bond[b] = 0;
-			}
+	for_each(atom.begin(), atom.end(), [](atom_cls* atomP)
+	{
+		atomP->bond.clear();
+		return;
+	});
 	return;
 }
 int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 {
-	unsigned int e[2];
-	unsigned int i[2];
-	atom_cls *atomP[2];
-	unsigned int bondCount=0;
-	double distance;		//distance between atoms
-	double bondLength;		//optimal bond length for atoms
+	
+	unsigned int bondCount=0;			//return value; # of bond created
+	double distance;					//distance between atoms
+	double bondLength;					//optimal bond length for atoms
+	vector<atom_cls*>::iterator it[2];	//iterator array
 
-	for(e[0]=0; e[0] < elementNum; e[0]++)				//for every atom
-		for(i[0]=0; i[0] < elementCount[e[0]]; i[0]++)	//
+	for(it[0]=atom.begin(); it[0]!=atom.end(); ++it[0])
+	{
+		if(!*it[0]->exists) return;		//make sure atom exists
+		for(it[1]=it[0]+1; it[1]!=atom.end(); ++it[1])	//check only the atoms not yet analyzed.
 		{
-			atomP[0] = &atom[e[0]][i[0]];		//make temporary pointer to atom
-			if(!atomP[0]->exists) continue;		//make sure atom exists
-			for(e[1]=e[0]; e[1]<elementNum; e[1]++)					//check only the atoms not yet analyzed.
-				for(i[1]= (e[0]==e[1] ? i[0]+1 : 0); i[1]<elementCount[e[1]]; i[1]++)	//i[1]=i[0]+1 i OK b/c of the condition ;)
+			if(!*it[1]->exists) return;		//make sure atom exists
+			distance = ModDistance(*it[0], *it[1]);
+			bondLength = K::COV_RAD[*it[0]->atomicN] + K::COV_RAD[*it[1]->atomicN];
+			if( distance <= bondLength*(1+K::BOND_TOLERANCE))	//if not too far away
+			{
+				if(distance >= bondLength*(1-K::BOND_TOLERANCE))	//if not too close
 				{
-					// cout << e[0] << ',' << e[1] << '\t' << i[0] << ',' << i[1] << '\n';
-					atomP[1] = &atom[e[1]][i[1]];	//create temporary pointer to atom
-					if(!atomP[1]->exists) continue;	//make sure atom[] exists	
-					distance = ModDistance(atomP[0], atomP[1]);
-					bondLength = K::COV_RAD[atomP[0]->element]+K::COV_RAD[atomP[1]->element];
-					if( distance <= bondLength*(1+K::BOND_TOLERANCE))	//if not too far away
-					{
-						if(distance >= bondLength*(1-K::BOND_TOLERANCE))	//if not too close
-						{
-							if(Bond(atomP))
-								bondCount++;
-						}
-						else cerr<<"Atoms "<<e[0]<<','<<i[0]<<" and "<<e[1]<<','<<i[1]<<"were unnaturally close at "<<distance<<"Angstroms\n";
-					}
-
+					if(Bond(*it[0], *it[1]))	++bondCount;
 				}
+				else cerr<<"Atoms "<< K::SYM[*it[0]->atomicN] <<" and "<< K::SYM[*it[1]->atomicN] <<"were unnaturally close at "<<distance<<"Angstroms\n";
+			}
 		}
-
+	}
 	return bondCount;
 }
 bool simulation::Bond(atom_cls* aP0, atom_cls* aP1)
@@ -185,92 +172,57 @@ bool simulation::Bond(atom_cls* atomP[2])
 {
 	for(int a=0; a<2; a++)	//bond elements together	//XXX shoudl check if already bound
 	{
-		int b=(a+1)%2;	//other atom
-		if(atomP[a]->IsBound(atomP[b]) != -1) continue;	//if already bound
-		if(atomP[a]->bondNum < K::MAX_BONDS)
-		{
-			atomP[a]->bond[atomP[a]->bondNum] = atomP[b];
-			atomP[a]->bondNum++;
-		} else {
-			cerr << "The bonds on atom (" /*<< e[a] << "," << i[a]*/;
-			cerr << ") have exceeded the limit of: ";
-			cerr << K::MAX_BONDS << "\n";
-			cerr << "THIS IS LIKELY A CRITICAL ERROR!\n";
-			cerr << "Most likely the lattice is too small, or uses different units than the bond lengths\n";
-			return 0;
-		}
+		int b=(a+1)%2;									//other atom
+		if(atomP[a]->IsBound(atomP[b])) continue;		//if already bound, skip this direction.
+		atomP[a]->bond.push_back(atomP[b]);				//bond
 	}
 	return 1;
 }
-//returns the number of atoms removed
-int simulation::Hole(coordinate h, double r)
-{
-	unsigned int atomCount =0;
-	for(unsigned int e=0; e < elementNum; e++)			//for each atom
-		for(unsigned int i=0; i < elementCount[e];)	//
-			if( ModDistance(h, atom[e][i].co) < r && atom[e][i].exists)	//if in the hole and extant
-			{
-				RemoveAtom(e,i);
-				atomCount++;
-			} else i++;
-	return atomCount;
-}
 void simulation::Passivate(atom_cls* removed, atom_cls* passivated, string pe)
 {
-	atom_cls* H;	//Hydrogen atom pointer
-	coordinate r,p;	//coordinates of atoms
-	double ratio;	//ratio of bondlength
-	//const string pe = "H";	//passivating element
-	unsigned int peIndex;	//index of passivating element in K.h (atomic #-1)
-	unsigned int peAN;		//atomic number of passivating element
+	//atom_cls* subject = new atom_cls();			//Hydrogen atom pointer
+	coordinate r,p,s;		//coordinates of atoms (removed, passivated, subject)
+	double ratio;			//ratio of bondlength
+	unsigned int peIndex	//index of pe in simulation
+	unsigned int PEAN;		//atomic number of passivating element in K.h (atomic number-1)
 
 	//initializers
-	r=removed->co;
-	p=passivated->co;
-	for(peIndex=0; peIndex<K::MAX_ELEMENTS; ++peIndex)	//search for pe in current elements
+	r=removed->coord;
+	p=passivated->coord;
+	for(peIndex=0; peIndex<K::NUM_ELEMENTS; ++peIndex)	//search for pe in current elements
 		if(Uppercase(element[peIndex]) == Uppercase(pe)) break;
 	if(peIndex >= K::MAX_ELEMENTS)		//if passivating element is not alreay in simulation
 	{
-		// cout << "looking for: \"" << pe << "\"" << endl;
-		for(peAN=0; peAN<K::NUM_ELEMENTS; ++peAN)	//search for passivating element in K.h
-			if(Uppercase(K::SYM[peAN]) == Uppercase(pe)) break;
-		if(peAN >= K::NUM_ELEMENTS)
+		PEAN = K::ElementIndex(pe);	//search for passivating element in K.h
+		if(PEAN >= K::NUM_ELEMENTS)	//not found
 		{
 			cerr << "Passivating element \"" << pe << "\" not recognized (simulation::Passivate)" << endl;
 			return;	//XXX need better error-catching
 		}
 		elementCount[elementNum] = 0;
-		elementIndex[elementNum] = peAN;
 		element[elementNum] = pe;
 		peIndex = elementNum;
 		++elementNum;
 	}
-	else	//already in sim
-		peAN = elementIndex[peIndex];
-	ratio = (K::COV_RAD[peAN] + K::COV_RAD[passivated->element]) / ModDistance(r, p);
+	else PEAN = elementIndex[peIndex];		//already in sim
+	ratio = (K::COV_RAD[PEAN] + K::COV_RAD[passivated->atomicN]) / ModDistance(r, p);
 
-	H = &atom[peIndex][elementCount[peIndex]];
-	H->ClearData();
-	H->exists=1;
-	// H->co = (((r-p)*ratio)+p);	//XXX this is wrong because the distance is not r-p!
-	H->co = ((r-p)+.5);	//center around .5 to use Mod() (Dec will return decimal value not mod it!)
-	H->co.Mod();		//Modulus 1
-	H->co -= .5;		//center around 0
-	H->co *= ratio;		//fit to new length
-	H->co += p;			//center around p
-	H->co.Mod();		//Modulus 1
-	H->bond[0] = passivated;	//bond to passivated atom
-	//XXX should check to make sure doesnt exceed max bonds: alternatively replace old bond...
-	//bond passivated to Hydrogen
-	passivated->bond[passivated->bondNum] = H;
-	passivated->bondNum++;
-	elementCount[peIndex]++;
+	s = ((r-p)+.5);	//center around .5 to use Mod()
+	s.Mod();		//Modulus 1
+	s -= .5;		//center around 0
+	s *= ratio;		//fit to new length
+	s += p;			//center around p
+	s.Mod();		//Modulus 1
+
+	atom.push_back(new atom_cls(PEAN, s));	//create subject.
+	bond(atom.back(), passivated);			//bond atoms
+	elementCount[peIndex]++;				//add to count
 	return;
 }
 bool simulation::WriteData(const string filename)
 {
 	//variables
-	unsigned int e,i;	//indexing
+	unsigned int e;	//indexing
 	ofstream outfile;
 	outfile.open(filename.c_str());
 
@@ -288,30 +240,31 @@ bool simulation::WriteData(const string filename)
 	//outfile << "\n";	//write a newline (do not use endl (forces flush))
 	for(int a=0; a<3; a++)
 	{
-		for(int b=0; b<3; b++)
+		for(int b=0; b<3; ++b)
 			outfile << ((a==b) ? lattice[a] : 0) << " ";
 		outfile << "\n";
 	}
-	for(e=0; e<elementNum; e++)	//element names
+	for(e=0; e<elementNum; ++e)	//element names
 		outfile << element[e] << " ";
 	outfile << "\n";
-	for(e=0; e<elementNum; e++)	//# extant atoms
+	for(e=0; e<elementNum; ++e)	//# extant atoms
 		outfile << Extant(e) << ' ';
 	outfile << "\n" << tag << "\n";
 
-	//only write out atoms if they exist ;)
-	for(e=0; e<elementNum; e++)
-		for(i=0; i<elementCount[e]; i++)
-			if(atom[e][i].exists)
-			{
-				outfile << ' ';	//preceed with space
-				for(int a=0; a<3; a++)
-					outfile << atom[e][i].co.ord[a] << " ";
-				for(int a=0; a<3; a++)
-					outfile << (atom[e][i].freedom[a] ? "T " : "F ");
-				outfile << "\n";	//write a newline (do not use endl (forces flush))
-			}
-
+	//output atom coords and freedom
+	for_each(atom.begin(), atome.end(), [outfile](atom_cls* atomP)
+	{
+		if(atomP->exists)//only write out atoms if they exist ;)
+		{
+			outfile << ' ';	//preceed with space
+			for(int a=0; a<3; ++a)
+				outfile << atomP->coord[a] << " ";
+			for(int a=0; a<3; ++a)
+				outfile << (atomP->freedom[a] ? "T " : "F ");
+			outfile << "\n";	//write a newline (do not use endl (forces flush))
+		}
+		return;
+	});
 	outfile.close();
 	return 1;
 }
@@ -322,35 +275,24 @@ bool simulation::operator>>(const string filename)
 bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mosaic of the current cell of given length and axis
 {
 	unsigned int index;	//for index of new atom
-	unsigned int e,i,b;	//indexing
-	//errorcatching
-	for(e=0; e<elementNum; e++)
-		if(elementCount[e]*length > K::MAX_ATOMS)
-		{
-			cerr << "cannot copy, the scale is too big!";
-			cerr << "This operation would need " << elementCount[e]*length;
-			cerr << " " << element[e] << " atoms.\n";
-			cerr << "The Maximum of any element is: " << K::MAX_ATOMS << "\n";
-			cerr << "This is regulated by K.h" << endl;
-			return 0;
-		}
+	unsigned int e,b;	//indexing
+	vector<atom_cls*>::iterator end = atom.end();
 	//copy cell
-	for(e=0; e<elementNum; e++)				//for each element,
+	for_each(atom.begin(), end, [](atom_cls* P)	//use end so that this doesnt add FOREVER... :P
 	{
-		for(i=0; i<elementCount[e]; i++)	//for each atom
-			for(b=1; b<length; b++)			//for each block (except first -already have it. :P)
-			{
-				index = i+b*elementCount[e];		//index of new atom
-				atom[e][index] = atom[e][i];		//copy the atom into the block
-				atom[e][index].co.ord[axis] += b;	//shift coordinates along axis
-			}
-		elementCount[e]*=length;				//set the # of elements
-	}
-
+		for(b=1; b<length; b++)			//for each block (except first -already have it. :P)
+		{
+			atom.pushback(new atom_cls(*atomP));	//copy
+			atom.back()->coord[axis] += b;			//shift coordinates along axis
+		}
+		return;
+	});
 	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
-	for(e=0; e<elementNum; e++)
-		for(i=0; i<elementCount[e]; i++)
-			atom[e][i].co.ord[axis] /= length;
+	for_each(atom.begin(), atom.end(), [](atom_cls* atomP)
+	{
+		atomP->coord /= length;
+		return;
+	});
 
 	//scale lattice-----------
 	lattice[axis] *= length;
@@ -372,99 +314,52 @@ bool simulation::Scale(unsigned int s)
 	unsigned int scale[3] = {s,s,s};
 	return Scale(scale);
 }
-bool simulation::Scale(double scale[3])	//ignores bonding. //FOR SCALING DOWN ONLY! the old algorythm wasnt good.
+bool simulation::Scale(double scale[3])	//ignores bonding. //FOR SCALING DOWN ONLY! the old alorithm wasnt good.
 {
-	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
-	for(unsigned int e=0; e<elementNum; e++)
-		for(unsigned int i=0; i<elementCount[e]; i++)
-			atom[e][i].co /= scale;
+	//scale all coordinates to fit in bounds
+	for_each(atom.begin(), atom.end(), [](atom_cls* atomP)
+	{
+		atomP->coord /= scale;
+		return;
+	});
 	//scale lattice-----------
 	for(int a=0; a<3; a++)
-		lattice[a] *= scale[a];	//XXX a good excuse to make a vector class or use coordinate... (inherit from vecor?)
+		lattice[a] *= scale[a];	//XXX a good excuse to make a vector class or use coordinate... (inherit from vector?)
 	//trim outliers---------------
 	cerr << Trim() << " Atoms were trimmed off after Scaling\n";
-	return 1;
-}
-bool simulation::Scale(string inFilename, string scaleFilename)	//XXX create a filename obj so pathing and extensions are taken care of
-{
-	//variables
-	ifstream scaleFile;
-	unsigned int count;
-	unsigned int scale[3];
-	string outFilename;
-	unsigned int s;
-	
-	//open scalefile
-	scaleFile.open(scaleFilename.c_str());
-	if(scaleFile.fail())
-	{
-		cerr << "Failed to open \"" << scaleFilename << "\"" << endl;
-		return 0;
-	}
-
-	scaleFile >> count;
-
-	for(unsigned int a=0; a<count; a++)
-	{
-		//read in scale
-		outFilename = "";	//reset outfilename
-		for(int b=0; b<3; b++)
-		{
-			scaleFile >> scale[b];				//read scale
-			// outFilename += to_string(scale[b]);	//create outfilename
-			s = scale[b];
-			do{
-				outFilename += ('0'+s%10);
-			} while((s/=10) >0);
-		}
-		if(!ReadData(inFilename))	//read data XXX hope to get rid of this later.
-		{
-			scaleFile.close();
-			return 0;
-		} 			
-		if(!Scale(scale))			//scale data
-		{
-			cerr << "failed to scale: " << outFilename << endl;
-			scaleFile.close();
-			return 0;
-		}				
-		if(!WriteData(outFilename))	//write data
-		{
-			scaleFile.close();
-			return 0;	
-		}
-	}
-	//close scalefile
-	scaleFile.close();
 	return 1;
 }
 int simulation::Trim(void)
 {
 	int count =0;
-	unsigned int e,i;	//indexing
+	vector<atom_cls*>::iterator it;	//indexing
 
-	for(e=0; e < elementNum; e++)			//for every atom
-		for(i=0; i < elementCount[e];)		//making room for exclusions
-			if(!((atom[e][i].co >= 0) && (atom[e][i].co < 1)) || !atom[e][i].exists)	//if not within bounds (important logic here. :P)
-			{
-				RemoveAtom(e,i);
-				count++;
-			} else i++;
+	for(it=atom.begin(); it!=atom.end();)
+	{
+		if(!((*it->coord >= 0) && (*it->coord < 1)) || !*it->exists)	//if not within bounds (important logic here. :P)
+		{
+			RemoveAtom(it);
+			++count;
+		} else ++it;			//only increment if nothing was removed.
+	}
 	return count;
 }
-void simulation::RemoveAtom(unsigned int e, unsigned int i)
-{	//unbind atoms to this
-	for(unsigned int a=0; a<atom[e][i].bondNum; a++)
+void simulation::RemoveAtom(vector<atom_cls*>::iterator& it)
+{	
+	//unbind
+	for_each(*it->bond.begin, *it->bond.end(), [](atom_cls* atomP)
 	{
-		atom[e][i].bond[a]->BreakBond(&atom[e][i]);	//break the bond from the other side.
-		atom[e][i].bond[a] = 0;						//nulify pointer
-	}
-	atom[e][i].bondNum = 0;
+		atomP->BreakBond(*it);	//break bond to atom
+		return;
+	});
+	*it->bond.clear();	//remove bonds from atom
 
-	//remove atom from list
-	for(unsigned int index=i; index+1<elementCount[e]; index++)
-		atom[e][index] = atom[e][index+1];
-	elementCount[e]--;
+	//delete
+	delete *it;
+
+	//erase
+	atom.erase(it);
+
 	return;
 }
 int simulation::PassivatedPore(double radius, coordinate* center, string pe)	//makes a passivated hole by recursion.
@@ -473,24 +368,31 @@ int simulation::PassivatedPore(double radius, coordinate* center, string pe)	//m
 	if(!center)
 		center = &c;
 	atom_cls* centerAtom = Closest(*center);			//find atom closest to the coordinates
-	if(ModDistance(centerAtom->co, *center) > radius)	//if the atom is too far away
+	if(ModDistance(centerAtom->co, *center) > radius)	//if the atom is too far away, stop
 		return 0;
 	return PassivatedPore(radius, centerAtom, pe, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
-int simulation::PassivatedPore(double radius, atom_cls* subject, string pe, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, vector<atom_cls*>::iterator& subject, string pe, coordinate* center)	//makes a passivated hole by recursion.
 {
 	if(!center)	//null pointer
-		center = &(subject->co);
+		center = &(*subject->co);
 	int count = 1;
-	subject->exists=0;	//mark for removal.	//XXX later simply remove atoms (rewuires using a pointer array of atoms)
-	for(unsigned int a=0; a<subject->bondNum; a++)
-		if(subject->bond[a]->exists)	//if not already marked.
+
+	vector<atom_cls*>::iterator bonded;
+
+	//remove atom
+	RemoveAtom()
+
+	for(bonded=subject->bond.begin(); bonded!=subject->bond.end(); ++bonded)
+	{
+		if(*bonded->exists)	//if not already marked.
 		{
-			if(ModDistance(subject->bond[a]->co, *center) < radius)	//if bonded atom is within radius
-				count+=PassivatedPore(radius,subject->bond[a], pe, center);
+			if(ModDistance(*bonded->co, *center) < radius)	//if bonded atom is within radius
+				count+=PassivatedPore(radius, *bonded, pe, center);
 			else if(!pe.empty()) 	//passivate here
-				Passivate(subject, subject->bond[a], pe);
+				Passivate(subject, *bonded, pe);
 		}
+	}
 	return count;
 }
 // int simulation::Remove(void)

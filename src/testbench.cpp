@@ -560,6 +560,7 @@ int testbench::Test(void)
 			}
 		}
 	}
+	sim.ClearData();
 	return 0;
 }
 int testbench::Run(string inputName)

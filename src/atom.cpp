@@ -42,12 +42,17 @@ atom_cls& atom_cls::operator=(const atom_cls& atom)
 	freedom = atom.freedom;	//freedoms
 	return (*this);
 }
-
 void atom_cls::BreakBond(atom_cls* atomP)
 {
 	vector<atom_cls*>::iterator it = find_if(bond.begin(), bond.end(), [atomP](atom_cls* P){return atomP==P;});
 	if(it == bond.end()) return;	//no bonds to atomP
 	bond.erase(it);					//remove bond
 	return;
+}
+bool atom_cls::IsBound(atom_cls* atomP)
+{
+	if(bond.end() == find_if(bond.begin(), bond.end(), [atomP](atom_cls* P){return atomP==P;}))
+		return 0;	//not found;
+	return 1;	//found it!
 }
 

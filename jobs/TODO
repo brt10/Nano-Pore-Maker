@@ -5,6 +5,9 @@ B	Bad Idea so given up on
 L	Low priority
 H	High priority
 
+FOR F 8/5
+-	make functions to return # of element, etc.
+
 FOR TH 7/28
 
 L	Make default for settings and data files to overwrite not append

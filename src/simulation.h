@@ -34,7 +34,6 @@ class simulation
 		int Associate(void);			//bonds neighbors
 		bool Bond(atom_cls*, atom_cls*);//bond, Covalent Bond
 		bool Bond(atom_cls*[2]);
-		int Hole(coordinate,double);	//creates hole in atoms of radius
 		void Passivate(atom_cls*, atom_cls*, string="H");	//passivates hole
 		bool WriteData(const string);	//outputs current state to datafile
 		bool operator>>(const string);
@@ -43,9 +42,8 @@ class simulation
 		bool Scale(unsigned int[3]);
 		bool Scale(unsigned int);
 		bool Scale(double[3]);			//scales the model to a certain size, retaining structure, and bond lengths
-		bool Scale(string,string);		//scales model to values in file.
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
-		void RemoveAtom(unsigned int, unsigned int);	//removes atom from sim.
+		void RemoveAtom(vector<atom_cls*>::iterator&);	//removes atom from sim.
 		int PassivatedPore(double, coordinate* center=0, string="H");	//makes a passivated hole by recursion.
 		int PassivatedPore(double, atom_cls*, string="H", coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		// int Remove(void);		//removes all non-extant atoms
@@ -71,9 +69,12 @@ class simulation
 		//variables-----------------
 		string title;								//title of the file :P
 		double multiplier;							//multiplier for system... unused so far...
-		unsigned int elementCount[K::MAX_ELEMENTS];	//count of atoms for each element
-		string element[K::MAX_ELEMENTS];			//element name	//XXX removeing soon
-		unsigned int elementIndex[K::MAX_ELEMENTS];	//index of the element used in atom array in K.h
+		// vector<unsigned int> elementCount;
+		// vector<string> element;
+
+		unsigned int elementCount[K::NUM_ELEMENTS];	//count of atoms for each element
+		string element[K::NUM_ELEMENTS];			//element name	//XXX removeing soon
+		// unsigned int elementIndex[K::MAX_ELEMENTS];	//index of the element used in atom array in K.h
 		unsigned int elementNum;					//number of elements
 		string tag;									//unknown tag... (direct)
 		//atom_cls atom[K::MAX_ELEMENTS][K::MAX_ATOMS];//atoms in system

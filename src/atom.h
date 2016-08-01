@@ -20,6 +20,7 @@ class atom_cls
 		void Default(void);						//sets default values
 		atom_cls& operator=(const atom_cls&);	//copy
 		void BreakBond(atom_cls*);				//may add error catching to this later...
+		bool IsBound(atom_cls*);				//if bound to atom
 		//variables---------------------
 		coordinate coord;				//coordinate 
 		bool exists;					//if the atom should be concidered
