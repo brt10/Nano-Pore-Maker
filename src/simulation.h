@@ -9,6 +9,7 @@ using namespace std;	//for now
 #include <sstream>	//for stringstream	(reading in data)	XXX should be able to replace with reading characters
 #include <iomanip>	//for formatting output to file
 #include <vector>	//for vectors
+#include <map>		//for maps
 #include <algorithm>//for for_each, etc.
 // #include <numeric>	//for accumulate
 //src
@@ -45,10 +46,10 @@ class simulation
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
 		void RemoveAtom(vector<atom_cls*>::iterator&);	//removes atom from sim.
 		int PassivatedPore(double, coordinate* center=0, string="H");	//makes a passivated hole by recursion.
-		int PassivatedPore(double, atom_cls*, string="H", coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
+		int PassivatedPore(double, vector<atom_cls*>::iterator&, string="H", coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
 		vector<atom_cls*>::iterator Closest(coordinate, string, int=1);	//closest element to the specified coordinate
 		vector<atom_cls*>::iterator Closest(coordinate, unsigned int=-1, int=1);	//returns the atom closest to the coordinate of given element
-		vector<atom_cls*>::iterator Center(int E=-1);	//returns the center most atom of specified element;
+		vector<atom_cls*>::iterator Center(unsigned int=(unsigned int)-1);	//returns the center most atom of specified element;
 		//data
 		double Volume(void);				//volume of lattice in cm^3
 		double Mass(void);					//mass of extant atoms
@@ -62,10 +63,6 @@ class simulation
 		double RealDistance(coordinate, coordinate);	//the real distance to a coord
 		double ModDistance(coordinate, coordinate);		//shortest distance to another atom
 		double ModDistance(atom_cls*, atom_cls*);
-		//element control
-		int ElementIndex(string);	//returns index of element used in atom array if none found return -1;
-
-		// void (*ForEachAtom)(unsigned int, unsigned int);	//will be usefull... buld in error catching later :)
 		//variables-----------------
 		string title;								//title of the file :P
 		double multiplier;							//multiplier for system... unused so far...
@@ -73,7 +70,8 @@ class simulation
 		unsigned int ElementNum(void);	//number of elements
 
 		string tag;									//unknown tag... (direct)
-		vector<atom_cls*> atom;
+		vector<atom_cls*> atom;						//vector of all atom*s (unsorted by element)
+		// map<unsigned int, unsigned int> element;	//map of atomic numbers to counts
 		double lattice[3];			//XXX change to vector or coord later!				//lattice axis scale... unit->angstroms?
 };
 #endif

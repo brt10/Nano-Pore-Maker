@@ -372,9 +372,9 @@ coordinate testbench::RandCoordFrom(coordinate center, double min, double max)	/
 }
 double testbench::RealRadius(coordinate center)
 {
-	atom_cls* close = sim.Closest(center);
-	if(close)
-		return sim.ModDistance(close->co, center);
+	vector<atom_cls*>::iterator close = sim.Closest(center);
+	if(close != sim.atom.end())
+		return sim.ModDistance((*close)->coord, center);
 	cerr << "There were no atoms to return the distance to! (testbench::RealRadius)" << endl;
 	return 0;
 }
@@ -523,9 +523,9 @@ int testbench::Test(void)
 
 			for(p=0; p<poreNum; p++)	//for each pore
 			{
-				passNum = sim.Extant(passivation);
+				passNum = sim.Atoms(passivation);
 				removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
-				passNum = sim.Extant(passivation) - passNum;
+				passNum = sim.Atoms(passivation) - passNum;
 				cout << "delta#H: " << passNum << endl;
 				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
 				// if(!poreTag.empty()) PoreLine(poreCoord[p],r);
@@ -538,9 +538,9 @@ int testbench::Test(void)
 				else
 					for(p=0; p<distNum; p++)
 					{
-						passNum = sim.Extant(passivation);
+						passNum = sim.Atoms(passivation);
 						removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
-						passNum = sim.Extant(passivation) - passNum;
+						passNum = sim.Atoms(passivation) - passNum;
 						cout << "delta#H: " << passNum << endl;
 						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
 						// if(!poreTag.empty()) PoreLine(poreDistCoord[p]);

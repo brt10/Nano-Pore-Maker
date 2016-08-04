@@ -17,7 +17,7 @@ class coordinate
 		void Mod(double=1);							//takes mod of coordinate XXX currently inefficient
 		void Dec(void);		//returns the decimal of the number(=modulus1)
 		//operators
-		double operator[](const unsigned int);		//allows one to refer to the coordinate directly. :)
+		double& operator[](const unsigned int);		//allows one to refer to the coordinate directly. :)
 		// coordinate operator=(const coordinate&);	//set equal to another coord. (able to do: coord = coordA = coordB)
 		coordinate& operator=(const double);			//set all axis the same.	(able to do: coordA = coordB = 9;)
 		//+

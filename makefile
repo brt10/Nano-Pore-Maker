@@ -2,10 +2,15 @@ S = src
 B = bin
 O = build
 TARGET = $(B)/pore
+
+ERRORS = -fmax-errors=2
 DEBUG = -g
 VERSION = -std=c++11
-CFLAGS = $(VERSION) -Wall -c $(DEBUG) -o $@
-LFLAGS = $(VERSION) -Wall $(DEBUG)
+FLAGS = $(VERSION) $(DEBUG) $(ERRORS) -Wall
+
+
+CFLAGS = $(FLAGS) -c -o $@
+LFLAGS = $(FLAGS)
 CXX = g++
 OBJS =	$(O)/main.o\
 		$(O)/coordinate.o\

@@ -41,9 +41,9 @@ void coordinate::Dec(void)
 	}
 	return;
 }
-double coordinate::operator[](const unsigned int i)
+double& coordinate::operator[](const unsigned int i)
 {
-	return ord[i];
+	return ord[i%3];
 }
 // coordinate coordinate::operator=(const coordinate& co)
 // {

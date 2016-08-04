@@ -10,6 +10,13 @@ FOR F 8/5
 		count_if()
 H	UPDATE K.h maker - use current K file as template?
 H	make certain taht sim::Mass() returns g
+?	concider using maps to store element symbols, etc...
+H	have coordinate[] return referance to allow assignement
+H	test if incorrect element symbols are recognized as such.
+H	fully implement element map
+H	weigh value of element as a map vs vector, or at all... only use in readin, readout?
+L	error-catching on Closest()
+H	Move things out of testbench that should not be there (real radius, etc.)
 
 FOR TH 7/28
 
