@@ -170,9 +170,7 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 	for(it[0]=atom.begin(); it[0]!=atom.end(); ++it[0])
 	{
 		if(percentage < (it[0]-atom.begin())*10/atom.size())
-		{
 			cout << ++percentage*10 << "%\b\b\b" << flush;
-		}
 		if(!(*(it[0]))->exists) continue;		//make sure atom exists
 		for(it[1]=it[0]+1; it[1]!=atom.end(); ++it[1])	//check only the atoms not yet analyzed.
 		{
@@ -544,6 +542,44 @@ double simulation::operator%(const string e)	//percent of extant elements
 double simulation::operator%(const unsigned int e)	//percent of extant elements
 {
 	return 100 * (double)Atoms(e) / (double)Atoms();
+}
+vector<vector<atom_cls*>> simulation::Cluster(void)
+{
+	vector<vector<atom_cls*>> cluster;
+	vector<atom_cls*>::iterator atom_it;
+	vector<atom_cls*> temp;	//temporary storage for groups
+
+	for(atom_it=atom.begin(); atom_it!=atom.end(); ++atom_it)	//every atom
+	{	//if atom is not already in cluster...
+		if(cluster.size()==0||cluster.end() == find_if(cluster.begin(), cluster.end(), [atom_it](vector<atom_cls*> atomV)
+		{
+			return (atomV.end()!=find_if(atomV.begin(), atomV.end(), [atom_it](atom_cls* atomP)
+			{
+				return (*atom_it == atomP);
+			}));
+			
+		}))
+		{
+			temp.clear();
+			cluster.push_back(Group( temp, *atom_it));	//add that atom's group
+		}
+	}
+	return cluster;
+}
+vector<atom_cls*> simulation::Group(vector<atom_cls*>& tree, atom_cls* seed)
+{
+	for_each(seed->bond.begin(), seed->bond.end(), [&tree, this](atom_cls* branch)
+	{
+		if(tree.end() == find(tree.begin(), tree.end(), branch))	//if unique
+		{
+			// cout << "adding a branch!" << endl;
+			tree.push_back(branch);	//add the branch
+			Group(tree, branch);	//recurse along branch	//XXX could remove branch, and just continue from last on tree
+		}
+		return;
+	});
+	
+	return tree;
 }
 //distance
 double simulation::RealDistance(coordinate a, coordinate b)

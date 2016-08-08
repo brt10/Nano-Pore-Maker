@@ -60,6 +60,8 @@ class simulation
 		double Density(void);				//density of system g/cm^3
 		double operator%(const string);//percent of element
 		double operator%(const unsigned int);//percent of element
+		vector<vector<atom_cls*>> Cluster(void);	//returns the number of clusters of atoms (disconnected groups)
+		vector<atom_cls*> Group(vector<atom_cls*>&, atom_cls*);
 		//distances
 		double RealDistance(coordinate, coordinate);	//the real distance to a coord
 		double ModDistance(coordinate, coordinate);		//shortest distance to another atom

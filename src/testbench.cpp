@@ -560,6 +560,12 @@ int testbench::Test(void)
 			}
 		}
 	}
+	vector<vector<atom_cls*>> temp = sim.Cluster();
+	cout << temp.size() << "\tclusters!" << endl;
+	for_each(temp.begin(), temp.end(), [](vector<atom_cls*> atomV)
+	{
+		cout << atomV.size() << "\tatoms in cluster" << endl;
+	});
 	sim.ClearData();	//advoid memory leaks
 	return 0;
 }
