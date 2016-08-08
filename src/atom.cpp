@@ -6,6 +6,7 @@ atom_cls::atom_cls(const atom_cls& atom)	//should not copy bonds
 	coord = atom.coord;		//copy coordinates,
 	exists = atom.exists;	//extant,
 	atomicN = atom.atomicN;	//atomicN,
+	freedom.reserve(atom.freedom.size());	//reserve space
 	freedom = atom.freedom;	//freedoms
 }
 atom_cls::atom_cls(int AN, coordinate C, vector<bool> & F)
@@ -24,8 +25,7 @@ atom_cls::atom_cls(int AN, coordinate C)
 {
 	atomicN = AN;
 	coord = C;
-	freedom.reserve(3);
-	fill(freedom.begin(), freedom.end(), 1);
+	freedom.resize(3,1);
 	exists = 1;
 }
 atom_cls::~atom_cls()

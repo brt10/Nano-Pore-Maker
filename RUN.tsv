@@ -1,6 +1,6 @@
-In_File				data/3C.vasp	6 6 6 
+In_File				data/3C.vasp	10 10 10
 center				.5	.5	.5
-Random_No_Overlap	1000	.3
+Random_No_Overlap	5	.5
 radius				4
 passivation			H
 out_path			focus/

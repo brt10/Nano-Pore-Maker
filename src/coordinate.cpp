@@ -13,7 +13,7 @@ double coordinate::Distance(coordinate co)
 {
 	double sum = 0;
 	for(int i=0; i<3; i++)
-		sum += pow(co.ord[i]-ord[i], 2);
+		sum += pow(static_cast<double>(co[i]-(*this)[i]), 2);
 	return sqrt(sum);
 }
 double Distance(coordinate a, coordinate b)

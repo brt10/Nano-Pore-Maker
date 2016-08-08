@@ -524,7 +524,7 @@ int testbench::Test(void)
 			for(p=0; p<poreNum; p++)	//for each pore
 			{
 				passNum = sim.Atoms(passivation);
-				removed += sim.PassivatedPore(r, &poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
+				removed += sim.PassivatedPore(r, poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
 				passNum = sim.Atoms(passivation) - passNum;
 				cout << "delta#H: " << passNum << endl;
 				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
@@ -539,7 +539,7 @@ int testbench::Test(void)
 					for(p=0; p<distNum; p++)
 					{
 						passNum = sim.Atoms(passivation);
-						removed += sim.PassivatedPore(r, &poreDistCoord[p], passivation);
+						removed += sim.PassivatedPore(r, poreDistCoord[p], passivation);
 						passNum = sim.Atoms(passivation) - passNum;
 						cout << "delta#H: " << passNum << endl;
 						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
@@ -560,7 +560,7 @@ int testbench::Test(void)
 			}
 		}
 	}
-	sim.ClearData();
+	sim.ClearData();	//advoid memory leaks
 	return 0;
 }
 int testbench::Run(string inputName)
@@ -726,16 +726,7 @@ int testbench::DataLine(unsigned int f, double r)
 				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
 				a = split; 									//move the iterator along
 				//search for element in sim
-				unsigned int e;
-				for(e=0; e<sim.elementNum; ++e)
-					if(sym == sim.element[e]) break;
-				if(e<sim.elementNum)	//found the element
-					data << sim%e;
-				else
-				{
-					cerr << "Found no \"" << sym << "\" in simulation, outputing 0 (testbench::DataLine)" << endl;
-					data << 0;
-				}
+				data << sim%sym;
 				break;
 			}
 			case '#':	//number
@@ -749,16 +740,8 @@ int testbench::DataLine(unsigned int f, double r)
 				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
 				a = split; 									//move the iterator along
 				//search for element in sim
-				unsigned int e;
-				for(e=0; e<sim.elementNum; ++e)
-					if(sym == sim.element[e]) break;
-				if(e<sim.elementNum)	//found the element
-					data << sim.Extant(e);
-				else
-				{
-					cerr << "Found no \"" << sym << "\" in simulation, outputing 0 (testbench::DataLine)" << endl;
-					data << 0;
-				}
+				data << sim.Atoms(sym);
+				
 				break;
 			}
 			case 'D':	//density

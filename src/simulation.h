@@ -26,6 +26,7 @@ class simulation
 	public:
 		//constructors------------
 		simulation();
+		~simulation();
 		//prototypes--------------
 		void ClearData(void);			//clears all data in class
 		bool ReadData(const string);	//reads datafile	XXX may want to return number of atoms read in?
@@ -44,9 +45,9 @@ class simulation
 		bool Scale(unsigned int);
 		bool Scale(double[3]);			//scales the model to a certain size, retaining structure, and bond lengths
 		int Trim(void);					//trims off all atoms that are outside of bounds or non-extant
-		void RemoveAtom(vector<atom_cls*>::iterator&);	//removes atom from sim.
-		int PassivatedPore(double, coordinate* center=0, string="H");	//makes a passivated hole by recursion.
-		int PassivatedPore(double, vector<atom_cls*>::iterator&, string="H", coordinate* center=0);	//fastest hole-maker. (specify hole by atom)
+		void RemoveAtom(atom_cls*);	//removes atom from sim.
+		int PassivatedPore(double, coordinate=coordinate(0.5), string="H");	//makes a passivated hole by recursion.
+		int PassivatedPore(double, atom_cls*, string="H", coordinate=coordinate(0.5));	//fastest hole-maker. (specify hole by atom)
 		vector<atom_cls*>::iterator Closest(coordinate, string, int=1);	//closest element to the specified coordinate
 		vector<atom_cls*>::iterator Closest(coordinate, unsigned int=-1, int=1);	//returns the atom closest to the coordinate of given element
 		vector<atom_cls*>::iterator Center(unsigned int=(unsigned int)-1);	//returns the center most atom of specified element;

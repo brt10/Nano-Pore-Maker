@@ -17,6 +17,14 @@ H	fully implement element map
 H	weigh value of element as a map vs vector, or at all... only use in readin, readout?
 L	error-catching on Closest()
 H	Move things out of testbench that should not be there (real radius, etc.)
+H	reserve spaces for atoms around major additions!
+H	remove iterators and make center required at low levels
+		or make default not const
+H	tidy up memory stuffs regarding passivating pores... no margin for error
+H	evidence pointing to double-passivation
+H	directional algorithm that path-finds to closest atom... faster than checking all?
+		relative coordinates also faster? 
+H	Ideally remove atoms after making pore...
 
 FOR TH 7/28
 

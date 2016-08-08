@@ -4,6 +4,10 @@ simulation::simulation()
 {
 	ClearData();
 }
+simulation::~simulation()
+{
+	ClearData();
+}
 void simulation::ClearData(void)
 {
 	//clear atom vector
@@ -29,6 +33,7 @@ bool simulation::ReadData(const string filename)
 	unsigned int count;
 	map<unsigned int, unsigned int> element;
 	map<unsigned int, unsigned int>::iterator eIt;
+	unsigned int total = 0;
 	
 
 	// string temp_str;
@@ -89,13 +94,18 @@ bool simulation::ReadData(const string filename)
 		element[AN] = 0;
 	}
 
-	//read in atom count for each element
+	//read in atom count for each element, and ad to the total
 	for(eIt=element.begin(); eIt!=element.end(); ++eIt)
 	{
 		infile >> count;
 		eIt->second = count;
+		total+=count;
 	}
 
+	//reserve space for atoms
+	atom.reserve(total);
+
+	//read in tag //XXX rename this!
 	infile >> tag;
 
 	//read atom data
@@ -154,8 +164,15 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 	double bondLength;					//optimal bond length for atoms
 	vector<atom_cls*>::iterator it[2];	//iterator array
 
+	cout << "Bonding ";
+	unsigned int percentage = 0;	//every 10 percent (perdekage?)
+
 	for(it[0]=atom.begin(); it[0]!=atom.end(); ++it[0])
 	{
+		if(percentage < (it[0]-atom.begin())*10/atom.size())
+		{
+			cout << ++percentage*10 << "%\b\b\b" << flush;
+		}
 		if(!(*(it[0]))->exists) continue;		//make sure atom exists
 		for(it[1]=it[0]+1; it[1]!=atom.end(); ++it[1])	//check only the atoms not yet analyzed.
 		{
@@ -172,6 +189,7 @@ int simulation::Associate(void)	//XXX make sure it deals with previous bonds!
 			}
 		}
 	}
+	cout << endl;
 	return bondCount;
 }
 bool simulation::Bond(atom_cls* aP0, atom_cls* aP1)
@@ -206,10 +224,6 @@ void simulation::Passivate(atom_cls* removed, atom_cls* passivated, string pe)
 		cerr << "Passivating element \"" << pe << "\" not recognized (simulation::Passivate)" << endl;
 		return;
 	}
-
-	//not needed because not relying on a map class
-	// if(element.end() == element.find(PEAN))	//not in sim.
-	// 	element[PEAN] = 0;					//initialize with no atoms of that element
 
 	ratio = (K::COV_RAD[PEAN] + K::COV_RAD[passivated->atomicN]) / ModDistance(r, p);
 
@@ -293,6 +307,9 @@ bool simulation::operator>>(const string filename)
 }
 bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mosaic of the current cell of given length and axis
 {
+	//reserve space
+	atom.reserve(atom.size()*length);	//need to reserve space before marking end
+
 	const vector<atom_cls*>::iterator end = atom.end();	//constant stopping point (could iterate backwards...)
 	vector<atom_cls*>::iterator atom_it;				//indexing
 
@@ -301,15 +318,14 @@ bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mos
 	{
 		for(unsigned int b=1; b<length; b++)			//for each block (except first -already have it. :P)
 		{
-			atom.push_back(new atom_cls(**atom_it));		//copy
+			atom.push_back(new atom_cls(**atom_it));	//copy
 			atom.back()->coord[axis] += b;				//shift coordinates along axis
 		}
-		return 1;
 	}
 	//scale all coordinates to fit in bounds	//could easily put this in loop above... but would be hard to read.
-	for_each(atom.begin(), atom.end(), [length](atom_cls* atomP)
+	for_each(atom.begin(), atom.end(), [length, axis](atom_cls* atomP)
 	{
-		atomP->coord /= length;
+		atomP->coord[axis] /= length;
 		return;
 	});
 
@@ -322,10 +338,10 @@ bool simulation::Scale(unsigned int scale[3])
 
 	//copy unit cell
 	for(int a=0; a<3; a++)	//for each axis
+	{
+		cout << "Scaling" << a << endl;
 		if(!CopyCell(scale[a],a)) return 0;
-
-	//trim outliers---------------
-	//cerr << Trim() << " Atoms were trimmed off after Scaling\n";
+	}
 	return 1;
 }
 bool simulation::Scale(unsigned int s)
@@ -357,63 +373,73 @@ int simulation::Trim(void)
 	{
 		if(!(((*it)->coord >= 0) && ((*it)->coord < 1)) || !(*it)->exists)	//if not within bounds (important logic here. :P)
 		{
-			RemoveAtom(it);
+			RemoveAtom(*it);
 			++count;
 		} else ++it;			//only increment if nothing was removed.
 	}
 	return count;
 }
-void simulation::RemoveAtom(vector<atom_cls*>::iterator& it)
+void simulation::RemoveAtom(atom_cls* atomP)
 {	
-	//unbind
-	for_each((*it)->bond.begin(), (*it)->bond.end(), [it](atom_cls* atomP)
+	vector<atom_cls*>::iterator atom_it;	//index
+
+	atom_it = find(atom.begin(), atom.end(), atomP);				//find the atom
+	if(atom_it==atom.end())	//not found
 	{
-		atomP->BreakBond(*it);	//break bond to atom
+		cerr << "Attempted to remove non-extant atom... could be a memory issue!" << endl;
+		return;
+	}
+
+	//unbind
+	for_each(atomP->bond.begin(), atomP->bond.end(), [atomP](atom_cls* bondedP)
+	{
+		bondedP->BreakBond(atomP);	//break bond to atom
 		return;
 	});
-	(*it)->bond.clear();	//remove bonds from atom
+	atomP->bond.clear();	//remove bonds from atom
 
 	//delete
-	delete *it;
+	delete atomP;
 
 	//erase
-	atom.erase(it);
+	atom.erase(atom_it);
 
 	return;
 }
-int simulation::PassivatedPore(double radius, coordinate* center, string pe)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, coordinate center, string pe)	//makes a passivated hole by recursion.
 {
-	coordinate c =.5;
-	if(!center) center = &c;
-	vector<atom_cls*>::iterator centerAtom = Closest(*center);		//find atom closest to the coordinates
+	vector<atom_cls*>::iterator centerAtom = Closest(center);		//find atom closest to the coordinates
 	if(centerAtom == atom.end())
 	{
 		cerr << "Found no atoms near coordinate: ";
 		for(unsigned int a=0; a<3; ++a)
-			cerr << center->ord[a] << " ";
+			cerr << center[a] << " ";
 		cerr << "(simulations::PassivatedPore)" << endl;
 		return 0;
 	}
-	if(ModDistance((*centerAtom)->coord, *center) > radius)				//if the atom is too far away, stop
+	if(ModDistance((*centerAtom)->coord, center) > radius)				//if the atom is too far away, stop
 		return 0;
-	return PassivatedPore(radius, centerAtom, pe, center);	//else make passivated hole about this coordinate starting with centerAtom
+	return PassivatedPore(radius, *centerAtom, pe, center);	//else make passivated hole about this coordinate starting with centerAtom
 }
-int simulation::PassivatedPore(double radius, vector<atom_cls*>::iterator& subject, string pe, coordinate* center)	//makes a passivated hole by recursion.
+int simulation::PassivatedPore(double radius, atom_cls* subject, string pe, coordinate center)	//makes a passivated hole by recursion.
 {
-	if(!center)	//null pointer
-		center = &((*subject)->coord);
 	int count = 1;
-	vector<atom_cls*>::iterator bonded;	//atoms binded to **subject
+	// vector<atom_cls*>::iterator bonded;	//atoms binded to **subject
+
+	subject->exists = 0;	//required to smehow remove atom from making inf loops...
 
 	//passivate
-	for(bonded=(*subject)->bond.begin(); bonded!=(*subject)->bond.end(); ++bonded)
+	for(unsigned int b=0; b<subject->bond.size(); ++b)
 	{
-		if((*bonded)->exists)	//if not already marked.
+		if(subject->bond[b]->exists)	//if not already marked.
 		{
-			if(ModDistance((*bonded)->coord, *center) < radius)	//if bonded atom is within radius
-				count+=PassivatedPore(radius, bonded, pe, center);
+			if(ModDistance(subject->bond[b]->coord, center) < radius)	//if bonded atom is within radius
+			{
+				count+=PassivatedPore(radius, subject->bond[b], pe, center);	//recurse
+				--b;	//bond will be removed from list, so redo. //XXX source of extra calculation...
+			}
 			else if(!pe.empty()) 	//passivate here
-				Passivate(*subject, *bonded, pe);
+				Passivate(subject, subject->bond[b], pe);
 		}
 	}
 
