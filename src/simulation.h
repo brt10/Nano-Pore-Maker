@@ -26,6 +26,8 @@ class simulation
 	public:
 		//constructors------------
 		simulation();
+		simulation(const simulation&);
+		const simulation& operator=(const simulation&);
 		~simulation();
 		//prototypes--------------
 		void ClearData(void);			//clears all data in class

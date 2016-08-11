@@ -8,8 +8,10 @@ H	High priority
 
 FOR THursday, 8/11
 H	bond type numbers
-		place in 
+		place in datafile
 H	settings file to re-create system. (seed)
+		(creation file)
+L	use vectors to track pores (or container obj...)
 
 FOR F 8/5
 -	make functions to return # of element, etc.

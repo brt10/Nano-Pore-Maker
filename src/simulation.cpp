@@ -4,6 +4,61 @@ simulation::simulation()
 {
 	ClearData();
 }
+simulation::simulation(const simulation& parent)
+{
+	vector<atom_cls*>::const_iterator atomI;	//iterating though atoms
+	unsigned int a,b,c;	//indexing
+
+	ClearData();	//empty obj
+
+	title = parent.title;
+	multiplier = parent.multiplier;
+	tag = parent.tag;
+	for(int a=0; a<3; ++a)
+		lattice[a] = parent.lattice[a];
+	//copy atom vector...
+	for(atomI=parent.atom.begin(); atomI!=parent.atom.end(); ++atomI)
+		atom.push_back(new atom_cls(**atomI));
+	//copy bonds...
+	for(a=0; a<parent.atom.size(); ++a)
+	{
+		for(b=0; b<parent.atom[a]->bond.size(); ++b)
+		{
+			for(c=0; c<parent.atom.size(); ++c)
+				if(parent.atom[a]->bond[b] == parent.atom[c])
+					break;
+			atom[a]->bond.push_back(atom[c]);
+		}
+	}
+}
+const simulation& simulation::operator=(const simulation& parent)
+{
+	vector<atom_cls*>::const_iterator atomI;	//iterating though atoms
+	unsigned int a,b,c;	//indexing
+
+	ClearData();	//empty obj
+
+	title = parent.title;
+	multiplier = parent.multiplier;
+	tag = parent.tag;
+	for(int a=0; a<3; ++a)
+		lattice[a] = parent.lattice[a];
+	//copy atom vector...
+	for(atomI=parent.atom.begin(); atomI!=parent.atom.end(); ++atomI)
+		atom.push_back(new atom_cls(**atomI));
+	//copy bonds...
+	for(a=0; a<parent.atom.size(); ++a)
+	{
+		for(b=0; b<parent.atom[a]->bond.size(); ++b)
+		{
+			for(c=0; c<parent.atom.size(); ++c)
+				if(parent.atom[a]->bond[b] == parent.atom[c])
+					break;
+			atom[a]->bond.push_back(atom[c]);
+		}
+	}
+	return *this;
+}
 simulation::~simulation()
 {
 	ClearData();
@@ -333,13 +388,9 @@ bool simulation::CopyCell(unsigned int length, unsigned int axis)		//makes a mos
 }
 bool simulation::Scale(unsigned int scale[3])
 {	//error catching
-
 	//copy unit cell
 	for(int a=0; a<3; a++)	//for each axis
-	{
-		cout << "Scaling" << a << endl;
 		if(!CopyCell(scale[a],a)) return 0;
-	}
 	return 1;
 }
 bool simulation::Scale(unsigned int s)

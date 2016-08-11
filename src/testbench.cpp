@@ -7,6 +7,15 @@
 	// const int testbench::MAX_PORES = 10;			//max # of pores
 
 //SETTINGS
+	string testbench::Seed(string line)
+	{
+		if(line==COMMENT) return "SEED";	//default
+		if(line.empty()) return "";			//do nothing if empty
+		stringstream ss;
+		ss << line;
+		ss >> seed;
+		return "";
+	}
 	//INPUT
 		string testbench::Input_Filename(string line)
 		{
@@ -89,17 +98,24 @@
 		{
 			if(line==COMMENT) return "RANDOM";	//default
 			stringstream ss;			//for conversion between strings and numbers
-			unsigned int randCoordNum;	//number of random coords to generate
 			
-			if(!line.empty())	//if tab found
+			//get number of pores desired
+			if(!line.empty())	//if number
 			{
 				ss << line;
-				ss >> randCoordNum;	//read as number of coords
+				ss >> poreDistribute;	//read as number of pores to add
+				if(poreDistribute > MAX_PORES)
+				{
+					cerr << "\"" << poreDistribute << "\" pores is above the max of: " << MAX_PORES << " reverting to that max. (testbench::PoreCoordinate)" << endl;
+					poreDistribute = MAX_PORES;
+				}
 			}
 			else	//default
-				randCoordNum = 1;
-			for(unsigned int a=0; a<randCoordNum; ++a, ++poreNum)
-				poreCoord[poreNum] = RandCoord();
+			{
+				cerr << "No number of pores selected to distribute, defaults to 1 (testbench::PoreCoordinate)" << endl;
+				poreDistribute = 1;
+			}
+			DistF = &testbench::Random;
 			
 			return "";
 		}
@@ -365,16 +381,16 @@ coordinate testbench::RandCoordFrom(coordinate center, double min, double max)	/
 	while(sum>1 || sum==0);	//while out of sphere, or without directionality
 
 	co *= (distance/sqrt(sum));	//use vector and distance to plot a point
-	co /= sim.lattice;				//fit to lattice
+	co /= testSim.lattice;				//fit to lattice
 	co += center;				//move around center
 	co.Mod();					//wrap over edges of sim...
 	return co;
 }
 double testbench::RealRadius(coordinate center)
 {
-	vector<atom_cls*>::iterator close = sim.Closest(center);
-	if(close != sim.atom.end())
-		return sim.ModDistance((*close)->coord, center);
+	vector<atom_cls*>::iterator close = testSim.Closest(center);
+	if(close != testSim.atom.end())
+		return testSim.ModDistance((*close)->coord, center);
 	cerr << "There were no atoms to return the distance to! (testbench::RealRadius)" << endl;
 	return 0;
 }
@@ -384,6 +400,7 @@ double testbench::RealRadius(coordinate center)
 testbench::testbench(void) : DELIMITERS("\t "), COMMENT("@")
 {
 	//initialize function pointers and count
+	setting[settingNum++] = &testbench::Seed;
 	setting[settingNum++] = &testbench::Input_Filename;
 	setting[settingNum++] = &testbench::Bonding_Tolerance;
 	setting[settingNum++] = &testbench::Bonding_Lengths;
@@ -478,16 +495,10 @@ int testbench::Test(void)
 
 	for(f=0; f<inputFileNum; f++)//for each inputfile
 	{
-		// if(!poreTag.empty()) 
-		// 	if(PoreHeader())			//if fail.
-		// 	{
-		// 		cerr << "Error writing to the porefile: \"" << poreFilename << to_string(outFileCount) "\"" << endl;
-		// 		return 0;
-		// 	} 
 		if(poreRadMax == -1) //no pores
 		{
-			sim << inputFilename[f];	//read in file
-			sim.Standardize();			//standardize input
+			fileSim << inputFilename[f];	//read in file
+			fileSim.Standardize();			//standardize input
 			//Scale
 				for(a=0; a<3; ++a)
 				{
@@ -495,39 +506,43 @@ int testbench::Test(void)
 					if(intScale[a]<1)
 						break;
 				}
-				if(a<3)	sim.Scale(fileScale[f]);//down
-				else sim.Scale(intScale);	//up
-			sim >> (path+CreateFilename()+extension);
+				if(a<3)	fileSim.Scale(fileScale[f]);//down
+				else fileSim.Scale(intScale);		//up
+			fileSim >> (path+CreateFilename()+extension);
 			DataLine(f,-1);
 			++outFileCount;
 		}
+		cout << "Reading In_File..." << endl;
+		if(poreNum+poreDistribute == 0)	//if no pores, but radius has ben selelected
+			++poreNum;
+		fileSim << inputFilename[f];	//read in file
+		fileSim.Standardize();			//standardize input
+		//Scale
+			for(a=0; a<3; ++a)
+			{
+				intScale[a] = (unsigned int)fileScale[f][a];
+				if(intScale[a]<1)
+					break;
+			}
+			if(a<3)	fileSim.Scale(fileScale[f]);//down
+			else fileSim.Scale(intScale);	//up
+		fileSim.Associate();			//create bonds
 		lastRem = 0;	//initialize # removed
 		first =1;		//this will be first
 		for(double r=poreRadMin; r<=poreRadMax; r+=poreRadStep)	//for each pore size
 		{
-			if(poreNum+poreDistribute == 0)	//if no pores, but radius has ben selelected
-				++poreNum;
-			sim << inputFilename[f];	//read in file
-			sim.Standardize();			//standardize input
-			//Scale
-				for(a=0; a<3; ++a)
-				{
-					intScale[a] = (unsigned int)fileScale[f][a];
-					if(intScale[a]<1)
-						break;
-				}
-				if(a<3)	sim.Scale(fileScale[f]);//down
-				else sim.Scale(intScale);	//up
-			sim.Associate();			//create bonds
 			removed = 0;				//reset count
+			testSim.ClearData();
+			testSim = fileSim;
 
+			cout << "Creating pores..." << endl;
 			for(p=0; p<poreNum; p++)	//for each pore
 			{
-				passNum = sim.Atoms(passivation);
-				removed += sim.PassivatedPore(r, poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
-				passNum = sim.Atoms(passivation) - passNum;
-				cout << "delta#H: " << passNum << endl;
-				cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
+				// passNum = sim.Atoms(passivation);
+				removed += testSim.PassivatedPore(r, poreCoord[p], passivation);	//XXX may have probs with multiple pores if any overlap!
+				// passNum = sim.Atoms(passivation) - passNum;
+				// cout << "delta#H: " << passNum << endl;
+				// cout << "R:" << r <<" RR:" << RealRadius(poreCoord[p]) << endl;
 				// if(!poreTag.empty()) PoreLine(poreCoord[p],r);
 			}
 			if(DistF)	//if initialized
@@ -538,20 +553,23 @@ int testbench::Test(void)
 				else
 					for(p=0; p<distNum; p++)
 					{
-						passNum = sim.Atoms(passivation);
-						removed += sim.PassivatedPore(r, poreDistCoord[p], passivation);
-						passNum = sim.Atoms(passivation) - passNum;
-						cout << "delta#H: " << passNum << endl;
-						cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
+						// passNum = sim.Atoms(passivation);
+						removed += testSim.PassivatedPore(r, poreDistCoord[p], passivation);
+						// passNum = sim.Atoms(passivation) - passNum;
+						// cout << "delta#H: " << passNum << endl;
+						// cout << "R:" << r <<" RR:" << RealRadius(poreDistCoord[p]) << endl;
 						// if(!poreTag.empty()) PoreLine(poreDistCoord[p]);
 					}
 			}
+			else if(poreDistribute > 0)
+				cerr << "Unable to distribute pores because the distribution method is not set." << endl;
 			
 			if(removed > lastRem || first)		//ifunique or first: output file
 			{
-				cout << "Removed " << removed << " atoms making the pores" << endl;
+				// cout << "Removed " << removed << " atoms making the pores" << endl;
 				outFilename = CreateFilename();
-				sim >>(path+outFilename+extension);
+				cout << "Outputing " << (path+outFilename+extension) << endl;
+				testSim >>(path+outFilename+extension);
 				DataLine(f,r);		//writes data to line in file
 				Setting(distNum,r);	//writes setttings to file-specific setting file
 				outFileCount++;
@@ -560,16 +578,17 @@ int testbench::Test(void)
 			}
 		}
 	}
-	vector<vector<atom_cls*>> temp = sim.Cluster();
+	vector<vector<atom_cls*>> temp = testSim.Cluster();
 	cout << temp.size() << "\tclusters!" << endl;
 	for_each(temp.begin(), temp.end(), [](vector<atom_cls*> atomV)
 	{
 		cout << atomV.size() << "\tatoms in cluster" << endl;
 	});
 
-	cout << sim.BondNum("Si", "C") << "Si-C bonds" << endl;
+	// cout << sim.BondNum("Si", "C") << "Si-C bonds" << endl;
 
-	sim.ClearData();	//advoid memory leaks
+	testSim.ClearData();	//advoid memory leaks
+	fileSim.ClearData();
 	return 0;
 }
 int testbench::Run(string inputName)
@@ -761,7 +780,7 @@ int testbench::DataLine(unsigned int f, double r)
 				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
 				a = split; 									//move the iterator along
 				//search for element in sim
-				data << sim%sym;
+				data << testSim%sym;
 				break;
 			}
 			case '#':	//number
@@ -775,7 +794,7 @@ int testbench::DataLine(unsigned int f, double r)
 				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
 				a = split; 									//move the iterator along
 				//search for element in sim
-				data << sim.Atoms(sym);
+				data << testSim.Atoms(sym);
 				
 				break;
 			}
@@ -802,11 +821,11 @@ int testbench::DataLine(unsigned int f, double r)
 				sym[1] = dataTag.substr(split+1,end-split-1);	//construct the symbol
 				a = end;
 
-				data << sim.BondNum(sym[0], sym[1]);
+				data << testSim.BondNum(sym[0], sym[1]);
 				break;
 			}
 			case 'D':	//density
-				data << sim.Density();
+				data << testSim.Density();
 				break;
 			case 'r':	//radius used
 				data << r;
@@ -870,6 +889,7 @@ void testbench::Default(void)
 	DistF = 0;			//default to null poiner
 	settingPath = "";	//no path
 	poreDistance = 0;	//no modification on minimum distance if none selected
+	seed = time(NULL);	//random seed
 
 
 	unsigned int a;	//indexing
@@ -880,8 +900,8 @@ void testbench::Default(void)
 	for(a=0; a<MAX_PORES; a++)
 		poreCoord[a]=.5;
 
-	//seed rand
-	srand(time(NULL));
+	// //seed rand
+	// srand(time(NULL));
 	return;
 }
 //--------------------------DISTRIBUTIONS------------------------------------------------------------
@@ -889,9 +909,10 @@ unsigned int testbench::Poisson(double r)
 {
 	if(poreDistribute == 0)	
 		return 0;	//not to add any pores
+	srand(seed);	//seed
 	//constants
 	const double FILL = M_PI/6;	//% of cube filled by a sphere
-	const double RADIUS = cbrt(sim.Volume()*1E24/(poreNum+poreDistribute)*3/4/M_PI*(FILL))*2*2/3;	//maximum radius of the distance between pores, accounting for emptyness to bring to average
+	const double RADIUS = cbrt(testSim.Volume()*1E24/(poreNum+poreDistribute)*3/4/M_PI*(FILL))*2*2/3;	//maximum radius of the distance between pores, accounting for emptyness to bring to average
 	//const unsigned int MAX_ATTEMPTS = 10;	//max number of attempts at finding a suitible location for pore
 	// int grid[MAX_PORES][MAX_PORES][MAX_PORES];		//XXX unsure how to impliment well...
 	//pointers
@@ -947,7 +968,7 @@ unsigned int testbench::Poisson(double r)
 		{
 			poreDistCoord[poreAdded] = RandCoordFrom(*activePore[activeIndex], RADIUS, RADIUS*2);	//make random coordinate
 			for(i=0; i<pn; i++)	//check distance to all pores
-				if(sim.ModDistance(*p[i], poreDistCoord[poreAdded]) < RADIUS)	//if didnt pass, break
+				if(testSim.ModDistance(*p[i], poreDistCoord[poreAdded]) < RADIUS)	//if didnt pass, break
 					break;
 			if(i==pn)	//if passed all tests, stop searching
 				break;
@@ -973,6 +994,7 @@ unsigned int testbench::RandomNoOverlap(double r)
 {
 	if(poreDistribute == 0)	
 		return 0;	//not to add any pores
+	srand(seed);	//seed
 	unsigned int a,n,p, attempt;	//indexing and counting
 	coordinate *allPore[MAX_PORES*2];
 
@@ -989,7 +1011,7 @@ unsigned int testbench::RandomNoOverlap(double r)
 			poreDistCoord[n] = RandCoord();
 			++attempt;
 			for(p=0; p<(poreNum+n); ++p)
-				if(sim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2 + poreDistance)	//too close
+				if(testSim.ModDistance(*allPore[p], poreDistCoord[n]) < r*2 + poreDistance)	//too close
 					break;
 		}
 		while( p<poreNum+n && attempt<randAttempts);
@@ -1000,6 +1022,18 @@ unsigned int testbench::RandomNoOverlap(double r)
 		}
 	}
 	return n;	//return how many pores were established
+}
+unsigned int testbench::Random(double r)
+{
+	if(poreDistribute == 0)	
+		return 0;	//not to add any pores
+	srand(seed);	//seed
+	unsigned int p;	//indexing
+
+	//distribute pores
+	for(p=0; p<poreDistribute; ++p)
+		poreDistCoord[p] = RandCoord();
+	return poreDistribute;	//return how many pores were established
 }
 //porefile
 int testbench::SettingHeader(string filename)

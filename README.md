@@ -112,6 +112,9 @@ setting_file <filename>
 setting_path <path>
 	Options:
 		<path>	added as a prefix to the filename
+seed	<seed>
+	Options:
+		<seed>	an unsigned integer to seed any distributions.
 ```
 
 Contribute

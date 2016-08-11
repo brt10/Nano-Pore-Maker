@@ -30,11 +30,13 @@ class testbench
 		const string DELIMITERS;	//XXX dang this name is a little too close to delimiter...
 		const string COMMENT;
 
-		unsigned int settingNum;	//#of settings per section
-		
+		unsigned int settingNum;	//#of settings
 
+		
 		//simulation	//XXX should we have multiple for faster data-transfer?
-		simulation sim;
+		// simulation sim;
+		simulation testSim;	//for testing
+		simulation fileSim;	//stores file
 
 		//INPUT
 		unsigned int inputFileNum;				//#of inputfiles to read from
@@ -51,11 +53,14 @@ class testbench
 		double poreRadMax;						//max pore size
 		double poreRadStep;						//step size of pore radius
 		string passivation;						//element that will passivate the pores
+
 		//distribution
+		unsigned int seed;
 		typedef unsigned int (testbench::*DistributeFP)(double);
 		DistributeFP DistF;
 		unsigned int Poisson(double);	//distributes temporary coordinates untill a density is reached
 		unsigned int RandomNoOverlap(double);
+		unsigned int Random(double);
 		unsigned int randAttempts;	//# of attempts at a match
 
 		//OUTPUT
@@ -75,15 +80,14 @@ class testbench
 		string settingPath;		//path to location of setting file
 		//CONDITIONS
 
+		string Seed(string);
 		//INPUT
 		string Input_Filename(string);
 		//BONDING
 		string Bonding_Tolerance(string);
 		string Bonding_Lengths(string);
 		//PORE
-		// string Pore_Number(string line = "");
 		string Pore_Center(string line);
-		//string Pore_Center(string line = "");
 		string Pore_Random(string);
 		string Pore_Distribute(string);
 		string Pore_RandomNoOverlap(string);
