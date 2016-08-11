@@ -62,6 +62,8 @@ class simulation
 		double operator%(const unsigned int);//percent of element
 		vector<vector<atom_cls*>> Cluster(void);	//returns the number of clusters of atoms (disconnected groups)
 		vector<atom_cls*> Group(vector<atom_cls*>&, atom_cls*);
+		unsigned int BondNum(unsigned int, unsigned int);
+		unsigned int BondNum(string, string);
 		//distances
 		double RealDistance(coordinate, coordinate);	//the real distance to a coord
 		double ModDistance(coordinate, coordinate);		//shortest distance to another atom

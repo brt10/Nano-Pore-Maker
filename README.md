@@ -94,6 +94,7 @@ data_tag [options] %<elementSymbol>% #<elementSymbol>#
 		S	The Full scale of the model (filescale*scale)
 		%<elementSymbol>%	The percent of the element in model by number
 		#<elementSymbol>#	The number of the element in model
+		(<elementSymbol>-<elementSymbol>)	The number of bonds between selected elements
 	Note: these weill be written as headers to the datafile in the order selected
 
 Example: 	data_tag I%Si%R

@@ -1,11 +1,11 @@
 In_File				data/3C.vasp	10 10 10
 center				.5	.5	.5
-Random_No_Overlap	500	.9
+Random_No_Overlap	15	0
 radius				8
 passivation			H
 out_path			focus/
 out_file 			pore
 data_file			focus/data.tsv
-data_tag			ID%H%rRCO
+data_tag			ID%H%rRCO(Si-C)
 setting_tag			CR
 setting_path		focus/

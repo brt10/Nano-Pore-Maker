@@ -581,6 +581,38 @@ vector<atom_cls*> simulation::Group(vector<atom_cls*>& tree, atom_cls* seed)
 	
 	return tree;
 }
+unsigned int simulation::BondNum(unsigned int AN0, unsigned int AN1)
+{
+	unsigned int count = 0;
+	for_each(atom.begin(), atom.end(), [&count, AN0, AN1](atom_cls* a0)
+	{
+		if(a0->exists && a0->atomicN==AN0)
+			for_each(a0->bond.begin(), a0->bond.end(), [&count, AN1](atom_cls* a1)
+			{
+				if(a1->exists && a1->atomicN==AN1)
+					++count;
+				return;
+			});
+		return;
+	});
+	return count/2;
+}
+unsigned int simulation::BondNum(string SYM0, string SYM1)
+{
+	string sym[2] = {SYM0, SYM1};
+	unsigned int AN[2];
+	for(int a=0; a<2; ++a)
+	{
+		AN[a] = K::AtomicNumber(sym[a]);
+		if(AN[a]+1==0)
+		{
+			cerr << sym[a] << " was not recognized as an elemental symbol" << endl;
+			return 0;
+		}
+	}
+	return BondNum(AN[0],AN[1]);
+}
+
 //distance
 double simulation::RealDistance(coordinate a, coordinate b)
 {

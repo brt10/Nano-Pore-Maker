@@ -566,6 +566,9 @@ int testbench::Test(void)
 	{
 		cout << atomV.size() << "\tatoms in cluster" << endl;
 	});
+
+	cout << sim.BondNum("Si", "C") << "Si-C bonds" << endl;
+
 	sim.ClearData();	//advoid memory leaks
 	return 0;
 }
@@ -638,6 +641,32 @@ int testbench::DataHeader(void)
 				string sym = dataTag.substr(a+1,split-a-1);	//construct the symbol
 				a = split; 									//move the iterator along
 				data << '#' << sym;								//write to line
+				break;
+			}
+			case '(':	//number
+			{
+				unsigned int split;
+				unsigned int end;
+				string sym[2];
+
+				split = dataTag.find('-',a+1);
+				if(split == string::npos)	//if no '-'
+				{
+					cerr << "Unable to find splitting \'-\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
+				}
+				end = dataTag.find(')',a+1);
+				if(split == string::npos)	//if no terminal ')'
+				{
+					cerr << "Unable to find terminal \')\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
+				}
+
+				sym[0] = dataTag.substr(a+1,split-a-1);	//construct the symbol
+				sym[1] = dataTag.substr(split+1,end-split-1);	//construct the symbol
+				a = end;
+
+				data << sym[0] << '-' << sym[1];
 				break;
 			}
 			case 'D':
@@ -748,6 +777,32 @@ int testbench::DataLine(unsigned int f, double r)
 				//search for element in sim
 				data << sim.Atoms(sym);
 				
+				break;
+			}
+			case '(':	//bonds
+			{
+				unsigned int split;
+				unsigned int end;
+				string sym[2];
+
+				split = dataTag.find('-',a+1);
+				if(split == string::npos)	//if no '-'
+				{
+					cerr << "Unable to find splitting \'-\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
+				}
+				end = dataTag.find(')',a+1);
+				if(split == string::npos)	//if no terminal ')'
+				{
+					cerr << "Unable to find terminal \')\', continuing as if nothing had happened... (testbench::Dataline)" << endl;
+					break;
+				}
+
+				sym[0] = dataTag.substr(a+1,split-a-1);	//construct the symbol
+				sym[1] = dataTag.substr(split+1,end-split-1);	//construct the symbol
+				a = end;
+
+				data << sim.BondNum(sym[0], sym[1]);
 				break;
 			}
 			case 'D':	//density
