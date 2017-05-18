@@ -27,10 +27,8 @@ MKDIR = mkdir
 a: all
 c: clean
 r: remake
-all: Bootstrap $(O) $(B) $(TARGET)
+all: $(O) $(B) $(TARGET)
 
-Bootstrap:
-	module load gcc/4.9/2 || echo "No modules loaded"
 $(O):
 	$(MKDIR) -p $(O)
 $(B):
