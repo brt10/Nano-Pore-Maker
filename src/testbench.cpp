@@ -619,13 +619,17 @@ int testbench::DataHeader(void)
 		if(a>0) data << '\t';
 		switch(dataTag[a])
 		{
-			case 'C':
+			/*case 'C':
 			case 'c':
 				for(unsigned int p=0; p<poreNum+poreDistribute; ++p)
 				{
 					if(p>0) data << '\t';
 					data << "Coordinate " << p;
 				}
+				break;*/
+			case 'C':
+			case 'c':
+				data << "# of Clusters";
 				break;
 			case 'O':
 				data << "Out_File";
@@ -694,13 +698,13 @@ int testbench::DataHeader(void)
 			case 'r':
 				data << "Radius Used";
 				break;
-			case 'R':	//radii calculated
+			/*case 'R':	//radii calculated
 				for(unsigned int p=0; p<poreNum+poreDistribute; ++p)
 				{
 					if(p>0) data << '\t';
 					data << "Radius " << p;
 				}
-				break;
+				break;*/
 			case 'S':
 				data << "Scale_X\tScale_Y\tScale_Z";
 				break;
@@ -735,7 +739,7 @@ int testbench::DataLine(unsigned int f, double r)
 		if(a>0) data << '\t';
 		switch(dataTag[a])
 		{
-			case 'C':
+			/*case 'C':
 			case 'c':	//center of pore
 			{
 				unsigned int p;
@@ -759,7 +763,11 @@ int testbench::DataLine(unsigned int f, double r)
 					}
 				}
 				break;
-			}
+			}*/
+			case 'C':
+			case 'c':	//# of clusters
+				data << testSim.Cluster().size();
+				break;
 			case 'O':	//outfilename
 				data << outFilename;
 				break;
@@ -830,7 +838,7 @@ int testbench::DataLine(unsigned int f, double r)
 			case 'r':	//radius used
 				data << r;
 				break;
-			case 'R':	//radii calculated
+			/*case 'R':	//radii calculated
 			{
 				unsigned int p;
 				for(p=0; p<poreNum; ++p)
@@ -844,7 +852,7 @@ int testbench::DataLine(unsigned int f, double r)
 					data << RealRadius(poreDistCoord[p]);
 				}
 				break;
-			}
+			}*/
 			case 'S':	//fullscale
 				for(int b=0; b<3; b++)
 				{
@@ -1136,5 +1144,65 @@ int testbench::Setting(unsigned int distNum, double r)	//XXX put all singl setti
 		{
 			SettingLine(filename, poreDistCoord[p],r);
 		}
+	return 0;
+}
+int testbench::CreationFile(double r, const simulation& sim, unsigned int fileIndex)
+{
+	const string EXTENSION = ".crt";	//extension
+	unsigned int n,p;				//indexing
+	ofstream creation;			//file obj
+	string creationFilename;	//filename
+
+	creationFilename = CreateFilename()+EXTENSION;
+	creation.open(creationFilename.c_str());
+	if(creation.fail())
+	{
+		cerr << "Unable to open \"" << creationFilename << "\" for writing." << endl;
+		return 1;
+	}
+
+	//in_file
+	creation << "In_File\t" << inputFilename[fileIndex];
+	for(n=0; n<3; ++n)
+		creation << ' ' << fileScale[fileIndex][n];
+	//seed
+	creation << "Seed\t" << seed << '\n';
+	//center
+	for(p=0; p<poreNum; ++p)
+	{
+		creation << "Center\t";
+		for(n=0; n<3; ++n)
+			creation << ' ' << poreCoord;
+		creation << '\n';
+	}
+	//distribution
+	if(DistF == &testbench::Random)				creation << "Random";
+	if(DistF == &testbench::RandomNoOverlap)	creation << "Random_No_Overlap";
+	//if(DistF == &testbench::Distribute)		creation << "Distribute";
+	if(DistF != 0)								creation << ' ' << poreDistribute << ' ' << poreDistance << '\n';
+	//radius
+	creation << "Radius\t" << r << '\n';
+	//passivation
+	creation << "Passivation\t" << passivation << '\n';
+	//out_path
+	creation << "Out_Path\t" << path << '\n';
+	//out_file
+	creation << "Out_File\t" << customName << '\n';
+	//data_file
+	creation << "Data_File\t" << dataFilename << '\n';
+	//data_tag
+	creation << "Data_Tag\t" << dataTag << '\n';
+	//setting_Tag
+	creation << "Setting_Tag\t" << settingTag << '\n';
+	//setting_Path
+	creation << "Setting_Path\t" << settingPath << '\n';
+
+	/*//to be done:
+	string convention;
+	string delimiter;
+	string extension;
+	string outFilename;		//name of the vasp file
+	string settingFilename;	//the name of the settings file (suffixed to outfilename)*/
+
 	return 0;
 }

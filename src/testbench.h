@@ -136,6 +136,7 @@ class testbench
 		int SettingLine(string, coordinate, double);	//line of the setting file
 		int SettingHeader(string);				//header to the setting file
 		int Setting(unsigned, double);
+		int CreationFile(double, const simulation&, unsigned int);	//outputs simulation stuffs.... to a fancy file
 
 		// bool Conditions(void);	//returns true if meets conditions
 		// bool Output(void);		//output for counting files outputed..

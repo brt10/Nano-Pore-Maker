@@ -5,6 +5,12 @@ B	Bad Idea so given up on
 L	Low priority
 H	High priority
 
+FOR ____
+H	visualization for files for paper
+H	cluster options in data.
+H	FileName Obj (increment, etc.)
+H	check C-H bond lengths
+H	finish implimenting creation files...
 
 FOR THursday, 8/11
 H	bond type numbers
@@ -21,18 +27,18 @@ H	make certain taht sim::Mass() returns g
 ?	concider using maps to store element symbols, etc...
 H	have coordinate[] return referance to allow assignement
 H	test if incorrect element symbols are recognized as such.
-H	fully implement element map
+B	fully implement element map
 H	weigh value of element as a map vs vector, or at all... only use in readin, readout?
 L	error-catching on Closest()
 H	Move things out of testbench that should not be there (real radius, etc.)
-H	reserve spaces for atoms around major additions!
-H	remove iterators and make center required at low levels
+X	reserve spaces for atoms around major additions!
+X	remove iterators and make center required at low levels
 		or make default not const
 H	tidy up memory stuffs regarding passivating pores... no margin for error
 H	evidence pointing to double-passivation
 H	directional algorithm that path-finds to closest atom... faster than checking all?
 		relative coordinates also faster? 
-H	Ideally remove atoms after making pore...
+X	Ideally remove atoms after making pore...
 
 FOR TH 7/28
 

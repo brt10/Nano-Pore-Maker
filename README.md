@@ -82,14 +82,13 @@ out_extension <extension>
 
 data_tag [options] %<elementSymbol>% #<elementSymbol>#
 	Options:
-		c,C Center of pores
+		c,C # of Clusters
 		D	Density of the model in g/cm^3
 		E	Extension of the file
 		I	Input filename
 		O	Output filename
 		P	Passivation number (Delta#H)
 		p	path to output file
-		R	Radius caluclated from average distance to passivation (Angstroms)
 		r	radius used for making pores (Angstroms)
 		S	The Full scale of the model (filescale*scale)
 		%<elementSymbol>%	The percent of the element in model by number
